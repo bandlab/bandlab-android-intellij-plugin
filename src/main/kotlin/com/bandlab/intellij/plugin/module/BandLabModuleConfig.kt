@@ -17,6 +17,9 @@ sealed class BandLabModuleConfig(
         val applyComposePlugin: Boolean = false,
         val applyDaggerPlugin: Boolean = false,
         val applyDatabasePlugin: Boolean = false,
+        // Presented for generating dagger module, activity etc.
+        val daggerModuleName: String? = null,
+        val generateActivity: Boolean = false,
     ) : BandLabModuleConfig(path, name)
 
 }

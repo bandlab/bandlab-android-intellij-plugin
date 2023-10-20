@@ -33,6 +33,7 @@ class BandLabModuleBuilder : ModuleBuilder() {
 
     override fun commitModule(project: Project, model: ModifiableModuleModel?): Module? {
         BandLabModuleTemplate(project, moduleConfig).create()
+        //TODO See if we can sync gradle here
         return null
     }
 

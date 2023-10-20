@@ -33,10 +33,11 @@ class BandLabModuleTemplate(
     }
 
     private fun createTemplate() {
+        // Ex: /user/profile/edit-screen
         val modulePath = config.path + config.name
         when (config) {
             is BandLabModuleConfig.Kotlin -> createModule(
-                modulePath = modulePath,
+                moduleInfo = ModuleInfo(modulePath),
                 applyKotlinPlugin = true
             )
 
@@ -44,26 +45,28 @@ class BandLabModuleTemplate(
                 if (config.composeConvention) {
                     // Create feature:screen module
                     createModule(
-                        modulePath = "$modulePath/screen",
+                        moduleInfo = ModuleInfo("$modulePath/screen"),
                         applyAndroidPlugin = true,
                         applyComposePlugin = true,
                         applyDaggerPlugin = true,
-                        createManifest = true,
+                        daggerModuleName = config.daggerModuleName,
+                        generateActivity = config.generateActivity
                     )
 
                     // Create feature:ui module
                     createModule(
-                        modulePath = "$modulePath/ui",
+                        moduleInfo = ModuleInfo("$modulePath/ui"),
                         applyAndroidPlugin = true,
                         applyComposePlugin = true
                     )
                 } else {
                     createModule(
-                        modulePath = modulePath,
+                        moduleInfo = ModuleInfo(modulePath),
                         applyAndroidPlugin = true,
                         applyComposePlugin = config.applyComposePlugin,
                         applyDaggerPlugin = config.applyDaggerPlugin,
                         applyDatabasePlugin = config.applyDatabasePlugin,
+                        daggerModuleName = config.daggerModuleName
                     )
                 }
             }
@@ -71,18 +74,17 @@ class BandLabModuleTemplate(
     }
 
     private fun createModule(
-        modulePath: String,
+        moduleInfo: ModuleInfo,
         applyKotlinPlugin: Boolean = false,
         applyAndroidPlugin: Boolean = false,
         applyComposePlugin: Boolean = false,
         applyDaggerPlugin: Boolean = false,
         applyDatabasePlugin: Boolean = false,
-        createManifest: Boolean = false,
+        daggerModuleName: String? = null,
+        generateActivity: Boolean = false,
     ) {
-        val modulePackage = "com/bandlab" + modulePath.replace('-', '/')
-
         // Create the src folder
-        File(project.basePath + modulePath + "/src/main/kotlin/" + modulePackage).mkdirs()
+        File(project.basePath + moduleInfo.filesPath).mkdirs()
 
         // Create build.gradle.kts
         psiFileFactory.createFileFromText(
@@ -95,47 +97,48 @@ class BandLabModuleTemplate(
                 if (applyComposePlugin) appendPlugin("com.bandlab.compose")
                 if (applyDaggerPlugin) appendPlugin("com.bandlab.dagger")
                 if (applyDatabasePlugin) appendPlugin("com.bandlab.database")
-
-                appendLine(
-                    """
-                    }
-                    
-                    dependencies {
-                        
-                    }
-                    """.trimIndent()
-                )
+                appendLine("}")
+                appendLine()
+                appendLine("dependencies {")
+                appendLine("    ${if (generateActivity) "implementation(projects.auth.activities)" else ""}")
+                appendLine("}")
             }
-        ).addToPath(modulePath)
-
-        // Create the manifest file
-        if (createManifest) {
-            psiFileFactory.createFileFromText(
-                /* fileName = */ "AndroidManifest.xml",
-                /* fileType = */ XmlFileType.INSTANCE,
-                /* text = */ """
-                    <?xml version="1.0" encoding="utf-8"?>
-                    <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-
-                        <application>
-                            
-                        </application>
-                    </manifest>
-                """.trimIndent()
-            ).addToPath("$modulePath/src/main")
-        }
+        ).addToPath(moduleInfo.path)
 
         // Modify settings.gradle.kts
-        val settingsGradle = requireVirtualFile("/settings.gradle.kts")
-        val settingsGradlePsi = settingsGradle.toPsiFile(project)!!
+        modifySettingsGradleKts(moduleInfo)
 
-        val moduleRef = modulePath.replace('/', ':')
+        // Create the dagger module and expose the module to app
+        if (daggerModuleName != null) {
+            generateDaggerModule(
+                moduleInfo = moduleInfo,
+                name = daggerModuleName,
+                addActivityComponent = generateActivity
+            )
+        }
+
+        // Create the activity template
+        if (generateActivity) {
+            generateActivityTemplate(
+                moduleInfo = moduleInfo,
+                name = requireNotNull(daggerModuleName),
+            )
+        }
+    }
+
+    /**
+     *  Insert the new module in settings.gradle.kts, and sort the modules alphabetically.
+     */
+    private fun modifySettingsGradleKts(moduleInfo: ModuleInfo) {
+        val settingsGradle = requireVirtualFile("/settings.gradle.kts")
+        val settingsGradlePsi = requireNotNull(settingsGradle.toPsiFile(project))
+
         val document = requireNotNull(psiDocumentManager.getDocument(settingsGradlePsi))
         val currentText = document.text.trimEnd()
 
         val newText = buildString {
             appendLine(currentText)
-            appendLine("include(\"$moduleRef\")")
+            appendLine("include(\"${moduleInfo.reference}\")")
 
             val allModuleIdentifierIndex = indexOf(ALL_MODULE_IDENTIFIER)
             if (allModuleIdentifierIndex == -1) {
@@ -159,6 +162,133 @@ class BandLabModuleTemplate(
         settingsGradle.refresh(false, false)
     }
 
+    /**
+     *  Generate a Dagger module for the feature, and expose the module to the app-level graph.
+     */
+    private fun generateDaggerModule(
+        moduleInfo: ModuleInfo,
+        name: String,
+        addActivityComponent: Boolean
+    ) {
+        psiFileFactory.createFileFromText(
+            /* fileName = */ "${name}Module.kt",
+            /* fileType = */ KotlinFileType.INSTANCE,
+            /* text = */ buildString {
+                appendLine("package ${moduleInfo.packageToImport}")
+                appendLine()
+                if (addActivityComponent) {
+                    appendLine(
+                        """
+                        import dagger.Module
+                        import dagger.android.ContributesAndroidInjector
+
+                        @Module
+                        interface ${name}Module {
+
+                            @ContributesAndroidInjector(modules = [${name}ActivityModule::class])
+                            fun ${name.replaceFirstChar { it.lowercase() }}Activity(): ${name}Activity
+                        }
+
+                        @Module
+                        internal object ${name}ActivityModule {
+
+
+                        }
+                    """.trimIndent()
+                    )
+                } else {
+                    appendLine(
+                        """
+                        import dagger.Module
+
+                        @Module
+                        object ${name}Module
+                    """.trimIndent()
+                    )
+                }
+            }
+        ).addToPath(moduleInfo.filesPath)
+    }
+
+    /**
+     *  Generate an Activity that extends CommonActivity2, as well as the ViewModel and Manifest.
+     */
+    private fun generateActivityTemplate(
+        moduleInfo: ModuleInfo,
+        name: String,
+    ) {
+        // Create the Activity template
+        psiFileFactory.createFileFromText(
+            /* fileName = */ "${name}Activity.kt",
+            /* fileType = */ KotlinFileType.INSTANCE,
+            /* text = */ """
+            package ${moduleInfo.packageToImport}
+
+            import android.content.Context
+            import android.content.Intent
+            import android.os.Bundle
+            import com.bandlab.auth.activities.CommonActivity2
+            import com.bandlab.navigation.android.activityIntent
+            import com.bandlab.uikit.compose.activity.setContent
+            import javax.inject.Inject
+            
+            class ${name}Activity : CommonActivity2<Unit>() {
+            
+                @Inject internal lateinit var viewModel: ${name}ViewModel
+            
+                override fun parseRequiredParams(bundle: Bundle) = Unit
+            
+                override fun onCreate(isRestoring: Boolean) {
+                    setContent {
+                        
+                    }
+                }
+            
+                companion object {
+            
+                    fun buildIntent(context: Context): Intent {
+                        return activityIntent<${name}Activity>(context)
+                    }
+                }
+            }
+            """.trimIndent()
+        ).addToPath(moduleInfo.filesPath)
+
+        // Create the ViewModel template
+        psiFileFactory.createFileFromText(
+            /* fileName = */ "${name}ViewModel.kt",
+            /* fileType = */ KotlinFileType.INSTANCE,
+            /* text = */ """
+            package ${moduleInfo.packageToImport}
+
+            import javax.inject.Inject
+            
+            internal class ${name}ViewModel @Inject constructor(
+                
+            ) {
+                
+            }
+            """.trimIndent()
+        ).addToPath(moduleInfo.filesPath)
+
+        // Create the manifest file
+        psiFileFactory.createFileFromText(
+            /* fileName = */ "AndroidManifest.xml",
+            /* fileType = */ XmlFileType.INSTANCE,
+            /* text = */ """
+            <?xml version="1.0" encoding="utf-8"?>
+            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+            
+                <application>
+                    <activity
+                        android:name=".${name}Activity"
+                        android:configChanges="colorMode|density|fontScale|keyboard|keyboardHidden|layoutDirection|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode|fontWeightAdjustment" />
+                </application>
+            </manifest>
+            """.trimIndent()
+        ).addToPath("${moduleInfo.path}/src/main")
+    }
+
     private fun StringBuilder.appendPlugin(pluginId: String) {
         appendLine("    id(\"$pluginId\")")
     }
@@ -176,4 +306,26 @@ class BandLabModuleTemplate(
         const val ALL_MODULE_IDENTIFIER = "// All Modules"
         const val NEW_LINE = "\n"
     }
+}
+
+private data class ModuleInfo(
+    // Ex: /user/profile/edit-screen
+    val path: String,
+) {
+
+    // Ex: :user:profile:edit-screen
+    val reference: String
+        get() = path.replace('/', ':')
+
+    // Ex: com/bandlab/user/profile/edit/screen
+    val srcPackage: String
+        get() = "com/bandlab" + path.replace('-', '/')
+
+    // Ex: com.bandlab.user.profile.edit.screen
+    val packageToImport: String
+        get() = srcPackage.replace('/', '.')
+
+    // Ex: /user/profile/edit-screen/src/main/kotlin/com/bandlab/user/profile/edit/screen
+    val filesPath: String
+        get() = "$path/src/main/kotlin/$srcPackage"
 }

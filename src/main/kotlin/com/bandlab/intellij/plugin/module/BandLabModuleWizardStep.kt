@@ -1,7 +1,10 @@
+@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
+
 package com.bandlab.intellij.plugin.module
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
+import com.intellij.openapi.observable.util.whenTextChanged
 import com.intellij.openapi.options.ConfigurationException
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
@@ -9,6 +12,7 @@ import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.and
 import com.intellij.ui.layout.not
+import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
 import java.io.File
 import javax.swing.JComponent
@@ -21,6 +25,7 @@ class BandLabModuleWizardStep(
     // Inputs
     private lateinit var modulePathInput: JBTextField
     private lateinit var moduleNameInput: JBTextField
+    private lateinit var daggerModuleNameInput: JBTextField
 
     // Module type
     private lateinit var androidModuleButton: JBRadioButton
@@ -28,10 +33,12 @@ class BandLabModuleWizardStep(
 
     // Compose convention
     private lateinit var composeConventionCheckBox: JBCheckBox
+    private lateinit var generateActivityCheckBox: JBCheckBox
 
     // Plugins
     private lateinit var composePluginCheckBox: JBCheckBox
     private lateinit var daggerPluginCheckBox: JBCheckBox
+    private lateinit var generateDaggerModuleCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
 
     override fun getComponent(): JComponent = panel {
@@ -45,7 +52,7 @@ class BandLabModuleWizardStep(
             row {
                 modulePathInput = textField()
                     .label("Module Path:", LabelPosition.LEFT)
-                    .comment("Eg: \"user\" or \"user/profile\", empty to locate at root")
+                    .comment("Eg: \"user\" or \"user/profile\", empty to locate the module at root level")
                     .component
             }
 
@@ -82,10 +89,20 @@ class BandLabModuleWizardStep(
                 }
 
                 row {
-                    composeConventionCheckBox = checkBox("Create :screen and :ui modules").component
+                    composeConventionCheckBox = checkBox("Create :screen and :ui modules")
+                        .whenStateChangedFromUi { selected ->
+                            if (!selected) generateActivityCheckBox.isSelected = false
+                        }
+                        .component
                 }
+
+                row {
+                    generateActivityCheckBox = checkBox("Generate Activity template")
+                        .comment("Create empty Activity, ViewModel, and Manifest")
+                        .component
+                }.visibleIf(composeConventionCheckBox.selected)
             }
-                .enabledIf(androidModuleButton.selected)
+                .visibleIf(androidModuleButton.selected)
                 .topGap(TopGap.MEDIUM)
 
             group("Plugins") {
@@ -94,24 +111,67 @@ class BandLabModuleWizardStep(
                 }
 
                 row {
-                    daggerPluginCheckBox = checkBox("Apply Dagger plugin").component
+                    daggerPluginCheckBox = checkBox("Apply Dagger plugin")
+                        .whenStateChangedFromUi { selected ->
+                            if (!selected) generateDaggerModuleCheckBox.isSelected = false
+                        }
+                        .component
+                }
+
+                indent {
+                    row {
+                        generateDaggerModuleCheckBox = checkBox("Generate Dagger Module")
+                            .comment("Create a module and expose it to the app-level graph")
+                            .component
+                    }.visibleIf(daggerPluginCheckBox.selected)
                 }
 
                 row {
                     databasePluginCheckBox = checkBox("Apply Database plugin").component
                 }
             }
-                .enabledIf(composeConventionCheckBox.selected.not().and(androidModuleButton.selected))
+                .visibleIf(composeConventionCheckBox.selected.not().and(androidModuleButton.selected))
                 .topGap(TopGap.MEDIUM)
+
+            group("Dagger Module") {
+                row {
+                    daggerModuleNameInput = textField()
+                        .label("Name:", LabelPosition.LEFT)
+                        .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\"")
+                        .component
+                }
+            }
+                .visibleIf(composeConventionCheckBox.selected.or(generateDaggerModuleCheckBox.selected))
+                .topGap(TopGap.MEDIUM)
+
+            modulePathInput.whenTextChanged {
+                configureDaggerModuleName(path = modulePathInput.text, name = moduleNameInput.text)
+            }
+
+            moduleNameInput.whenTextChanged {
+                configureDaggerModuleName(path = modulePathInput.text, name = moduleNameInput.text)
+            }
         }
+    }
+
+    private fun configureDaggerModuleName(path: String, name: String) {
+        val pathCamelCase = path.split('/')
+            .filter { it.isNotBlank() }
+            .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+
+        val nameCamelCase = name.split('-')
+            .filter { it.isNotBlank() }
+            .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+
+        daggerModuleNameInput.text = pathCamelCase + nameCamelCase
     }
 
     override fun updateDataModel() {
         val modulePath = buildString {
             append(File.separatorChar)
             if (modulePathInput.text.isNotBlank()) {
-                append(modulePathInput.text.replace(':', File.separatorChar))
-                if (!endsWith(File.separatorChar)) append(File.separatorChar)
+                append(modulePathInput.text.replace(':', '/'))
+                if (!endsWith('/')) append('/')
             }
         }
         val moduleName = moduleNameInput.text
@@ -128,6 +188,8 @@ class BandLabModuleWizardStep(
                 applyComposePlugin = composePluginCheckBox.isSelected,
                 applyDaggerPlugin = daggerPluginCheckBox.isSelected,
                 applyDatabasePlugin = databasePluginCheckBox.isSelected,
+                daggerModuleName = daggerModuleNameInput.text,
+                generateActivity = generateActivityCheckBox.isSelected
             )
 
             else -> error("Non of the module type is selected.")
@@ -139,6 +201,9 @@ class BandLabModuleWizardStep(
     override fun validate(): Boolean {
         if (moduleNameInput.text.trim().isEmpty()) {
             throw ConfigurationException("Module Name cannot be empty")
+        }
+        if (daggerModuleNameInput.isVisible && daggerModuleNameInput.text.trim().isEmpty()) {
+            throw ConfigurationException("Dagger Module Name cannot be empty")
         }
         return true
     }
