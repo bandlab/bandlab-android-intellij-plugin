@@ -1,4 +1,4 @@
-package com.github.kevinguitar.bandlabandroidintellijplugin
+package com.bandlab.intellij.plugin
 
 import com.intellij.DynamicBundle
 import org.jetbrains.annotations.NonNls

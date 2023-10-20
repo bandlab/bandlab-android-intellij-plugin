@@ -1,9 +1,9 @@
-package com.github.kevinguitar.bandlabandroidintellijplugin.services
+package com.bandlab.intellij.plugin.services
 
+import com.bandlab.intellij.plugin.MyBundle
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
-import com.github.kevinguitar.bandlabandroidintellijplugin.MyBundle
 
 @Service(Service.Level.PROJECT)
 class MyProjectService(project: Project) {

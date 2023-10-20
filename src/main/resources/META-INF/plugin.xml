@@ -1,18 +1,18 @@
 <!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
 <idea-plugin>
-    <id>com.github.kevinguitar.bandlabandroidintellijplugin</id>
-    <name>bandlab-android-intellij-plugin Template</name>
+    <id>com.bandlab.intellij.plugin</id>
+    <name>BandLab Android Module Creation</name>
     <vendor>kevinguitar</vendor>
 
     <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
 
     <resource-bundle>messages.MyBundle</resource-bundle>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow factoryClass="com.github.kevinguitar.bandlabandroidintellijplugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
-    </extensions>
+        <toolWindow factoryClass="com.bandlab.intellij.plugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <moduleType implementationClass="com.bandlab.intellij.plugin.module.BandLabModuleType" id="bandlab_convention"/>
 
-    <applicationListeners>
-        <listener class="com.github.kevinguitar.bandlabandroidintellijplugin.listeners.MyApplicationActivationListener" topic="com.intellij.openapi.application.ApplicationActivationListener"/>
-    </applicationListeners>
+    </extensions>
 </idea-plugin>
