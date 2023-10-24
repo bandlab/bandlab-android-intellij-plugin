@@ -155,7 +155,7 @@ class BandLabModuleWizardStep(
     }
 
     private fun configureDaggerModuleName(path: String, name: String) {
-        val pathCamelCase = path.split('/')
+        val pathCamelCase = path.split('/', '-')
             .filter { it.isNotBlank() }
             .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
 

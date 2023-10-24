@@ -88,9 +88,9 @@ class BandLabModuleTemplate(
 
         // Create build.gradle.kts
         psiFileFactory.createFileFromText(
-            /* fileName = */ "build.gradle.kts",
-            /* fileType = */ KotlinFileType.INSTANCE,
-            /* text = */ buildString {
+            "build.gradle.kts",
+            KotlinFileType.INSTANCE,
+            buildString {
                 appendLine("plugins {")
                 if (applyKotlinPlugin) appendPlugin("com.bandlab.kotlin.library")
                 if (applyAndroidPlugin) appendPlugin("com.bandlab.android.library")
@@ -99,9 +99,9 @@ class BandLabModuleTemplate(
                 if (applyDatabasePlugin) appendPlugin("com.bandlab.database")
                 appendLine("}")
                 appendLine()
-                appendLine("dependencies {")
+                appendLine(DEPENDENCIES_START)
                 appendLine("    ${if (generateActivity) "implementation(projects.auth.activities)" else ""}")
-                appendLine("}")
+                appendLine(DEPENDENCIES_END)
             }
         ).addToPath(moduleInfo.path)
 
@@ -134,29 +134,31 @@ class BandLabModuleTemplate(
         val settingsGradlePsi = requireNotNull(settingsGradle.toPsiFile(project))
 
         val document = requireNotNull(psiDocumentManager.getDocument(settingsGradlePsi))
-        val currentText = document.text.trimEnd()
+        val currentText = document.text
 
         val newText = buildString {
             appendLine(currentText)
             appendLine("include(\"${moduleInfo.reference}\")")
 
-            val allModuleIdentifierIndex = indexOf(ALL_MODULE_IDENTIFIER)
-            if (allModuleIdentifierIndex == -1) {
-                throw RuntimeException("Can't find $ALL_MODULE_IDENTIFIER in settings.gradle.")
+            val allModulesIdentifier = "// All Modules"
+            val allModulesIndex = indexOf(allModulesIdentifier)
+            if (allModulesIndex == -1) {
+                throw RuntimeException("Can't find $allModulesIdentifier in settings.gradle.")
             }
 
             // Sort modules in settings.gradle.kts alphabetically
-            val modulesToSortIndex = indexOf(NEW_LINE, allModuleIdentifierIndex) + 1
-            val sortedModules = substring(modulesToSortIndex)
+            val modulesStartIndex = indexOf(NEW_LINE, allModulesIndex) + 1
+            val sortedModules = substring(modulesStartIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
+                .distinct()
                 .sorted()
                 .joinToString(NEW_LINE)
 
-            replace(modulesToSortIndex, lastIndex, sortedModules)
+            replace(modulesStartIndex, lastIndex, sortedModules)
         }
 
-        document.replaceString(0, document.textLength, newText)
+        document.replaceString(0, document.textLength, newText.trim())
 
         // Refresh the VirtualFile to reflect the changes
         settingsGradle.refresh(false, false)
@@ -170,10 +172,11 @@ class BandLabModuleTemplate(
         name: String,
         addActivityComponent: Boolean
     ) {
+        // Create the Dagger Module
         psiFileFactory.createFileFromText(
-            /* fileName = */ "${name}Module.kt",
-            /* fileType = */ KotlinFileType.INSTANCE,
-            /* text = */ buildString {
+            "${name}Module.kt",
+            KotlinFileType.INSTANCE,
+            buildString {
                 appendLine("package ${moduleInfo.packageToImport}")
                 appendLine()
                 if (addActivityComponent) {
@@ -208,6 +211,111 @@ class BandLabModuleTemplate(
                 }
             }
         ).addToPath(moduleInfo.filesPath)
+
+        // Expose the new module in the app module
+        exposeModuleToApp(moduleInfo)
+
+        // Link the new dagger module to app graph
+        linkDaggerModuleToAppGraph(moduleInfo, name)
+    }
+
+    private fun exposeModuleToApp(moduleInfo: ModuleInfo) {
+        val appGradle = requireVirtualFile("/app/build.gradle.kts")
+        val appGradlePsi = requireNotNull(appGradle.toPsiFile(project))
+
+        val document = requireNotNull(psiDocumentManager.getDocument(appGradlePsi))
+        val currentText = document.text
+
+        val newText = buildString {
+            appendLine(currentText)
+
+            val dependenciesIndex = indexOf(DEPENDENCIES_START)
+            if (dependenciesIndex == -1) {
+                throw RuntimeException("Can't find $DEPENDENCIES_START in /app/build.gradle.kts.")
+            }
+
+            // Sort modules in /app/build.gradle.kts alphabetically
+            val modulesToSortStartIndex = indexOf(NEW_LINE, dependenciesIndex) + 1
+            val modulesToSortEndIndex = indexOf(DEPENDENCIES_END, dependenciesIndex) - 1
+            val sortedModules = substring(modulesToSortStartIndex, modulesToSortEndIndex)
+                .split(NEW_LINE)
+                .filter { it.isNotBlank() }
+                .toMutableList()
+                .apply { add("    implementation(projects${moduleInfo.projectAccessorReference})") }
+                .distinct()
+                .sorted()
+                .joinToString(NEW_LINE)
+
+            replace(modulesToSortStartIndex, modulesToSortEndIndex, sortedModules)
+        }
+
+        document.replaceString(0, document.textLength, newText.trim())
+
+        // Refresh the VirtualFile to reflect the changes
+        appGradle.refresh(false, false)
+    }
+
+    private fun linkDaggerModuleToAppGraph(
+        moduleInfo: ModuleInfo,
+        name: String
+    ) {
+        val appComponent = requireVirtualFile("/app/src/main/kotlin/com/bandlab/bandlab/AppComponent.kt")
+        val appComponentPsi = requireNotNull(appComponent.toPsiFile(project))
+
+        val document = requireNotNull(psiDocumentManager.getDocument(appComponentPsi))
+        val currentText = document.text
+
+        val newText = buildString {
+            appendLine(currentText)
+
+            // Import the new module and sort the imports
+            val importIdentifier = "import "
+            val importStartIndex = indexOf(importIdentifier)
+            if (importStartIndex == -1) {
+                throw RuntimeException("Can't find import area in AppComponent.")
+            }
+
+            val importEndIndex = indexOf(NEW_LINE, lastIndexOf(importIdentifier))
+            val sortedImports = substring(importStartIndex, importEndIndex)
+                .split(NEW_LINE)
+                .filter { it.isNotBlank() }
+                .toMutableList()
+                .apply { add("import ${moduleInfo.packageToImport}.${name}Module") }
+                .distinct()
+                .sorted()
+                .joinToString(NEW_LINE)
+
+            replace(importStartIndex, importEndIndex, sortedImports)
+
+            // Sort modules in AppComponent alphabetically
+            val modulesIdentifier = "@Module(includes = ["
+            val modulesEndIdentifier = "])"
+            val includeModuleIndex = indexOf(modulesIdentifier)
+            if (includeModuleIndex == -1) {
+                throw RuntimeException("Can't find $modulesIdentifier in AppComponent.")
+            }
+
+            val modulesStartIndex = indexOf(NEW_LINE, includeModuleIndex) + 1
+            val modulesEndIndex = indexOf(modulesEndIdentifier, includeModuleIndex) - 1
+            val sortedModules = substring(modulesStartIndex, modulesEndIndex)
+                .split(NEW_LINE)
+                .filter { it.isNotBlank() }
+                .toMutableList()
+                .apply { add("    ${name}Module::class,") }
+                .distinct()
+                .sorted()
+                .joinToString(NEW_LINE) { module ->
+                    // Append the trailing comma if it's missing
+                    if (module.endsWith(',')) module else "$module,"
+                }
+
+            replace(modulesStartIndex, modulesEndIndex, sortedModules)
+        }
+
+        document.replaceString(0, document.textLength, newText.trim())
+
+        // Refresh the VirtualFile to reflect the changes
+        appComponent.refresh(false, false)
     }
 
     /**
@@ -219,9 +327,9 @@ class BandLabModuleTemplate(
     ) {
         // Create the Activity template
         psiFileFactory.createFileFromText(
-            /* fileName = */ "${name}Activity.kt",
-            /* fileType = */ KotlinFileType.INSTANCE,
-            /* text = */ """
+            "${name}Activity.kt",
+            KotlinFileType.INSTANCE,
+            """
             package ${moduleInfo.packageToImport}
 
             import android.content.Context
@@ -256,9 +364,9 @@ class BandLabModuleTemplate(
 
         // Create the ViewModel template
         psiFileFactory.createFileFromText(
-            /* fileName = */ "${name}ViewModel.kt",
-            /* fileType = */ KotlinFileType.INSTANCE,
-            /* text = */ """
+            "${name}ViewModel.kt",
+            KotlinFileType.INSTANCE,
+            """
             package ${moduleInfo.packageToImport}
 
             import javax.inject.Inject
@@ -273,9 +381,9 @@ class BandLabModuleTemplate(
 
         // Create the manifest file
         psiFileFactory.createFileFromText(
-            /* fileName = */ "AndroidManifest.xml",
-            /* fileType = */ XmlFileType.INSTANCE,
-            /* text = */ """
+            "AndroidManifest.xml",
+            XmlFileType.INSTANCE,
+            """
             <?xml version="1.0" encoding="utf-8"?>
             <manifest xmlns:android="http://schemas.android.com/apk/res/android">
             
@@ -303,10 +411,13 @@ class BandLabModuleTemplate(
     }
 
     private companion object {
-        const val ALL_MODULE_IDENTIFIER = "// All Modules"
+        const val DEPENDENCIES_START = "dependencies {"
+        const val DEPENDENCIES_END = "}"
         const val NEW_LINE = "\n"
     }
 }
+
+private val snakeRegex = "-[a-zA-Z]".toRegex()
 
 private data class ModuleInfo(
     // Ex: /user/profile/edit-screen
@@ -316,6 +427,12 @@ private data class ModuleInfo(
     // Ex: :user:profile:edit-screen
     val reference: String
         get() = path.replace('/', ':')
+
+    // Ex: user.profile.editScreen
+    val projectAccessorReference: String
+        get() = snakeRegex.replace(path.replace('/', '.')) {
+            it.value.replace("-", "").uppercase()
+        }
 
     // Ex: com/bandlab/user/profile/edit/screen
     val srcPackage: String
