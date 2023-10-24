@@ -87,6 +87,10 @@ class BandLabModuleTemplate(
         File(project.basePath + moduleInfo.filesPath).mkdirs()
 
         // Create build.gradle.kts
+        fun StringBuilder.appendPlugin(pluginId: String) {
+            appendLine("    id(\"$pluginId\")")
+        }
+
         psiFileFactory.createFileFromText(
             "build.gradle.kts",
             KotlinFileType.INSTANCE,
@@ -395,10 +399,6 @@ class BandLabModuleTemplate(
             </manifest>
             """.trimIndent()
         ).addToPath("${moduleInfo.path}/src/main")
-    }
-
-    private fun StringBuilder.appendPlugin(pluginId: String) {
-        appendLine("    id(\"$pluginId\")")
     }
 
     private fun PsiFile.addToPath(path: String) {

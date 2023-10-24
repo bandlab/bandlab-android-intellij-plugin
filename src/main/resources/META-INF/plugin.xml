@@ -8,6 +8,8 @@
     <depends>org.jetbrains.android</depends>
 
     <extensions defaultExtensionNs="com.android">
-        <moduleDescriptionProvider implementation="com.bandlab.intellij.plugin.module.BandLabModuleDescriptionProvider" id="bandlab_convention" />
+        <moduleDescriptionProvider
+                implementation="com.bandlab.intellij.plugin.module.BandLabModuleDescriptionProvider"
+                id="bandlab_convention"/>
     </extensions>
 </idea-plugin>
