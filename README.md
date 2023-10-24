@@ -25,6 +25,8 @@ Create modules easily with BandLab Android convention.
 - Sort dependencies automatically
 <!-- Plugin description end -->
 
+![Screenshot 2023-10-24 at 3 23 19 PM](https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/d5a5d1ed-f9ad-456c-916d-8cf336d4a741)
+
 ## Installation
 
 - Using the IDE built-in plugin system:
