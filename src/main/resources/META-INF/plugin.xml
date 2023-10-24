@@ -4,11 +4,10 @@
     <name>BandLab Android Convention</name>
     <vendor>kevinguitar</vendor>
 
-    <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.java</depends>
-    <depends>org.jetbrains.kotlin</depends>
+    <depends>org.jetbrains.android</depends>
 
-    <extensions defaultExtensionNs="com.intellij">
-        <moduleType implementationClass="com.bandlab.intellij.plugin.module.BandLabModuleType" id="bandlab_convention"/>
+    <extensions defaultExtensionNs="com.android">
+        <moduleDescriptionProvider implementation="com.bandlab.intellij.plugin.module.BandLabModuleDescriptionProvider" id="bandlab_convention" />
     </extensions>
 </idea-plugin>

@@ -195,7 +195,7 @@ class BandLabModuleTemplate(
                         @Module
                         internal object ${name}ActivityModule {
 
-
+                            
                         }
                     """.trimIndent()
                     )

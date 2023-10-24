@@ -2,10 +2,13 @@
 
 package com.bandlab.intellij.plugin.module
 
-import com.intellij.ide.util.projectWizard.ModuleWizardStep
-import com.intellij.ide.util.projectWizard.WizardContext
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.android.tools.idea.npw.template.BlankModel
+import com.android.tools.idea.observable.core.BoolValueProperty
+import com.android.tools.idea.observable.core.ObservableBool
+import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.intellij.openapi.observable.util.whenTextChanged
-import com.intellij.openapi.options.ConfigurationException
+import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
@@ -18,9 +21,9 @@ import java.io.File
 import javax.swing.JComponent
 
 class BandLabModuleWizardStep(
-    private val context: WizardContext,
-    private val updateConfig: (BandLabModuleConfig) -> Unit
-) : ModuleWizardStep() {
+    private val project: Project,
+    private val projectSyncInvoker: ProjectSyncInvoker
+) : SkippableWizardStep<BlankModel>(BlankModel(), "BandLab Convention") {
 
     // Inputs
     private lateinit var modulePathInput: JBTextField
@@ -40,6 +43,8 @@ class BandLabModuleWizardStep(
     private lateinit var daggerPluginCheckBox: JBCheckBox
     private lateinit var generateDaggerModuleCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
+
+    private val canCreate = BoolValueProperty(false)
 
     override fun getComponent(): JComponent = panel {
         indent {
@@ -164,9 +169,14 @@ class BandLabModuleWizardStep(
             .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
 
         daggerModuleNameInput.text = pathCamelCase + nameCamelCase
+        canCreate.set(name.isNotBlank())
     }
 
-    override fun updateDataModel() {
+    override fun canGoForward(): ObservableBool {
+        return canCreate
+    }
+
+    override fun onWizardFinished() {
         val modulePath = buildString {
             append(File.separatorChar)
             if (modulePathInput.text.isNotBlank()) {
@@ -175,9 +185,6 @@ class BandLabModuleWizardStep(
             }
         }
         val moduleName = moduleNameInput.text
-
-        context.projectName = moduleName
-        context.setProjectFileDirectory(modulePath)
 
         val moduleConfig = when {
             kotlinModuleButton.isSelected -> BandLabModuleConfig.Kotlin(path = modulePath, name = moduleName)
@@ -195,16 +202,10 @@ class BandLabModuleWizardStep(
             else -> error("Non of the module type is selected.")
         }
 
-        updateConfig(moduleConfig)
-    }
+        // Create and modify all the required files
+        BandLabModuleTemplate(project, moduleConfig).create()
 
-    override fun validate(): Boolean {
-        if (moduleNameInput.text.trim().isEmpty()) {
-            throw ConfigurationException("Module Name cannot be empty")
-        }
-        if (daggerModuleNameInput.isVisible && daggerModuleNameInput.text.trim().isEmpty()) {
-            throw ConfigurationException("Dagger Module Name cannot be empty")
-        }
-        return true
+        // Sync the project
+        projectSyncInvoker.syncProject(project)
     }
 }
