@@ -209,7 +209,7 @@ class BandLabModuleTemplate(
                         import dagger.Module
 
                         @Module
-                        object ${name}Module
+                        interface ${name}Module
                     """.trimIndent()
                     )
                 }
