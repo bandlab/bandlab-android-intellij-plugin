@@ -43,6 +43,8 @@ class BandLabModuleTemplate(
 
             is BandLabModuleConfig.Android -> {
                 if (config.composeConvention) {
+                    val uiModuleInfo = ModuleInfo("$modulePath/ui")
+
                     // Create feature:screen module
                     createModule(
                         moduleInfo = ModuleInfo("$modulePath/screen"),
@@ -50,12 +52,20 @@ class BandLabModuleTemplate(
                         applyComposePlugin = true,
                         applyDaggerPlugin = true,
                         daggerModuleName = config.daggerModuleName,
-                        generateActivity = config.generateActivity
+                        generateActivity = config.generateActivity,
+                        dependsOn = buildList {
+                            if (config.generateActivity) {
+                                // For CommonActivity2
+                                add("projects.auth.activities")
+                            }
+                            // Depends on the ui module where the composables located
+                            add(uiModuleInfo.projectAccessorReference)
+                        }
                     )
 
                     // Create feature:ui module
                     createModule(
-                        moduleInfo = ModuleInfo("$modulePath/ui"),
+                        moduleInfo = uiModuleInfo,
                         applyAndroidPlugin = true,
                         applyComposePlugin = true
                     )
@@ -82,6 +92,7 @@ class BandLabModuleTemplate(
         applyDatabasePlugin: Boolean = false,
         daggerModuleName: String? = null,
         generateActivity: Boolean = false,
+        dependsOn: List<String>? = null
     ) {
         // Create the src folder
         File(project.basePath + moduleInfo.filesPath).mkdirs()
@@ -104,7 +115,14 @@ class BandLabModuleTemplate(
                 appendLine("}")
                 appendLine()
                 appendLine(DEPENDENCIES_START)
-                appendLine("    ${if (generateActivity) "implementation(projects.auth.activities)" else ""}")
+                if (dependsOn != null) {
+                    dependsOn.forEach { dependency ->
+                        appendLine("    implementation($dependency)")
+                    }
+                } else {
+                    // Append indent
+                    appendLine("    ")
+                }
                 appendLine(DEPENDENCIES_END)
             }
         ).addToPath(moduleInfo.path)
@@ -245,7 +263,7 @@ class BandLabModuleTemplate(
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
                 .toMutableList()
-                .apply { add("    implementation(projects${moduleInfo.projectAccessorReference})") }
+                .apply { add("    implementation(${moduleInfo.projectAccessorReference})") }
                 .distinct()
                 .sorted()
                 .joinToString(NEW_LINE)
@@ -428,9 +446,9 @@ private data class ModuleInfo(
     val reference: String
         get() = path.replace('/', ':')
 
-    // Ex: user.profile.editScreen
+    // Ex: projects.user.profile.editScreen
     val projectAccessorReference: String
-        get() = snakeRegex.replace(path.replace('/', '.')) {
+        get() = "projects" + snakeRegex.replace(path.replace('/', '.')) {
             it.value.replace("-", "").uppercase()
         }
 
