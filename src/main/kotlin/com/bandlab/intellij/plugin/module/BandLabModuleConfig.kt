@@ -9,10 +9,19 @@ data class BandLabModuleConfig(
     val applyDaggerPlugin: Boolean = false,
     val applyDatabasePlugin: Boolean = false,
     // Presented for generating dagger module, activity etc.
-    val daggerModuleName: String? = null,
+    val daggerConfig: DaggerModuleConfig? = null,
     val generateActivity: Boolean = false,
 )
 
 enum class BandLabModuleType {
     Android, Kotlin
+}
+
+data class DaggerModuleConfig(
+    val name: String,
+    val exposure: DaggerModuleExposure
+)
+
+enum class DaggerModuleExposure {
+    None, AppComponent, MixEditor, MixEditorViewComponent
 }

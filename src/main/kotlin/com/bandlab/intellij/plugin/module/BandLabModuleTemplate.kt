@@ -45,7 +45,7 @@ class BandLabModuleTemplate(
                 type = BandLabModuleType.Android,
                 applyComposePlugin = true,
                 applyDaggerPlugin = true,
-                daggerModuleName = config.daggerModuleName,
+                daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
                     if (config.generateActivity) {
@@ -70,7 +70,7 @@ class BandLabModuleTemplate(
                 applyComposePlugin = config.applyComposePlugin,
                 applyDaggerPlugin = config.applyDaggerPlugin,
                 applyDatabasePlugin = config.applyDatabasePlugin,
-                daggerModuleName = config.daggerModuleName
+                daggerConfig = config.daggerConfig
             )
         }
     }
@@ -81,7 +81,7 @@ class BandLabModuleTemplate(
         applyComposePlugin: Boolean = false,
         applyDaggerPlugin: Boolean = false,
         applyDatabasePlugin: Boolean = false,
-        daggerModuleName: String? = null,
+        daggerConfig: DaggerModuleConfig? = null,
         generateActivity: Boolean = false,
         dependsOn: List<String>? = null
     ) {
@@ -124,10 +124,10 @@ class BandLabModuleTemplate(
         modifySettingsGradleKts(moduleInfo)
 
         // Create the dagger module and expose the module to app
-        if (daggerModuleName != null) {
+        if (daggerConfig != null) {
             generateDaggerModule(
                 moduleInfo = moduleInfo,
-                name = daggerModuleName,
+                daggerConfig = daggerConfig,
                 addActivityComponent = generateActivity
             )
         }
@@ -136,7 +136,7 @@ class BandLabModuleTemplate(
         if (generateActivity) {
             generateActivityTemplate(
                 moduleInfo = moduleInfo,
-                name = requireNotNull(daggerModuleName),
+                name = requireNotNull(daggerConfig?.name),
             )
         }
     }
@@ -162,7 +162,7 @@ class BandLabModuleTemplate(
             }
 
             // Sort modules in settings.gradle.kts alphabetically
-            val modulesStartIndex = indexOf(NEW_LINE, allModulesIndex) + 1
+            val modulesStartIndex = indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
             val sortedModules = substring(modulesStartIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
@@ -184,9 +184,11 @@ class BandLabModuleTemplate(
      */
     private fun generateDaggerModule(
         moduleInfo: ModuleInfo,
-        name: String,
+        daggerConfig: DaggerModuleConfig,
         addActivityComponent: Boolean
     ) {
+        val (name, exposure) = daggerConfig
+
         // Create the Dagger Module
         psiFileFactory.createFileFromText(
             "${name}Module.kt",
@@ -227,18 +229,41 @@ class BandLabModuleTemplate(
             }
         ).addToPath(moduleInfo.filesPath)
 
-        // Expose the new module in the app module
-        exposeModuleToApp(moduleInfo)
+        when (exposure) {
+            DaggerModuleExposure.None -> Unit
 
-        // Link the new dagger module to app graph
-        linkDaggerModuleToAppGraph(moduleInfo, name)
+            DaggerModuleExposure.AppComponent -> {
+                exposeModule(moduleInfo, destinationModule = "/app")
+                linkDaggerModuleToGraph(
+                    moduleInfo = moduleInfo,
+                    name = name,
+                    componentPath = "/app/src/main/kotlin/com/bandlab/bandlab/AppComponent.kt",
+                    modulesIdentifier = "@Module(includes = ["
+                )
+            }
+
+            DaggerModuleExposure.MixEditor -> exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
+
+            DaggerModuleExposure.MixEditorViewComponent -> {
+                exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
+                linkDaggerModuleToGraph(
+                    moduleInfo = moduleInfo,
+                    name = name,
+                    componentPath = "/mixeditor/legacy/src/main/java/com/bandlab/bandlab/feature/mixeditor/viewmodel/MixEditorViewComponent.kt",
+                    modulesIdentifier = "@MixEditorViewScope\n@Subcomponent(modules = ["
+                )
+            }
+        }
     }
 
-    private fun exposeModuleToApp(moduleInfo: ModuleInfo) {
-        val appGradle = requireVirtualFile("/app/build.gradle.kts")
-        val appGradlePsi = requireNotNull(appGradle.toPsiFile(project))
+    private fun exposeModule(
+        moduleInfo: ModuleInfo,
+        destinationModule: String,
+    ) {
+        val destGradle = requireVirtualFile("$destinationModule/build.gradle.kts")
+        val destGradlePsi = requireNotNull(destGradle.toPsiFile(project))
 
-        val document = requireNotNull(psiDocumentManager.getDocument(appGradlePsi))
+        val document = requireNotNull(psiDocumentManager.getDocument(destGradlePsi))
         val currentText = document.text
 
         val newText = buildString {
@@ -246,12 +271,12 @@ class BandLabModuleTemplate(
 
             val dependenciesIndex = indexOf(DEPENDENCIES_START)
             if (dependenciesIndex == -1) {
-                throw RuntimeException("Can't find $DEPENDENCIES_START in /app/build.gradle.kts.")
+                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/build.gradle.kts.")
             }
 
             // Sort modules in /app/build.gradle.kts alphabetically
             val modulesToSortStartIndex = indexOf(NEW_LINE, dependenciesIndex) + 1
-            val modulesToSortEndIndex = indexOf(DEPENDENCIES_END, dependenciesIndex) - 1
+            val modulesToSortEndIndex = indexOf(DEPENDENCIES_END, modulesToSortStartIndex) - 1
             val sortedModules = substring(modulesToSortStartIndex, modulesToSortEndIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
@@ -267,17 +292,19 @@ class BandLabModuleTemplate(
         document.replaceString(0, document.textLength, newText.trim())
 
         // Refresh the VirtualFile to reflect the changes
-        appGradle.refresh(false, false)
+        destGradle.refresh(false, false)
     }
 
-    private fun linkDaggerModuleToAppGraph(
+    private fun linkDaggerModuleToGraph(
         moduleInfo: ModuleInfo,
-        name: String
+        name: String,
+        componentPath: String,
+        modulesIdentifier: String,
     ) {
-        val appComponent = requireVirtualFile("/app/src/main/kotlin/com/bandlab/bandlab/AppComponent.kt")
-        val appComponentPsi = requireNotNull(appComponent.toPsiFile(project))
+        val component = requireVirtualFile(componentPath)
+        val componentPsi = requireNotNull(component.toPsiFile(project))
 
-        val document = requireNotNull(psiDocumentManager.getDocument(appComponentPsi))
+        val document = requireNotNull(psiDocumentManager.getDocument(componentPsi))
         val currentText = document.text
 
         val newText = buildString {
@@ -287,7 +314,7 @@ class BandLabModuleTemplate(
             val importIdentifier = "import "
             val importStartIndex = indexOf(importIdentifier)
             if (importStartIndex == -1) {
-                throw RuntimeException("Can't find import area in AppComponent.")
+                throw RuntimeException("Can't find import area.")
             }
 
             val importEndIndex = indexOf(NEW_LINE, lastIndexOf(importIdentifier))
@@ -302,16 +329,15 @@ class BandLabModuleTemplate(
 
             replace(importStartIndex, importEndIndex, sortedImports)
 
-            // Sort modules in AppComponent alphabetically
-            val modulesIdentifier = "@Module(includes = ["
+            // Sort modules alphabetically
             val modulesEndIdentifier = "])"
             val includeModuleIndex = indexOf(modulesIdentifier)
             if (includeModuleIndex == -1) {
-                throw RuntimeException("Can't find $modulesIdentifier in AppComponent.")
+                throw RuntimeException("Can't find $modulesIdentifier")
             }
 
-            val modulesStartIndex = indexOf(NEW_LINE, includeModuleIndex) + 1
-            val modulesEndIndex = indexOf(modulesEndIdentifier, includeModuleIndex) - 1
+            val modulesStartIndex = indexOf(NEW_LINE, includeModuleIndex + modulesIdentifier.length) + 1
+            val modulesEndIndex = indexOf(modulesEndIdentifier, modulesStartIndex) - 1
             val sortedModules = substring(modulesStartIndex, modulesEndIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
@@ -330,7 +356,7 @@ class BandLabModuleTemplate(
         document.replaceString(0, document.textLength, newText.trim())
 
         // Refresh the VirtualFile to reflect the changes
-        appComponent.refresh(false, false)
+        component.refresh(false, false)
     }
 
     /**

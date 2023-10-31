@@ -13,7 +13,6 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
-import com.intellij.ui.layout.and
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
@@ -43,6 +42,11 @@ class BandLabModuleWizardStep(
     private lateinit var daggerPluginCheckBox: JBCheckBox
     private lateinit var generateDaggerModuleCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
+
+    // Dagger module exposure
+    private lateinit var appModuleButton: JBRadioButton
+    private lateinit var meModuleButton: JBRadioButton
+    private lateinit var meViewModuleButton: JBRadioButton
 
     private val canCreate = BoolValueProperty(false)
 
@@ -133,9 +137,7 @@ class BandLabModuleWizardStep(
 
                 indent {
                     row {
-                        generateDaggerModuleCheckBox = checkBox("Generate Dagger Module")
-                            .comment("Create a module and expose it to the app-level graph")
-                            .component
+                        generateDaggerModuleCheckBox = checkBox("Generate Dagger Module").component
                     }.visibleIf(daggerPluginCheckBox.selected)
                 }
 
@@ -152,6 +154,30 @@ class BandLabModuleWizardStep(
                         .label("Name:", LabelPosition.LEFT)
                         .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\"")
                         .component
+                }
+
+                buttonsGroup {
+                    row {
+                        label("Expose the new dagger module to:")
+                    }
+
+                    row {
+                        appModuleButton = radioButton("AppComponent")
+                            .component
+                            .also { it.isSelected = true }
+                    }
+
+                    row {
+                        meModuleButton = radioButton("MixEditor")
+                            .comment("Before the MixEditor is initialized. (only add dependency to ME)")
+                            .component
+                    }
+
+                    row {
+                        meViewModuleButton = radioButton("MixEditorViewComponent")
+                            .comment("After the MixEditor is initialized.")
+                            .component
+                    }
                 }
             }
                 .visibleIf(composeConventionCheckBox.selected.or(generateDaggerModuleCheckBox.selected))
@@ -206,7 +232,17 @@ class BandLabModuleWizardStep(
             applyComposePlugin = composePluginCheckBox.isSelected,
             applyDaggerPlugin = daggerPluginCheckBox.isSelected,
             applyDatabasePlugin = databasePluginCheckBox.isSelected,
-            daggerModuleName = daggerModuleNameInput.text,
+            daggerConfig = daggerModuleNameInput.text.takeIf { it.isNotBlank() }?.let { name ->
+                DaggerModuleConfig(
+                    name = name,
+                    exposure = when {
+                        appModuleButton.isSelected -> DaggerModuleExposure.AppComponent
+                        meModuleButton.isSelected -> DaggerModuleExposure.MixEditor
+                        meViewModuleButton.isSelected -> DaggerModuleExposure.MixEditorViewComponent
+                        else -> DaggerModuleExposure.None
+                    }
+                )
+            },
             generateActivity = generateActivityCheckBox.isSelected
         )
 
