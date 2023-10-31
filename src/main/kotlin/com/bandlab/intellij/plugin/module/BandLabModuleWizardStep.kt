@@ -74,7 +74,15 @@ class BandLabModuleWizardStep(
                         .component
                         .also { it.isSelected = true }
 
-                    kotlinModuleButton = radioButton("Kotlin Module").component
+                    kotlinModuleButton = radioButton("Kotlin Module")
+                        .actionListener { _, component ->
+                            if (component.isSelected) {
+                                composeConventionCheckBox.isSelected = false
+                                composePluginCheckBox.isSelected = false
+                                generateActivityCheckBox.isSelected = false
+                            }
+                        }
+                        .component
                 }.topGap(TopGap.SMALL)
             }
 
@@ -113,7 +121,7 @@ class BandLabModuleWizardStep(
             group("Plugins") {
                 row {
                     composePluginCheckBox = checkBox("Apply Compose plugin").component
-                }
+                }.enabledIf(androidModuleButton.selected)
 
                 row {
                     daggerPluginCheckBox = checkBox("Apply Dagger plugin")
@@ -135,7 +143,7 @@ class BandLabModuleWizardStep(
                     databasePluginCheckBox = checkBox("Apply Database plugin").component
                 }
             }
-                .visibleIf(composeConventionCheckBox.selected.not().and(androidModuleButton.selected))
+                .visibleIf(composeConventionCheckBox.selected.not())
                 .topGap(TopGap.MEDIUM)
 
             group("Dagger Module") {
@@ -186,21 +194,21 @@ class BandLabModuleWizardStep(
         }
         val moduleName = moduleNameInput.text
 
-        val moduleConfig = when {
-            kotlinModuleButton.isSelected -> BandLabModuleConfig.Kotlin(path = modulePath, name = moduleName)
-            androidModuleButton.isSelected -> BandLabModuleConfig.Android(
-                path = modulePath,
-                name = moduleName,
-                composeConvention = composeConventionCheckBox.isSelected,
-                applyComposePlugin = composePluginCheckBox.isSelected,
-                applyDaggerPlugin = daggerPluginCheckBox.isSelected,
-                applyDatabasePlugin = databasePluginCheckBox.isSelected,
-                daggerModuleName = daggerModuleNameInput.text,
-                generateActivity = generateActivityCheckBox.isSelected
-            )
-
-            else -> error("Non of the module type is selected.")
-        }
+        val moduleConfig = BandLabModuleConfig(
+            type = when {
+                kotlinModuleButton.isSelected -> BandLabModuleType.Kotlin
+                androidModuleButton.isSelected -> BandLabModuleType.Android
+                else -> error("No module type is selected")
+            },
+            path = modulePath,
+            name = moduleName,
+            composeConvention = composeConventionCheckBox.isSelected,
+            applyComposePlugin = composePluginCheckBox.isSelected,
+            applyDaggerPlugin = daggerPluginCheckBox.isSelected,
+            applyDatabasePlugin = databasePluginCheckBox.isSelected,
+            daggerModuleName = daggerModuleNameInput.text,
+            generateActivity = generateActivityCheckBox.isSelected
+        )
 
         // Create and modify all the required files
         BandLabModuleTemplate(project, moduleConfig).create()

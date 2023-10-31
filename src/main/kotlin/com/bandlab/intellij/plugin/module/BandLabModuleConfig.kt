@@ -1,25 +1,18 @@
 package com.bandlab.intellij.plugin.module
 
-sealed class BandLabModuleConfig(
-    open val path: String,
-    open val name: String
-) {
+data class BandLabModuleConfig(
+    val type: BandLabModuleType,
+    val path: String,
+    val name: String,
+    val composeConvention: Boolean = false,
+    val applyComposePlugin: Boolean = false,
+    val applyDaggerPlugin: Boolean = false,
+    val applyDatabasePlugin: Boolean = false,
+    // Presented for generating dagger module, activity etc.
+    val daggerModuleName: String? = null,
+    val generateActivity: Boolean = false,
+)
 
-    class Kotlin(
-        override val path: String,
-        override val name: String,
-    ) : BandLabModuleConfig(path, name)
-
-    class Android(
-        override val path: String,
-        override val name: String,
-        val composeConvention: Boolean = false,
-        val applyComposePlugin: Boolean = false,
-        val applyDaggerPlugin: Boolean = false,
-        val applyDatabasePlugin: Boolean = false,
-        // Presented for generating dagger module, activity etc.
-        val daggerModuleName: String? = null,
-        val generateActivity: Boolean = false,
-    ) : BandLabModuleConfig(path, name)
-
+enum class BandLabModuleType {
+    Android, Kotlin
 }

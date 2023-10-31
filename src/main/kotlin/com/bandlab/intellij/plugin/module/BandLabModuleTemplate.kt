@@ -35,58 +35,49 @@ class BandLabModuleTemplate(
     private fun createTemplate() {
         // Ex: /user/profile/edit-screen
         val modulePath = config.path + config.name
-        when (config) {
-            is BandLabModuleConfig.Kotlin -> createModule(
-                moduleInfo = ModuleInfo(modulePath),
-                applyKotlinPlugin = true
+
+        if (config.composeConvention) {
+            val uiModuleInfo = ModuleInfo("$modulePath/ui")
+
+            // Create feature:screen module
+            createModule(
+                moduleInfo = ModuleInfo("$modulePath/screen"),
+                type = BandLabModuleType.Android,
+                applyComposePlugin = true,
+                applyDaggerPlugin = true,
+                daggerModuleName = config.daggerModuleName,
+                generateActivity = config.generateActivity,
+                dependsOn = buildList {
+                    if (config.generateActivity) {
+                        // For CommonActivity2
+                        add("projects.auth.activities")
+                    }
+                    // Depends on the ui module where the composables located
+                    add(uiModuleInfo.projectAccessorReference)
+                }
             )
 
-            is BandLabModuleConfig.Android -> {
-                if (config.composeConvention) {
-                    val uiModuleInfo = ModuleInfo("$modulePath/ui")
-
-                    // Create feature:screen module
-                    createModule(
-                        moduleInfo = ModuleInfo("$modulePath/screen"),
-                        applyAndroidPlugin = true,
-                        applyComposePlugin = true,
-                        applyDaggerPlugin = true,
-                        daggerModuleName = config.daggerModuleName,
-                        generateActivity = config.generateActivity,
-                        dependsOn = buildList {
-                            if (config.generateActivity) {
-                                // For CommonActivity2
-                                add("projects.auth.activities")
-                            }
-                            // Depends on the ui module where the composables located
-                            add(uiModuleInfo.projectAccessorReference)
-                        }
-                    )
-
-                    // Create feature:ui module
-                    createModule(
-                        moduleInfo = uiModuleInfo,
-                        applyAndroidPlugin = true,
-                        applyComposePlugin = true
-                    )
-                } else {
-                    createModule(
-                        moduleInfo = ModuleInfo(modulePath),
-                        applyAndroidPlugin = true,
-                        applyComposePlugin = config.applyComposePlugin,
-                        applyDaggerPlugin = config.applyDaggerPlugin,
-                        applyDatabasePlugin = config.applyDatabasePlugin,
-                        daggerModuleName = config.daggerModuleName
-                    )
-                }
-            }
+            // Create feature:ui module
+            createModule(
+                moduleInfo = uiModuleInfo,
+                type = BandLabModuleType.Android,
+                applyComposePlugin = true
+            )
+        } else {
+            createModule(
+                moduleInfo = ModuleInfo(modulePath),
+                type = config.type,
+                applyComposePlugin = config.applyComposePlugin,
+                applyDaggerPlugin = config.applyDaggerPlugin,
+                applyDatabasePlugin = config.applyDatabasePlugin,
+                daggerModuleName = config.daggerModuleName
+            )
         }
     }
 
     private fun createModule(
         moduleInfo: ModuleInfo,
-        applyKotlinPlugin: Boolean = false,
-        applyAndroidPlugin: Boolean = false,
+        type: BandLabModuleType,
         applyComposePlugin: Boolean = false,
         applyDaggerPlugin: Boolean = false,
         applyDatabasePlugin: Boolean = false,
@@ -107,8 +98,10 @@ class BandLabModuleTemplate(
             KotlinFileType.INSTANCE,
             buildString {
                 appendLine("plugins {")
-                if (applyKotlinPlugin) appendPlugin("com.bandlab.kotlin.library")
-                if (applyAndroidPlugin) appendPlugin("com.bandlab.android.library")
+                when (type) {
+                    BandLabModuleType.Kotlin -> appendPlugin("com.bandlab.kotlin.library")
+                    BandLabModuleType.Android -> appendPlugin("com.bandlab.android.library")
+                }
                 if (applyComposePlugin) appendPlugin("com.bandlab.compose")
                 if (applyDaggerPlugin) appendPlugin("com.bandlab.dagger")
                 if (applyDatabasePlugin) appendPlugin("com.bandlab.database")
