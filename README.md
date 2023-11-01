@@ -9,7 +9,7 @@
 - Sort dependencies automatically
 <!-- Plugin description end -->
 
-![Screenshot 2023-10-24 at 3 23 19 PM](https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/d5a5d1ed-f9ad-456c-916d-8cf336d4a741)
+<img width="1302" alt="Screenshot 2023-11-01 at 10 25 23 AM" src="https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/90275b6b-e0ca-4888-a288-f0c6fae36337">
 
 ## Installation
 
