@@ -47,6 +47,7 @@ class BandLabModuleWizardStep(
     private lateinit var appModuleButton: JBRadioButton
     private lateinit var meViewModuleButton: JBRadioButton
     private lateinit var meModuleButton: JBRadioButton
+    private lateinit var noneModuleButton: JBRadioButton
 
     private val canCreate = BoolValueProperty(false)
 
@@ -178,6 +179,10 @@ class BandLabModuleWizardStep(
                             .comment("Add dependency to ME, do not expose to any graph.")
                             .component
                     }
+
+                    row {
+                        meModuleButton = radioButton("None").component
+                    }
                 }
             }
                 .visibleIf(composeConventionCheckBox.selected.or(generateDaggerModuleCheckBox.selected))
@@ -239,6 +244,7 @@ class BandLabModuleWizardStep(
                         appModuleButton.isSelected -> DaggerModuleExposure.AppComponent
                         meViewModuleButton.isSelected -> DaggerModuleExposure.MixEditorViewComponent
                         meModuleButton.isSelected -> DaggerModuleExposure.MixEditor
+                        noneModuleButton.isSelected -> DaggerModuleExposure.None
                         else -> DaggerModuleExposure.None
                     }
                 )
