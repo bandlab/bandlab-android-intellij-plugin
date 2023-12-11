@@ -189,6 +189,18 @@ class BandLabModuleTemplate(
     ) {
         val (name, exposure) = daggerConfig
 
+        val scopeImport = when (exposure) {
+            DaggerModuleExposure.None -> null
+            DaggerModuleExposure.AppComponent -> "import com.bandlab.common.di.AppGraph"
+            DaggerModuleExposure.MixEditorViewComponent -> "import com.bandlab.common.di.MixEditorViewGraph"
+        }
+
+        val contributionImport = when (exposure) {
+            DaggerModuleExposure.None -> null
+            DaggerModuleExposure.AppComponent -> "@ContributesTo(AppGraph::class)"
+            DaggerModuleExposure.MixEditorViewComponent -> "@ContributesTo(MixEditorViewGraph::class)"
+        }
+
         // Create the Dagger Module
         psiFileFactory.createFileFromText(
             "${name}Module.kt",
@@ -196,13 +208,19 @@ class BandLabModuleTemplate(
             buildString {
                 appendLine("package ${moduleInfo.packageToImport}")
                 appendLine()
+                if (scopeImport != null) {
+                    appendLine(scopeImport)
+                    appendLine("import com.squareup.anvil.annotations.ContributesTo")
+                }
+                appendLine("import dagger.Module")
+
                 if (addActivityComponent) {
+                    appendLine("import dagger.android.ContributesAndroidInjector")
+                    appendLine()
+                    appendLine("@Module")
+                    contributionImport?.let(::appendLine)
                     appendLine(
                         """
-                        import dagger.Module
-                        import dagger.android.ContributesAndroidInjector
-
-                        @Module
                         interface ${name}Module {
 
                             @ContributesAndroidInjector(modules = [${name}ActivityModule::class])
@@ -217,14 +235,10 @@ class BandLabModuleTemplate(
                     """.trimIndent()
                     )
                 } else {
-                    appendLine(
-                        """
-                        import dagger.Module
-
-                        @Module
-                        interface ${name}Module
-                    """.trimIndent()
-                    )
+                    appendLine()
+                    appendLine("@Module")
+                    contributionImport?.let(::appendLine)
+                    appendLine("interface ${name}Module")
                 }
             }
         ).addToPath(moduleInfo.filesPath)
@@ -234,24 +248,10 @@ class BandLabModuleTemplate(
 
             DaggerModuleExposure.AppComponent -> {
                 exposeModule(moduleInfo, destinationModule = "/app")
-                linkDaggerModuleToGraph(
-                    moduleInfo = moduleInfo,
-                    name = name,
-                    componentPath = "/app/src/main/kotlin/com/bandlab/bandlab/AppComponent.kt",
-                    modulesIdentifier = "@Module(includes = ["
-                )
             }
-
-            DaggerModuleExposure.MixEditor -> exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
 
             DaggerModuleExposure.MixEditorViewComponent -> {
                 exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
-                linkDaggerModuleToGraph(
-                    moduleInfo = moduleInfo,
-                    name = name,
-                    componentPath = "/mixeditor/legacy/src/main/java/com/bandlab/bandlab/feature/mixeditor/viewmodel/MixEditorViewComponent.kt",
-                    modulesIdentifier = "@MixEditorViewScope\n@Subcomponent(modules = ["
-                )
             }
         }
     }
@@ -293,70 +293,6 @@ class BandLabModuleTemplate(
 
         // Refresh the VirtualFile to reflect the changes
         destGradle.refresh(false, false)
-    }
-
-    private fun linkDaggerModuleToGraph(
-        moduleInfo: ModuleInfo,
-        name: String,
-        componentPath: String,
-        modulesIdentifier: String,
-    ) {
-        val component = requireVirtualFile(componentPath)
-        val componentPsi = requireNotNull(component.toPsiFile(project))
-
-        val document = requireNotNull(psiDocumentManager.getDocument(componentPsi))
-        val currentText = document.text
-
-        val newText = buildString {
-            appendLine(currentText)
-
-            // Import the new module and sort the imports
-            val importIdentifier = "import "
-            val importStartIndex = indexOf(importIdentifier)
-            if (importStartIndex == -1) {
-                throw RuntimeException("Can't find import area.")
-            }
-
-            val importEndIndex = indexOf(NEW_LINE, lastIndexOf(importIdentifier))
-            val sortedImports = substring(importStartIndex, importEndIndex)
-                .split(NEW_LINE)
-                .filter { it.isNotBlank() }
-                .toMutableList()
-                .apply { add("import ${moduleInfo.packageToImport}.${name}Module") }
-                .distinct()
-                .sorted()
-                .joinToString(NEW_LINE)
-
-            replace(importStartIndex, importEndIndex, sortedImports)
-
-            // Sort modules alphabetically
-            val modulesEndIdentifier = "])"
-            val includeModuleIndex = indexOf(modulesIdentifier)
-            if (includeModuleIndex == -1) {
-                throw RuntimeException("Can't find $modulesIdentifier")
-            }
-
-            val modulesStartIndex = indexOf(NEW_LINE, includeModuleIndex + modulesIdentifier.length) + 1
-            val modulesEndIndex = indexOf(modulesEndIdentifier, modulesStartIndex) - 1
-            val sortedModules = substring(modulesStartIndex, modulesEndIndex)
-                .split(NEW_LINE)
-                .filter { it.isNotBlank() }
-                .toMutableList()
-                .apply { add("    ${name}Module::class,") }
-                .distinct()
-                .sorted()
-                .joinToString(NEW_LINE) { module ->
-                    // Append the trailing comma if it's missing
-                    if (module.endsWith(',')) module else "$module,"
-                }
-
-            replace(modulesStartIndex, modulesEndIndex, sortedModules)
-        }
-
-        document.replaceString(0, document.textLength, newText.trim())
-
-        // Refresh the VirtualFile to reflect the changes
-        component.refresh(false, false)
     }
 
     /**

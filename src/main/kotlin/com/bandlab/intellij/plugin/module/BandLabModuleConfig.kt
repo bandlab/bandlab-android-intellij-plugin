@@ -23,5 +23,5 @@ data class DaggerModuleConfig(
 )
 
 enum class DaggerModuleExposure {
-    None, AppComponent, MixEditor, MixEditorViewComponent
+    None, AppComponent, MixEditorViewComponent
 }

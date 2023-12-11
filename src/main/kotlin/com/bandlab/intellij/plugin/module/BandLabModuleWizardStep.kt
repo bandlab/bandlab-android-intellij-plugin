@@ -46,7 +46,6 @@ class BandLabModuleWizardStep(
     // Dagger module exposure
     private lateinit var appModuleButton: JBRadioButton
     private lateinit var meViewModuleButton: JBRadioButton
-    private lateinit var meModuleButton: JBRadioButton
     private lateinit var noneModuleButton: JBRadioButton
 
     private val canCreate = BoolValueProperty(false)
@@ -159,29 +158,23 @@ class BandLabModuleWizardStep(
 
                 buttonsGroup {
                     row {
-                        label("Expose the new dagger module to:")
+                        label("Contribute the new dagger module to:")
                     }
 
                     row {
-                        appModuleButton = radioButton("AppComponent")
+                        appModuleButton = radioButton("AppGraph")
                             .component
                             .also { it.isSelected = true }
                     }
 
                     row {
-                        meViewModuleButton = radioButton("MixEditorViewComponent")
+                        meViewModuleButton = radioButton("MixEditorViewGraph")
                             .comment("After the MixEditor is initialized.")
                             .component
                     }
 
                     row {
-                        meModuleButton = radioButton("MixEditor")
-                            .comment("Add dependency to ME, do not expose to any graph.")
-                            .component
-                    }
-
-                    row {
-                        meModuleButton = radioButton("None").component
+                        noneModuleButton = radioButton("None").component
                     }
                 }
             }
@@ -237,17 +230,18 @@ class BandLabModuleWizardStep(
             applyComposePlugin = composePluginCheckBox.isSelected,
             applyDaggerPlugin = daggerPluginCheckBox.isSelected,
             applyDatabasePlugin = databasePluginCheckBox.isSelected,
-            daggerConfig = daggerModuleNameInput.text.takeIf { it.isNotBlank() }?.let { name ->
+            daggerConfig = if (daggerPluginCheckBox.isSelected || composeConventionCheckBox.isSelected) {
                 DaggerModuleConfig(
-                    name = name,
+                    name = daggerModuleNameInput.text,
                     exposure = when {
                         appModuleButton.isSelected -> DaggerModuleExposure.AppComponent
                         meViewModuleButton.isSelected -> DaggerModuleExposure.MixEditorViewComponent
-                        meModuleButton.isSelected -> DaggerModuleExposure.MixEditor
                         noneModuleButton.isSelected -> DaggerModuleExposure.None
                         else -> DaggerModuleExposure.None
                     }
                 )
+            } else {
+                null
             },
             generateActivity = generateActivityCheckBox.isSelected
         )
