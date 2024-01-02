@@ -202,46 +202,25 @@ class BandLabModuleTemplate(
         }
 
         // Create the Dagger Module
-        psiFileFactory.createFileFromText(
-            "${name}Module.kt",
-            KotlinFileType.INSTANCE,
-            buildString {
-                appendLine("package ${moduleInfo.packageToImport}")
-                appendLine()
-                if (scopeImport != null) {
-                    appendLine(scopeImport)
-                    appendLine("import com.squareup.anvil.annotations.ContributesTo")
-                }
-                appendLine("import dagger.Module")
-
-                if (addActivityComponent) {
-                    appendLine("import dagger.android.ContributesAndroidInjector")
+        if (!addActivityComponent) {
+            psiFileFactory.createFileFromText(
+                "${name}Module.kt",
+                KotlinFileType.INSTANCE,
+                buildString {
+                    appendLine("package ${moduleInfo.packageToImport}")
                     appendLine()
-                    appendLine("@Module")
-                    contributionImport?.let(::appendLine)
-                    appendLine(
-                        """
-                        interface ${name}Module {
-
-                            @ContributesAndroidInjector(modules = [${name}ActivityModule::class])
-                            fun ${name.replaceFirstChar { it.lowercase() }}Activity(): ${name}Activity
-                        }
-
-                        @Module
-                        internal object ${name}ActivityModule {
-
-                            
-                        }
-                    """.trimIndent()
-                    )
-                } else {
+                    if (scopeImport != null) {
+                        appendLine(scopeImport)
+                        appendLine("import com.squareup.anvil.annotations.ContributesTo")
+                    }
+                    appendLine("import dagger.Module")
                     appendLine()
                     appendLine("@Module")
                     contributionImport?.let(::appendLine)
                     appendLine("interface ${name}Module")
                 }
-            }
-        ).addToPath(moduleInfo.filesPath)
+            ).addToPath(moduleInfo.filesPath)
+        }
 
         when (exposure) {
             DaggerModuleExposure.None -> Unit
@@ -312,11 +291,13 @@ class BandLabModuleTemplate(
             import android.content.Context
             import android.content.Intent
             import android.os.Bundle
+            import androidx.activity.compose.setContent
             import com.bandlab.auth.activities.CommonActivity2
+            import com.bandlab.common.android.di.ContributesInjector
             import com.bandlab.navigation.android.activityIntent
-            import com.bandlab.uikit.compose.activity.setContent
             import javax.inject.Inject
             
+            @ContributesInjector
             class ${name}Activity : CommonActivity2<Unit>() {
             
                 @Inject internal lateinit var viewModel: ${name}ViewModel
