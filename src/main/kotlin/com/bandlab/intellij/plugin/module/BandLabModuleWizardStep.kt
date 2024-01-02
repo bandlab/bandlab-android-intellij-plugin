@@ -230,7 +230,7 @@ class BandLabModuleWizardStep(
             applyComposePlugin = composePluginCheckBox.isSelected,
             applyDaggerPlugin = daggerPluginCheckBox.isSelected,
             applyDatabasePlugin = databasePluginCheckBox.isSelected,
-            daggerConfig = if (daggerPluginCheckBox.isSelected || composeConventionCheckBox.isSelected) {
+            daggerConfig = if (generateDaggerModuleCheckBox.isSelected || composeConventionCheckBox.isSelected) {
                 DaggerModuleConfig(
                     name = daggerModuleNameInput.text,
                     exposure = when {
