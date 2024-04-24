@@ -46,6 +46,8 @@ class BandLabModuleWizardStep(
     // Plugins
     private lateinit var composePluginCheckBox: JBCheckBox
     private lateinit var anvilPluginCheckBox: JBCheckBox
+    private lateinit var restApiPluginCheckBox: JBCheckBox
+    private lateinit var remoteConfigPluginCheckBox: JBCheckBox
     private lateinit var generateDaggerModuleCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
 
@@ -148,6 +150,14 @@ class BandLabModuleWizardStep(
                 }
 
                 row {
+                    restApiPluginCheckBox = checkBox("Apply Rest API plugin").component
+                }
+
+                row {
+                    remoteConfigPluginCheckBox = checkBox("Apply Remote Config plugin").component
+                }
+
+                row {
                     databasePluginCheckBox = checkBox("Apply Database plugin").component
                 }
             }
@@ -235,6 +245,8 @@ class BandLabModuleWizardStep(
             composeConvention = composeConventionCheckBox.isSelected,
             applyComposePlugin = composePluginCheckBox.isSelected,
             applyAnvilPlugin = anvilPluginCheckBox.isSelected,
+            applyRestApiPlugin = restApiPluginCheckBox.isSelected,
+            applyRemoteConfigPlugin = remoteConfigPluginCheckBox.isSelected,
             applyDatabasePlugin = databasePluginCheckBox.isSelected,
             daggerConfig = if (generateDaggerModuleCheckBox.isSelected || composeConventionCheckBox.isSelected) {
                 DaggerModuleConfig(

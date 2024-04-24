@@ -7,6 +7,8 @@ data class BandLabModuleConfig(
     val composeConvention: Boolean = false,
     val applyComposePlugin: Boolean = false,
     val applyAnvilPlugin: Boolean = false,
+    val applyRestApiPlugin: Boolean = false,
+    val applyRemoteConfigPlugin: Boolean = false,
     val applyDatabasePlugin: Boolean = false,
     // Presented for generating dagger module, activity etc.
     val daggerConfig: DaggerModuleConfig? = null,

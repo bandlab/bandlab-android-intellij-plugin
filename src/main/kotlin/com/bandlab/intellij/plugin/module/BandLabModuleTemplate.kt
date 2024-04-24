@@ -77,6 +77,8 @@ class BandLabModuleTemplate(
         type: BandLabModuleType,
         applyComposePlugin: Boolean = false,
         applyAnvilPlugin: Boolean = false,
+        applyRestApiPlugin: Boolean = false,
+        applyRemoteConfigPlugin: Boolean = false,
         applyDatabasePlugin: Boolean = false,
         daggerConfig: DaggerModuleConfig? = null,
         generateActivity: Boolean = false,
@@ -101,6 +103,8 @@ class BandLabModuleTemplate(
                 }
                 if (applyComposePlugin) appendPlugin("com.bandlab.compose")
                 if (applyAnvilPlugin) appendPlugin("com.bandlab.anvil")
+                if (applyRestApiPlugin) appendPlugin("com.bandlab.rest.api")
+                if (applyRemoteConfigPlugin) appendPlugin("com.bandlab.remote.config")
                 if (applyDatabasePlugin) appendPlugin("com.bandlab.database")
                 appendLine("}")
                 appendLine()
@@ -159,7 +163,8 @@ class BandLabModuleTemplate(
             }
 
             // Sort modules in settings.gradle.kts alphabetically
-            val modulesStartIndex = indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
+            val modulesStartIndex =
+                indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
             val sortedModules = substring(modulesStartIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
