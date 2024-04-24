@@ -12,13 +12,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.dsl.builder.BottomGap
-import com.intellij.ui.dsl.builder.DEFAULT_COMMENT_WIDTH
-import com.intellij.ui.dsl.builder.LabelPosition
-import com.intellij.ui.dsl.builder.TopGap
-import com.intellij.ui.dsl.builder.actionListener
-import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.dsl.builder.whenStateChangedFromUi
+import com.intellij.ui.dsl.builder.*
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
@@ -133,7 +127,9 @@ class BandLabModuleWizardStep(
             group("Plugins") {
                 row {
                     composePluginCheckBox = checkBox("Apply Compose plugin").component
-                }.enabledIf(androidModuleButton.selected)
+                }
+                    .enabledIf(androidModuleButton.selected)
+                    .visibleIf(composeConventionCheckBox.selected.not())
 
                 row {
                     anvilPluginCheckBox = checkBox("Apply Anvil plugin")
@@ -141,12 +137,12 @@ class BandLabModuleWizardStep(
                             if (!selected) generateDaggerModuleCheckBox.isSelected = false
                         }
                         .component
-                }
+                }.visibleIf(composeConventionCheckBox.selected.not())
 
                 indent {
                     row {
                         generateDaggerModuleCheckBox = checkBox("Generate Dagger Module").component
-                    }.visibleIf(anvilPluginCheckBox.selected)
+                    }.visible(anvilPluginCheckBox.isVisible && anvilPluginCheckBox.isSelected)
                 }
 
                 row {
@@ -160,9 +156,7 @@ class BandLabModuleWizardStep(
                 row {
                     databasePluginCheckBox = checkBox("Apply Database plugin").component
                 }
-            }
-                .visibleIf(composeConventionCheckBox.selected.not())
-                .topGap(TopGap.MEDIUM)
+            }.topGap(TopGap.MEDIUM)
 
             group("Dagger Module") {
                 row {

@@ -45,6 +45,9 @@ class BandLabModuleTemplate(
                 type = BandLabModuleType.Android,
                 applyComposePlugin = true,
                 applyAnvilPlugin = true,
+                applyRestApiPlugin = config.applyRestApiPlugin,
+                applyRemoteConfigPlugin = config.applyRemoteConfigPlugin,
+                applyDatabasePlugin = config.applyDatabasePlugin,
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
