@@ -2,7 +2,6 @@
 
 package com.bandlab.intellij.plugin.module
 
-import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.template.BlankModel
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
@@ -21,7 +20,6 @@ import javax.swing.JComponent
 
 class BandLabModuleWizardStep(
     private val project: Project,
-    private val projectSyncInvoker: ProjectSyncInvoker
 ) : SkippableWizardStep<BlankModel>(BlankModel(), "BandLab Convention") {
 
     // Inputs
@@ -260,8 +258,5 @@ class BandLabModuleWizardStep(
 
         // Create and modify all the required files
         BandLabModuleTemplate(project, moduleConfig).create()
-
-        // Sync the project
-        projectSyncInvoker.syncProject(project)
     }
 }
