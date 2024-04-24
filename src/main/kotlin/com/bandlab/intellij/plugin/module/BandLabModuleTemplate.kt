@@ -298,6 +298,7 @@ class BandLabModuleTemplate(
             import android.os.Bundle
             import androidx.activity.compose.setContent
             import com.bandlab.auth.activities.CommonActivity2
+            import com.bandlab.auth.activities.CommonActivityDependencies
             import com.bandlab.common.android.di.ContributesInjector
             import com.bandlab.navigation.android.activityIntent
             import javax.inject.Inject
@@ -305,7 +306,8 @@ class BandLabModuleTemplate(
             @ContributesInjector
             class ${name}Activity : CommonActivity2<Unit>() {
             
-                @Inject internal lateinit var viewModel: ${name}ViewModel
+                @Inject override lateinit var dependencies: CommonActivityDependencies
+                @Inject lateinit var viewModel: ${name}ViewModel
             
                 override fun parseRequiredParams(bundle: Bundle) = Unit
             
@@ -334,7 +336,7 @@ class BandLabModuleTemplate(
 
             import javax.inject.Inject
             
-            internal class ${name}ViewModel @Inject constructor(
+            class ${name}ViewModel @Inject constructor(
                 
             ) {
                 
