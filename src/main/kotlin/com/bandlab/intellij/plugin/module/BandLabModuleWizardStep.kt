@@ -12,6 +12,7 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.layout.and
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
@@ -140,7 +141,7 @@ class BandLabModuleWizardStep(
                 indent {
                     row {
                         generateDaggerModuleCheckBox = checkBox("Generate Dagger Module").component
-                    }.visible(anvilPluginCheckBox.isVisible && anvilPluginCheckBox.isSelected)
+                    }.visibleIf(composeConventionCheckBox.selected.not().and(anvilPluginCheckBox.selected))
                 }
 
                 row {
