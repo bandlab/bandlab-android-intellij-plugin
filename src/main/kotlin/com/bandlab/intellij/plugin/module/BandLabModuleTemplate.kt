@@ -44,7 +44,7 @@ class BandLabModuleTemplate(
                 moduleInfo = ModuleInfo("$modulePath/screen"),
                 type = BandLabModuleType.Android,
                 applyComposePlugin = true,
-                applyDaggerPlugin = true,
+                applyAnvilPlugin = true,
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
@@ -68,7 +68,7 @@ class BandLabModuleTemplate(
                 moduleInfo = ModuleInfo(modulePath),
                 type = config.type,
                 applyComposePlugin = config.applyComposePlugin,
-                applyDaggerPlugin = config.applyDaggerPlugin,
+                applyAnvilPlugin = config.applyAnvilPlugin,
                 applyDatabasePlugin = config.applyDatabasePlugin,
                 daggerConfig = config.daggerConfig
             )
@@ -79,7 +79,7 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         type: BandLabModuleType,
         applyComposePlugin: Boolean = false,
-        applyDaggerPlugin: Boolean = false,
+        applyAnvilPlugin: Boolean = false,
         applyDatabasePlugin: Boolean = false,
         daggerConfig: DaggerModuleConfig? = null,
         generateActivity: Boolean = false,
@@ -103,7 +103,7 @@ class BandLabModuleTemplate(
                     BandLabModuleType.Android -> appendPlugin("com.bandlab.android.library")
                 }
                 if (applyComposePlugin) appendPlugin("com.bandlab.compose")
-                if (applyDaggerPlugin) appendPlugin("com.bandlab.dagger")
+                if (applyAnvilPlugin) appendPlugin("com.bandlab.anvil")
                 if (applyDatabasePlugin) appendPlugin("com.bandlab.database")
                 appendLine("}")
                 appendLine()

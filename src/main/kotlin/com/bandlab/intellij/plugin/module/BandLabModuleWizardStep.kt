@@ -12,7 +12,13 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
-import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.dsl.builder.BottomGap
+import com.intellij.ui.dsl.builder.DEFAULT_COMMENT_WIDTH
+import com.intellij.ui.dsl.builder.LabelPosition
+import com.intellij.ui.dsl.builder.TopGap
+import com.intellij.ui.dsl.builder.actionListener
+import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.builder.whenStateChangedFromUi
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
@@ -39,7 +45,7 @@ class BandLabModuleWizardStep(
 
     // Plugins
     private lateinit var composePluginCheckBox: JBCheckBox
-    private lateinit var daggerPluginCheckBox: JBCheckBox
+    private lateinit var anvilPluginCheckBox: JBCheckBox
     private lateinit var generateDaggerModuleCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
 
@@ -128,7 +134,7 @@ class BandLabModuleWizardStep(
                 }.enabledIf(androidModuleButton.selected)
 
                 row {
-                    daggerPluginCheckBox = checkBox("Apply Dagger plugin")
+                    anvilPluginCheckBox = checkBox("Apply Anvil plugin")
                         .whenStateChangedFromUi { selected ->
                             if (!selected) generateDaggerModuleCheckBox.isSelected = false
                         }
@@ -138,7 +144,7 @@ class BandLabModuleWizardStep(
                 indent {
                     row {
                         generateDaggerModuleCheckBox = checkBox("Generate Dagger Module").component
-                    }.visibleIf(daggerPluginCheckBox.selected)
+                    }.visibleIf(anvilPluginCheckBox.selected)
                 }
 
                 row {
@@ -228,7 +234,7 @@ class BandLabModuleWizardStep(
             name = moduleName,
             composeConvention = composeConventionCheckBox.isSelected,
             applyComposePlugin = composePluginCheckBox.isSelected,
-            applyDaggerPlugin = daggerPluginCheckBox.isSelected,
+            applyAnvilPlugin = anvilPluginCheckBox.isSelected,
             applyDatabasePlugin = databasePluginCheckBox.isSelected,
             daggerConfig = if (generateDaggerModuleCheckBox.isSelected || composeConventionCheckBox.isSelected) {
                 DaggerModuleConfig(
