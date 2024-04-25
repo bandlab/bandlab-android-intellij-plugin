@@ -1,5 +1,6 @@
 package com.bandlab.intellij.plugin.module
 
+import com.bandlab.intellij.plugin.module.BandLabModuleConst.BUILD_GRADLE
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -98,7 +99,7 @@ class BandLabModuleTemplate(
         }
 
         psiFileFactory.createFileFromText(
-            "build.gradle.kts",
+            BUILD_GRADLE,
             KotlinFileType.INSTANCE,
             buildString {
                 appendLine("plugins {")
@@ -246,7 +247,7 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         destinationModule: String,
     ) {
-        val destGradle = requireVirtualFile("$destinationModule/build.gradle.kts")
+        val destGradle = requireVirtualFile("$destinationModule/$BUILD_GRADLE")
         val destGradlePsi = requireNotNull(destGradle.toPsiFile(project))
 
         val document = requireNotNull(psiDocumentManager.getDocument(destGradlePsi))
@@ -257,7 +258,7 @@ class BandLabModuleTemplate(
 
             val dependenciesIndex = indexOf(DEPENDENCIES_START)
             if (dependenciesIndex == -1) {
-                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/build.gradle.kts.")
+                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/$BUILD_GRADLE.")
             }
 
             // Sort modules in /app/build.gradle.kts alphabetically

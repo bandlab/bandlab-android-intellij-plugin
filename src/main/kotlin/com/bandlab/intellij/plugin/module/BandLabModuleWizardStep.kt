@@ -7,6 +7,7 @@ import com.android.tools.idea.npw.template.BlankModel
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.bandlab.intellij.plugin.module.BandLabModuleConst.BUILD_GRADLE
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.observable.util.whenTextChanged
@@ -269,8 +270,16 @@ class BandLabModuleWizardStep(
             .createNotification("Module $modulePath$moduleName is created", NotificationType.INFORMATION)
             .addActions(
                 setOf(
-                    BandLabModuleSyncAction(project, projectSyncInvoker),
-                    // TODO: Add create one more and edit build.gradle in the future
+                    BandLabModuleSyncAction(projectSyncInvoker),
+                    BandLabModuleEditFileAction(
+                        buttonText = "Edit $BUILD_GRADLE",
+                        filePath = if (composeConventionCheckBox.isSelected) {
+                            "$modulePath$moduleName/screen/$BUILD_GRADLE"
+                        } else {
+                            "$modulePath$moduleName/$BUILD_GRADLE"
+                        }
+                    )
+                    // TODO: Add create one more in the future
                 )
             )
             .notify(project)
