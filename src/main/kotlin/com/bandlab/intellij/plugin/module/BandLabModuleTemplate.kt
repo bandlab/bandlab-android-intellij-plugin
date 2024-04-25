@@ -69,6 +69,8 @@ class BandLabModuleTemplate(
                 type = config.type,
                 applyComposePlugin = config.applyComposePlugin,
                 applyAnvilPlugin = config.applyAnvilPlugin,
+                applyRestApiPlugin = config.applyRestApiPlugin,
+                applyRemoteConfigPlugin = config.applyRemoteConfigPlugin,
                 applyDatabasePlugin = config.applyDatabasePlugin,
                 daggerConfig = config.daggerConfig
             )
@@ -311,7 +313,7 @@ class BandLabModuleTemplate(
             
                 override fun parseRequiredParams(bundle: Bundle) = Unit
             
-                override fun onCreate(isRestoring: Boolean) {
+                override fun onCreate() {
                     setContent {
                         
                     }
