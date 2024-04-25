@@ -7,12 +7,16 @@ import com.android.tools.idea.npw.template.BlankModel
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.bandlab.intellij.plugin.module.BandLabModuleConst.BUILD_GRADLE
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.observable.util.whenTextChanged
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
+import com.intellij.ui.layout.and
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
@@ -21,7 +25,7 @@ import javax.swing.JComponent
 
 class BandLabModuleWizardStep(
     private val project: Project,
-    private val projectSyncInvoker: ProjectSyncInvoker
+    private val projectSyncInvoker: ProjectSyncInvoker,
 ) : SkippableWizardStep<BlankModel>(BlankModel(), "BandLab Convention") {
 
     // Inputs
@@ -39,7 +43,9 @@ class BandLabModuleWizardStep(
 
     // Plugins
     private lateinit var composePluginCheckBox: JBCheckBox
-    private lateinit var daggerPluginCheckBox: JBCheckBox
+    private lateinit var anvilPluginCheckBox: JBCheckBox
+    private lateinit var restApiPluginCheckBox: JBCheckBox
+    private lateinit var remoteConfigPluginCheckBox: JBCheckBox
     private lateinit var generateDaggerModuleCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
 
@@ -125,40 +131,48 @@ class BandLabModuleWizardStep(
             group("Plugins") {
                 row {
                     composePluginCheckBox = checkBox("Apply Compose plugin").component
-                }.enabledIf(androidModuleButton.selected)
+                }
+                    .enabledIf(androidModuleButton.selected)
+                    .visibleIf(composeConventionCheckBox.selected.not())
 
                 row {
-                    daggerPluginCheckBox = checkBox("Apply Dagger plugin")
+                    anvilPluginCheckBox = checkBox("Apply Anvil plugin")
                         .whenStateChangedFromUi { selected ->
                             if (!selected) generateDaggerModuleCheckBox.isSelected = false
                         }
                         .component
-                }
+                }.visibleIf(composeConventionCheckBox.selected.not())
 
                 indent {
                     row {
                         generateDaggerModuleCheckBox = checkBox("Generate Dagger Module").component
-                    }.visibleIf(daggerPluginCheckBox.selected)
+                    }.visibleIf(composeConventionCheckBox.selected.not().and(anvilPluginCheckBox.selected))
+                }
+
+                row {
+                    restApiPluginCheckBox = checkBox("Apply Rest API plugin").component
+                }
+
+                row {
+                    remoteConfigPluginCheckBox = checkBox("Apply Remote Config plugin").component
                 }
 
                 row {
                     databasePluginCheckBox = checkBox("Apply Database plugin").component
                 }
-            }
-                .visibleIf(composeConventionCheckBox.selected.not())
-                .topGap(TopGap.MEDIUM)
+            }.topGap(TopGap.MEDIUM)
 
-            group("Dagger Module") {
+            group("Feature Configuration") {
                 row {
                     daggerModuleNameInput = textField()
                         .label("Name:", LabelPosition.LEFT)
-                        .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\"")
+                        .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\" or \"Activity\"")
                         .component
                 }
 
                 buttonsGroup {
                     row {
-                        label("Contribute the new dagger module to:")
+                        label("Contribute the new module/ activity to:")
                     }
 
                     row {
@@ -228,7 +242,9 @@ class BandLabModuleWizardStep(
             name = moduleName,
             composeConvention = composeConventionCheckBox.isSelected,
             applyComposePlugin = composePluginCheckBox.isSelected,
-            applyDaggerPlugin = daggerPluginCheckBox.isSelected,
+            applyAnvilPlugin = anvilPluginCheckBox.isSelected,
+            applyRestApiPlugin = restApiPluginCheckBox.isSelected,
+            applyRemoteConfigPlugin = remoteConfigPluginCheckBox.isSelected,
             applyDatabasePlugin = databasePluginCheckBox.isSelected,
             daggerConfig = if (generateDaggerModuleCheckBox.isSelected || composeConventionCheckBox.isSelected) {
                 DaggerModuleConfig(
@@ -249,7 +265,23 @@ class BandLabModuleWizardStep(
         // Create and modify all the required files
         BandLabModuleTemplate(project, moduleConfig).create()
 
-        // Sync the project
-        projectSyncInvoker.syncProject(project)
+        NotificationGroupManager.getInstance()
+            .getNotificationGroup("BandLab Notification Group")
+            .createNotification("Module $modulePath$moduleName is created", NotificationType.INFORMATION)
+            .addActions(
+                setOf(
+                    BandLabModuleSyncAction(projectSyncInvoker),
+                    BandLabModuleEditFileAction(
+                        buttonText = "Edit $BUILD_GRADLE",
+                        filePath = if (composeConventionCheckBox.isSelected) {
+                            "$modulePath$moduleName/screen/$BUILD_GRADLE"
+                        } else {
+                            "$modulePath$moduleName/$BUILD_GRADLE"
+                        }
+                    )
+                    // TODO: Add create one more in the future
+                )
+            )
+            .notify(project)
     }
 }

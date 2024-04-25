@@ -1,5 +1,6 @@
 package com.bandlab.intellij.plugin.module
 
+import com.bandlab.intellij.plugin.module.BandLabModuleConst.BUILD_GRADLE
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
@@ -44,14 +45,14 @@ class BandLabModuleTemplate(
                 moduleInfo = ModuleInfo("$modulePath/screen"),
                 type = BandLabModuleType.Android,
                 applyComposePlugin = true,
-                applyDaggerPlugin = true,
+                applyAnvilPlugin = true,
+                applyRestApiPlugin = config.applyRestApiPlugin,
+                applyRemoteConfigPlugin = config.applyRemoteConfigPlugin,
+                applyDatabasePlugin = config.applyDatabasePlugin,
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
-                    if (config.generateActivity) {
-                        // For CommonActivity2
-                        add("projects.auth.activities")
-                    }
+                    add("projects.common.android.composeScreen")
                     // Depends on the ui module where the composables located
                     add(uiModuleInfo.projectAccessorReference)
                 }
@@ -68,7 +69,9 @@ class BandLabModuleTemplate(
                 moduleInfo = ModuleInfo(modulePath),
                 type = config.type,
                 applyComposePlugin = config.applyComposePlugin,
-                applyDaggerPlugin = config.applyDaggerPlugin,
+                applyAnvilPlugin = config.applyAnvilPlugin,
+                applyRestApiPlugin = config.applyRestApiPlugin,
+                applyRemoteConfigPlugin = config.applyRemoteConfigPlugin,
                 applyDatabasePlugin = config.applyDatabasePlugin,
                 daggerConfig = config.daggerConfig
             )
@@ -79,7 +82,9 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         type: BandLabModuleType,
         applyComposePlugin: Boolean = false,
-        applyDaggerPlugin: Boolean = false,
+        applyAnvilPlugin: Boolean = false,
+        applyRestApiPlugin: Boolean = false,
+        applyRemoteConfigPlugin: Boolean = false,
         applyDatabasePlugin: Boolean = false,
         daggerConfig: DaggerModuleConfig? = null,
         generateActivity: Boolean = false,
@@ -94,7 +99,7 @@ class BandLabModuleTemplate(
         }
 
         psiFileFactory.createFileFromText(
-            "build.gradle.kts",
+            BUILD_GRADLE,
             KotlinFileType.INSTANCE,
             buildString {
                 appendLine("plugins {")
@@ -103,7 +108,9 @@ class BandLabModuleTemplate(
                     BandLabModuleType.Android -> appendPlugin("com.bandlab.android.library")
                 }
                 if (applyComposePlugin) appendPlugin("com.bandlab.compose")
-                if (applyDaggerPlugin) appendPlugin("com.bandlab.dagger")
+                if (applyAnvilPlugin) appendPlugin("com.bandlab.anvil")
+                if (applyRestApiPlugin) appendPlugin("com.bandlab.rest.api")
+                if (applyRemoteConfigPlugin) appendPlugin("com.bandlab.remote.config")
                 if (applyDatabasePlugin) appendPlugin("com.bandlab.database")
                 appendLine("}")
                 appendLine()
@@ -162,7 +169,8 @@ class BandLabModuleTemplate(
             }
 
             // Sort modules in settings.gradle.kts alphabetically
-            val modulesStartIndex = indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
+            val modulesStartIndex =
+                indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
             val sortedModules = substring(modulesStartIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
@@ -189,20 +197,20 @@ class BandLabModuleTemplate(
     ) {
         val (name, exposure) = daggerConfig
 
-        val scopeImport = when (exposure) {
-            DaggerModuleExposure.None -> null
-            DaggerModuleExposure.AppComponent -> "import com.bandlab.common.di.AppGraph"
-            DaggerModuleExposure.MixEditorViewComponent -> "import com.bandlab.common.di.MixEditorViewGraph"
-        }
-
-        val contributionImport = when (exposure) {
-            DaggerModuleExposure.None -> null
-            DaggerModuleExposure.AppComponent -> "@ContributesTo(AppGraph::class)"
-            DaggerModuleExposure.MixEditorViewComponent -> "@ContributesTo(MixEditorViewGraph::class)"
-        }
-
         // Create the Dagger Module
         if (!addActivityComponent) {
+            val scopeImport = when (exposure) {
+                DaggerModuleExposure.None -> null
+                DaggerModuleExposure.AppComponent -> "import com.bandlab.common.di.AppGraph"
+                DaggerModuleExposure.MixEditorViewComponent -> "import com.bandlab.common.di.MixEditorViewGraph"
+            }
+
+            val contributionImport = when (exposure) {
+                DaggerModuleExposure.None -> null
+                DaggerModuleExposure.AppComponent -> "@ContributesTo(AppGraph::class)"
+                DaggerModuleExposure.MixEditorViewComponent -> "@ContributesTo(MixEditorViewGraph::class)"
+            }
+
             psiFileFactory.createFileFromText(
                 "${name}Module.kt",
                 KotlinFileType.INSTANCE,
@@ -239,7 +247,7 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         destinationModule: String,
     ) {
-        val destGradle = requireVirtualFile("$destinationModule/build.gradle.kts")
+        val destGradle = requireVirtualFile("$destinationModule/$BUILD_GRADLE")
         val destGradlePsi = requireNotNull(destGradle.toPsiFile(project))
 
         val document = requireNotNull(psiDocumentManager.getDocument(destGradlePsi))
@@ -250,7 +258,7 @@ class BandLabModuleTemplate(
 
             val dependenciesIndex = indexOf(DEPENDENCIES_START)
             if (dependenciesIndex == -1) {
-                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/build.gradle.kts.")
+                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/$BUILD_GRADLE.")
             }
 
             // Sort modules in /app/build.gradle.kts alphabetically
@@ -293,6 +301,7 @@ class BandLabModuleTemplate(
             import android.os.Bundle
             import androidx.activity.compose.setContent
             import com.bandlab.auth.activities.CommonActivity2
+            import com.bandlab.auth.activities.CommonActivityDependencies
             import com.bandlab.common.android.di.ContributesInjector
             import com.bandlab.navigation.android.activityIntent
             import javax.inject.Inject
@@ -300,11 +309,12 @@ class BandLabModuleTemplate(
             @ContributesInjector
             class ${name}Activity : CommonActivity2<Unit>() {
             
-                @Inject internal lateinit var viewModel: ${name}ViewModel
+                @Inject override lateinit var dependencies: CommonActivityDependencies
+                @Inject lateinit var viewModel: ${name}ViewModel
             
                 override fun parseRequiredParams(bundle: Bundle) = Unit
             
-                override fun onCreate(isRestoring: Boolean) {
+                override fun onCreate() {
                     setContent {
                         
                     }
@@ -329,7 +339,7 @@ class BandLabModuleTemplate(
 
             import javax.inject.Inject
             
-            internal class ${name}ViewModel @Inject constructor(
+            class ${name}ViewModel @Inject constructor(
                 
             ) {
                 
