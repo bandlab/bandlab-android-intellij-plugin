@@ -194,20 +194,20 @@ class BandLabModuleTemplate(
     ) {
         val (name, exposure) = daggerConfig
 
-        val scopeImport = when (exposure) {
-            DaggerModuleExposure.None -> null
-            DaggerModuleExposure.AppComponent -> "import com.bandlab.common.di.AppGraph"
-            DaggerModuleExposure.MixEditorViewComponent -> "import com.bandlab.common.di.MixEditorViewGraph"
-        }
-
-        val contributionImport = when (exposure) {
-            DaggerModuleExposure.None -> null
-            DaggerModuleExposure.AppComponent -> "@ContributesTo(AppGraph::class)"
-            DaggerModuleExposure.MixEditorViewComponent -> "@ContributesTo(MixEditorViewGraph::class)"
-        }
-
         // Create the Dagger Module
         if (!addActivityComponent) {
+            val scopeImport = when (exposure) {
+                DaggerModuleExposure.None -> null
+                DaggerModuleExposure.AppComponent -> "import com.bandlab.common.di.AppGraph"
+                DaggerModuleExposure.MixEditorViewComponent -> "import com.bandlab.common.di.MixEditorViewGraph"
+            }
+
+            val contributionImport = when (exposure) {
+                DaggerModuleExposure.None -> null
+                DaggerModuleExposure.AppComponent -> "@ContributesTo(AppGraph::class)"
+                DaggerModuleExposure.MixEditorViewComponent -> "@ContributesTo(MixEditorViewGraph::class)"
+            }
+
             psiFileFactory.createFileFromText(
                 "${name}Module.kt",
                 KotlinFileType.INSTANCE,

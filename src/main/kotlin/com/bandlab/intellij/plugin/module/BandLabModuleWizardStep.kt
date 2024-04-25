@@ -157,17 +157,17 @@ class BandLabModuleWizardStep(
                 }
             }.topGap(TopGap.MEDIUM)
 
-            group("Dagger Module") {
+            group("Feature Configuration") {
                 row {
                     daggerModuleNameInput = textField()
                         .label("Name:", LabelPosition.LEFT)
-                        .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\"")
+                        .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\" or \"Activity\"")
                         .component
                 }
 
                 buttonsGroup {
                     row {
-                        label("Contribute the new dagger module to:")
+                        label("Contribute the new module/ activity to:")
                     }
 
                     row {
