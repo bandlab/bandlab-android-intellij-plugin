@@ -12,4 +12,10 @@
                 implementation="com.bandlab.intellij.plugin.module.BandLabModuleDescriptionProvider"
                 id="bandlab_convention"/>
     </extensions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup
+                id="BandLab Notification Group"
+                displayType="BALLOON"/>
+    </extensions>
 </idea-plugin>

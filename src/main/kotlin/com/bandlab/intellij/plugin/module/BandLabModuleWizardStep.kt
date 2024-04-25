@@ -2,10 +2,13 @@
 
 package com.bandlab.intellij.plugin.module
 
+import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.template.BlankModel
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.observable.util.whenTextChanged
 import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBCheckBox
@@ -21,6 +24,7 @@ import javax.swing.JComponent
 
 class BandLabModuleWizardStep(
     private val project: Project,
+    private val projectSyncInvoker: ProjectSyncInvoker,
 ) : SkippableWizardStep<BlankModel>(BlankModel(), "BandLab Convention") {
 
     // Inputs
@@ -259,5 +263,16 @@ class BandLabModuleWizardStep(
 
         // Create and modify all the required files
         BandLabModuleTemplate(project, moduleConfig).create()
+
+        NotificationGroupManager.getInstance()
+            .getNotificationGroup("BandLab Notification Group")
+            .createNotification("Module $modulePath$moduleName is created", NotificationType.INFORMATION)
+            .addActions(
+                setOf(
+                    BandLabModuleSyncAction(project, projectSyncInvoker),
+                    // TODO: Add create one more and edit build.gradle in the future
+                )
+            )
+            .notify(project)
     }
 }
