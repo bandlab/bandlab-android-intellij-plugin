@@ -52,9 +52,9 @@ class BandLabModuleTemplate(
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
-                    // Expose ui module where the composables and test tags located
-                    add(Dependency.Api(uiModuleInfo.projectAccessorReference))
-                    add(Dependency.Impl("projects.common.android.composeScreen"))
+                    add("projects.common.android.composeScreen")
+                    // Depends on the ui module where the composables located
+                    add(uiModuleInfo.projectAccessorReference)
                 }
             )
 
@@ -88,7 +88,7 @@ class BandLabModuleTemplate(
         applyDatabasePlugin: Boolean = false,
         daggerConfig: DaggerModuleConfig? = null,
         generateActivity: Boolean = false,
-        dependsOn: List<Dependency>? = null
+        dependsOn: List<String>? = null
     ) {
         // Create the src folder
         File(project.basePath + moduleInfo.filesPath).mkdirs()
@@ -117,10 +117,7 @@ class BandLabModuleTemplate(
                 appendLine(DEPENDENCIES_START)
                 if (dependsOn != null) {
                     dependsOn.forEach { dependency ->
-                        when (dependency) {
-                            is Dependency.Api -> appendLine("    api($dependency)")
-                            is Dependency.Impl -> appendLine("    implementation($dependency)")
-                        }
+                        appendLine("    implementation($dependency)")
                     }
                 } else {
                     // Append indent
