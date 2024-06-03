@@ -1,5 +1,8 @@
+import dev.bmac.gradle.intellij.PluginUploader
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.intellij.tasks.SignPluginTask
+import java.util.Base64
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
@@ -11,6 +14,7 @@ plugins {
     alias(libs.plugins.changelog) // Gradle Changelog Plugin
     alias(libs.plugins.qodana) // Gradle Qodana Plugin
     alias(libs.plugins.kover) // Gradle Kover Plugin
+    alias(libs.plugins.plugin.uploader)
 }
 
 group = properties("pluginGroup").get()
@@ -83,7 +87,7 @@ tasks {
             val start = "<!-- Plugin description -->"
             val end = "<!-- Plugin description end -->"
 
-            with (it.lines()) {
+            with(it.lines()) {
                 if (!containsAll(listOf(start, end))) {
                     throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
                 }
@@ -120,12 +124,54 @@ tasks {
         password = environment("PRIVATE_KEY_PASSWORD")
     }
 
-    publishPlugin {
-        dependsOn("patchChangelog")
-        token = environment("PUBLISH_TOKEN")
-        // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
-        // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
-        // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels = properties("pluginVersion").map { listOf(it.split('-').getOrElse(1) { "default" }.split('.').first()) }
+    generateBlockMap.configure {
+        // Depend on either signPlugin or buildPlugin, depending on which task provides the file in the uploadPlugin
+        dependsOn(project.tasks.named("signPlugin"))
+    }
+
+    uploadPlugin.configure {
+        val signPluginTask = project.tasks.named<SignPluginTask>("signPlugin")
+        dependsOn(signPluginTask)
+        url.set("https://artifactory.bandlab.io/artifactory/intellij-idea-plugins/")
+        pluginName.set("Bandlab Android Intellij Plugin")
+        file.set(signPluginTask.flatMap { it.outputArchiveFile })
+        pluginId.set(project.group.toString())
+        version.set(project.version.toString())
+        repoType.set(PluginUploader.RepoType.REST_PUT)
+        authentication.set(
+            "Basic " + String(
+                Base64.getEncoder().encode(
+                    "${environment("PUBLISH_USER").get()}:${environment("PUBLISH_PASSWORD").get()}".encodeToByteArray()
+                )
+            )
+        )
+        pluginDescription.set(
+            providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
+                val start = "<!-- Plugin description -->"
+                val end = "<!-- Plugin description end -->"
+
+                with(it.lines()) {
+                    if (!containsAll(listOf(start, end))) {
+                        throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
+                    }
+                    subList(indexOf(start) + 1, indexOf(end)).joinToString("\n").let(::markdownToHTML)
+                }
+            }
+        )
+        val changelog = project.changelog
+        changeNotes.set(
+            properties("pluginVersion").map { pluginVersion ->
+                with(changelog) {
+                    renderItem(
+                        (getOrNull(pluginVersion) ?: getUnreleased())
+                            .withHeader(false)
+                            .withEmptySections(false),
+                        Changelog.OutputType.HTML,
+                    )
+                }
+            }
+        )
+        sinceBuild.set(properties("pluginSinceBuild"))
+        untilBuild.set(properties("pluginUntilBuild"))
     }
 }

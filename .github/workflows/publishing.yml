@@ -1,0 +1,47 @@
+name: Publish
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  build-and-pubslih:
+    env:
+      CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
+      PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+      PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
+      PUBLISH_USER: ${{ secrets.PUBLISH_USER }}
+      PUBLISH_PASSWORD: ${{ secrets.PUBLISH_PASSWORD }}
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.properties.outputs.version }}
+      changelog: ${{ steps.properties.outputs.changelog }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JVM
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: 17
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-home-cache-cleanup: true
+      - name: Export Properties
+        id: properties
+        shell: bash
+        run: |
+          PROPERTIES="$(./gradlew properties --console=plain -q)"
+          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
+          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
+
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Build
+        run: >
+          ./gradlew :signPlugin :uploadPlugin --no-configuration-cache
