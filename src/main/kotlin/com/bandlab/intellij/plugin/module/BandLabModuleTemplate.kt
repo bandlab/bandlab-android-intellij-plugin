@@ -95,7 +95,7 @@ class BandLabModuleTemplate(
 
         // Create build.gradle.kts
         fun StringBuilder.appendPlugin(pluginId: String) {
-            appendLine("    id(\"$pluginId\")")
+            appendLine("    alias($pluginId)")
         }
 
         psiFileFactory.createFileFromText(
@@ -104,14 +104,14 @@ class BandLabModuleTemplate(
             buildString {
                 appendLine("plugins {")
                 when (type) {
-                    BandLabModuleType.Kotlin -> appendPlugin("com.bandlab.kotlin.library")
-                    BandLabModuleType.Android -> appendPlugin("com.bandlab.android.library")
+                    BandLabModuleType.Kotlin -> appendPlugin("bandlab.plugins.library.kotlin")
+                    BandLabModuleType.Android -> appendPlugin("bandlab.plugins.library.android")
                 }
-                if (applyComposePlugin) appendPlugin("com.bandlab.compose")
-                if (applyAnvilPlugin) appendPlugin("com.bandlab.anvil")
-                if (applyRestApiPlugin) appendPlugin("com.bandlab.rest.api")
-                if (applyRemoteConfigPlugin) appendPlugin("com.bandlab.remote.config")
-                if (applyDatabasePlugin) appendPlugin("com.bandlab.database")
+                if (applyComposePlugin) appendPlugin("bandlab.plugins.compose")
+                if (applyAnvilPlugin) appendPlugin("bandlab.plugins.anvil")
+                if (applyRestApiPlugin) appendPlugin("bandlab.plugins.restApi")
+                if (applyRemoteConfigPlugin) appendPlugin("bandlab.plugins.remoteConfig")
+                if (applyDatabasePlugin) appendPlugin("bandlab.plugins.database")
                 appendLine("}")
                 appendLine()
                 appendLine(DEPENDENCIES_START)
