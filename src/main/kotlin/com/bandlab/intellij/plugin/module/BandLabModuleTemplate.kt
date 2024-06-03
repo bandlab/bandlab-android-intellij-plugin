@@ -52,7 +52,7 @@ class BandLabModuleTemplate(
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
-                    add("projects.common.android.composeScreen")
+                    add("projects.auth.activities")
                     // Depends on the ui module where the composables located
                     add(uiModuleInfo.projectAccessorReference)
                 }
