@@ -133,7 +133,7 @@ tasks {
         val signPluginTask = project.tasks.named<SignPluginTask>("signPlugin")
         dependsOn(signPluginTask)
         url.set("https://artifactory.bandlab.io/artifactory/intellij-idea-plugins/")
-        pluginName.set("bandlab-android-intellij-plugin")
+        pluginName.set("Bandlab Android Intellij Plugin")
         file.set(signPluginTask.flatMap { it.outputArchiveFile })
         pluginId.set(project.group.toString())
         version.set(project.version.toString())
@@ -145,7 +145,33 @@ tasks {
                 )
             )
         )
-        sinceBuild = properties("pluginSinceBuild")
-        untilBuild = properties("pluginUntilBuild")
+        pluginDescription.set(
+            providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
+                val start = "<!-- Plugin description -->"
+                val end = "<!-- Plugin description end -->"
+
+                with(it.lines()) {
+                    if (!containsAll(listOf(start, end))) {
+                        throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
+                    }
+                    subList(indexOf(start) + 1, indexOf(end)).joinToString("\n").let(::markdownToHTML)
+                }
+            }
+        )
+        val changelog = project.changelog
+        changeNotes.set(
+            properties("pluginVersion").map { pluginVersion ->
+                with(changelog) {
+                    renderItem(
+                        (getOrNull(pluginVersion) ?: getUnreleased())
+                            .withHeader(false)
+                            .withEmptySections(false),
+                        Changelog.OutputType.HTML,
+                    )
+                }
+            }
+        )
+        sinceBuild.set(properties("pluginSinceBuild"))
+        untilBuild.set(properties("pluginUntilBuild"))
     }
 }
