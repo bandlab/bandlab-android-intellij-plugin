@@ -130,9 +130,8 @@ tasks {
     }
 
     uploadPlugin.configure {
-        dependsOn(project.tasks.named("signPlugin"))
-        dependsOn(project.tasks.named("generateBlockMap"))
         val signPluginTask = project.tasks.named<SignPluginTask>("signPlugin")
+        dependsOn(signPluginTask)
         url.set("https://artifactory.bandlab.io/artifactory/intellij-idea-plugins/")
         pluginName.set("bandlab-android-intellij-plugin")
         file.set(signPluginTask.flatMap { it.outputArchiveFile })
@@ -142,7 +141,7 @@ tasks {
         authentication.set(
             "Basic " + String(
                 Base64.getEncoder().encode(
-                    "${environment("PUBLISH_USER")}:${environment("PUBLISH_PASSWORD")}".encodeToByteArray()
+                    "${environment("PUBLISH_USER").get()}:${environment("PUBLISH_PASSWORD").get()}".encodeToByteArray()
                 )
             )
         )
