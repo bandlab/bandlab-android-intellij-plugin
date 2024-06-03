@@ -42,4 +42,4 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
       - name: Build
         run: >
-          ./gradlew :signPlugin :uploadPlugin
+          ./gradlew :signPlugin :uploadPlugin --no-configuration-cache
