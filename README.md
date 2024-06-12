@@ -13,9 +13,11 @@
 
 ## Installation
 
-Add the following URL to [your plugin configuration](https://www.jetbrains.com/help/idea/managing-plugins.html#add_plugin_repos).
-And search for "BandLab", you'll see our shiny plugin!
+Add the following URL to [your plugin configuration](https://www.jetbrains.com/help/idea/managing-plugins.html#add_plugin_repos) 
+and search for "BandLab", you'll see our shiny plugin!
+```
 https://artifactory.bandlab.io/artifactory/intellij-idea-plugins/updatePlugins.xml
+```
 
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
