@@ -13,8 +13,9 @@
 
 ## Installation
 
-Download the [latest release](https://github.com/bandlab/bandlab-android-intellij-plugin/releases/latest) and install it manually using
-<kbd>Settings/Preferences</kbd> > <kbd>Plugins</kbd> > <kbd>⚙️</kbd> > <kbd>Install plugin from disk...</kbd>
+Add the following URL to [your plugin configuration](https://www.jetbrains.com/help/idea/managing-plugins.html#add_plugin_repos).
+And search for "BandLab", you'll see our shiny plugin!
+https://artifactory.bandlab.io/artifactory/intellij-idea-plugins/updatePlugins.xml
 
 ---
 Plugin based on the [IntelliJ Platform Plugin Template][template].
