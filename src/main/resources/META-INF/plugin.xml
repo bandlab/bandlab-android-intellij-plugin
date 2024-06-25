@@ -2,7 +2,7 @@
 <idea-plugin>
     <id>com.bandlab.intellij.plugin</id>
     <name>BandLab Android Convention</name>
-    <vendor>kevinguitar</vendor>
+    <vendor>BandLab</vendor>
 
     <depends>com.intellij.java</depends>
     <depends>org.jetbrains.android</depends>
