@@ -52,7 +52,7 @@ class BandLabModuleTemplate(
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
-                    add("projects.auth.activities")
+                    add("projects.common.android.screen")
                     // Depends on the ui module where the composables located
                     add(uiModuleInfo.projectAccessorReference)
                 }
@@ -169,8 +169,7 @@ class BandLabModuleTemplate(
             }
 
             // Sort modules in settings.gradle.kts alphabetically
-            val modulesStartIndex =
-                indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
+            val modulesStartIndex = indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
             val sortedModules = substring(modulesStartIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
@@ -300,8 +299,8 @@ class BandLabModuleTemplate(
             import android.content.Intent
             import android.os.Bundle
             import androidx.activity.compose.setContent
-            import com.bandlab.auth.activities.CommonActivity2
-            import com.bandlab.auth.activities.CommonActivityDependencies
+            import com.bandlab.android.common.activity.CommonActivity2
+            import com.bandlab.android.common.activity.CommonActivityDependencies
             import com.bandlab.common.android.di.ContributesInjector
             import com.bandlab.navigation.android.activityIntent
             import javax.inject.Inject
