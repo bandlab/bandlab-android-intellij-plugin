@@ -2,6 +2,19 @@
 
 # bandlab-android-intellij-plugin Changelog
 
-## [Unreleased]
+## Unreleased
+
 ### Added
-- Initial scaffold created from [IntelliJ Platform Plugin Template](https://github.com/JetBrains/intellij-platform-plugin-template)
+
+- Automation: Create robot pattern template (#60)
+- Marketplace: Add the plugin icon + update vendor name (#59)
+
+### Changed
+
+- Module convention update (#59)
+
+## [1.3.0] - 2024-06-03
+
+### Added
+
+- Integrate plugin publishing lib (#53)
