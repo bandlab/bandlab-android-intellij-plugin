@@ -7,9 +7,15 @@
 - Opt-in the compose convention for new features
 - Generate Dagger module and expose to App or MixEditor
 - Sort dependencies automatically
-<!-- Plugin description end -->
 
 ![Screenshot 2024-04-25 at 11 29 28 AM](https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/23663c05-1cbd-4e85-8791-7f9049ba8ce0)
+
+## Create Automation file templates
+Create Robot, Semantics and Verifier templates to align with our automation test convention.
+
+![Screenshot 2024-06-26 at 11 39 08 AM](https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/d8feac11-521e-4fea-8c91-d0223d498bd5)
+
+<!-- Plugin description end -->
 
 ## Installation
 
