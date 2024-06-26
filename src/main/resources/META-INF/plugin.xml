@@ -18,4 +18,11 @@
                 id="BandLab Notification Group"
                 displayType="BALLOON"/>
     </extensions>
+
+    <actions>
+        <action id="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction"
+                class="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction" text="Automation">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
+        </action>
+    </actions>
 </idea-plugin>
