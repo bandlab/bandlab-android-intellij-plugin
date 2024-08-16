@@ -2,7 +2,7 @@ import dev.bmac.gradle.intellij.PluginUploader
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.tasks.SignPluginTask
-import java.util.Base64
+import java.util.*
 
 fun properties(key: String) = providers.gradleProperty(key)
 fun environment(key: String) = providers.environmentVariable(key)
@@ -44,6 +44,8 @@ intellij {
     pluginName = properties("pluginName")
     version = properties("platformVersion")
     type = properties("platformType")
+    // Do not specific the until build version
+    updateSinceUntilBuild.set(false)
 
     // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file.
     plugins = properties("platformPlugins").map { it.split(',').map(String::trim).filter(String::isNotEmpty) }
