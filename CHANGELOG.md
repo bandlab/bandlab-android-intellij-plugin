@@ -2,7 +2,19 @@
 
 # bandlab-android-intellij-plugin Changelog
 
-## Unreleased
+## [1.4.2] - 2024-08-16
+
+### Changed
+
+- Do not specify until build to allow all future IDE versions
+
+## [1.4.1] - 2024-07-10
+
+### Changed
+
+- Remove locale from configChanges (#64)
+
+## [1.4.0] - 2024-06-26
 
 ### Added
 
