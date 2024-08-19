@@ -5,14 +5,20 @@ data class BandLabModuleConfig(
     val path: String,
     val name: String,
     val composeConvention: Boolean = false,
-    val applyComposePlugin: Boolean = false,
-    val applyAnvilPlugin: Boolean = false,
-    val applyRestApiPlugin: Boolean = false,
-    val applyRemoteConfigPlugin: Boolean = false,
-    val applyDatabasePlugin: Boolean = false,
+    val plugins: ModulePlugins,
     // Presented for generating dagger module, activity etc.
     val daggerConfig: DaggerModuleConfig? = null,
     val generateActivity: Boolean = false,
+)
+
+data class ModulePlugins(
+    val compose: Boolean = false,
+    val anvil: Boolean = false,
+    val restApi: Boolean = false,
+    val remoteConfig: Boolean = false,
+    val preferenceConfig: Boolean = false,
+    val database: Boolean = false,
+    val testFixtures: Boolean = false
 )
 
 enum class BandLabModuleType {
