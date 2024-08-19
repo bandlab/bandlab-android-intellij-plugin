@@ -44,11 +44,7 @@ class BandLabModuleTemplate(
             createModule(
                 moduleInfo = ModuleInfo("$modulePath/screen"),
                 type = BandLabModuleType.Android,
-                applyComposePlugin = true,
-                applyAnvilPlugin = true,
-                applyRestApiPlugin = config.applyRestApiPlugin,
-                applyRemoteConfigPlugin = config.applyRemoteConfigPlugin,
-                applyDatabasePlugin = config.applyDatabasePlugin,
+                plugins = config.plugins.copy(compose = true, anvil = true),
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
@@ -62,17 +58,13 @@ class BandLabModuleTemplate(
             createModule(
                 moduleInfo = uiModuleInfo,
                 type = BandLabModuleType.Android,
-                applyComposePlugin = true
+                plugins = ModulePlugins(compose = true),
             )
         } else {
             createModule(
                 moduleInfo = ModuleInfo(modulePath),
                 type = config.type,
-                applyComposePlugin = config.applyComposePlugin,
-                applyAnvilPlugin = config.applyAnvilPlugin,
-                applyRestApiPlugin = config.applyRestApiPlugin,
-                applyRemoteConfigPlugin = config.applyRemoteConfigPlugin,
-                applyDatabasePlugin = config.applyDatabasePlugin,
+                plugins = config.plugins,
                 daggerConfig = config.daggerConfig
             )
         }
@@ -81,11 +73,7 @@ class BandLabModuleTemplate(
     private fun createModule(
         moduleInfo: ModuleInfo,
         type: BandLabModuleType,
-        applyComposePlugin: Boolean = false,
-        applyAnvilPlugin: Boolean = false,
-        applyRestApiPlugin: Boolean = false,
-        applyRemoteConfigPlugin: Boolean = false,
-        applyDatabasePlugin: Boolean = false,
+        plugins: ModulePlugins,
         daggerConfig: DaggerModuleConfig? = null,
         generateActivity: Boolean = false,
         dependsOn: List<String>? = null
@@ -107,11 +95,13 @@ class BandLabModuleTemplate(
                     BandLabModuleType.Kotlin -> appendPlugin("bandlab.plugins.library.kotlin")
                     BandLabModuleType.Android -> appendPlugin("bandlab.plugins.library.android")
                 }
-                if (applyComposePlugin) appendPlugin("bandlab.plugins.compose")
-                if (applyAnvilPlugin) appendPlugin("bandlab.plugins.anvil")
-                if (applyRestApiPlugin) appendPlugin("bandlab.plugins.restApi")
-                if (applyRemoteConfigPlugin) appendPlugin("bandlab.plugins.remoteConfig")
-                if (applyDatabasePlugin) appendPlugin("bandlab.plugins.database")
+                if (plugins.compose) appendPlugin("bandlab.plugins.compose")
+                if (plugins.anvil) appendPlugin("bandlab.plugins.anvil")
+                if (plugins.restApi) appendPlugin("bandlab.plugins.restApi")
+                if (plugins.remoteConfig) appendPlugin("bandlab.plugins.remoteConfig")
+                if (plugins.preferenceConfig) appendPlugin("bandlab.plugins.preferenceConfig")
+                if (plugins.database) appendPlugin("bandlab.plugins.database")
+                if (plugins.testFixtures) appendPlugin("bandlab.plugins.testFixtures")
                 appendLine("}")
                 appendLine()
                 appendLine(DEPENDENCIES_START)

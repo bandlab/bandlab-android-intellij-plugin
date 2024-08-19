@@ -44,10 +44,12 @@ class BandLabModuleWizardStep(
     // Plugins
     private lateinit var composePluginCheckBox: JBCheckBox
     private lateinit var anvilPluginCheckBox: JBCheckBox
+    private lateinit var generateDaggerModuleCheckBox: JBCheckBox
     private lateinit var restApiPluginCheckBox: JBCheckBox
     private lateinit var remoteConfigPluginCheckBox: JBCheckBox
-    private lateinit var generateDaggerModuleCheckBox: JBCheckBox
+    private lateinit var preferenceConfigPluginCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
+    private lateinit var testFixturesPluginCheckBox: JBCheckBox
 
     // Dagger module exposure
     private lateinit var appModuleButton: JBRadioButton
@@ -158,7 +160,15 @@ class BandLabModuleWizardStep(
                 }
 
                 row {
+                    preferenceConfigPluginCheckBox = checkBox("Apply Preference Config plugin").component
+                }
+
+                row {
                     databasePluginCheckBox = checkBox("Apply Database plugin").component
+                }
+
+                row {
+                    testFixturesPluginCheckBox = checkBox("Apply Test Fixtures plugin").component
                 }
             }.topGap(TopGap.MEDIUM)
 
@@ -241,11 +251,15 @@ class BandLabModuleWizardStep(
             path = modulePath,
             name = moduleName,
             composeConvention = composeConventionCheckBox.isSelected,
-            applyComposePlugin = composePluginCheckBox.isSelected,
-            applyAnvilPlugin = anvilPluginCheckBox.isSelected,
-            applyRestApiPlugin = restApiPluginCheckBox.isSelected,
-            applyRemoteConfigPlugin = remoteConfigPluginCheckBox.isSelected,
-            applyDatabasePlugin = databasePluginCheckBox.isSelected,
+            plugins = ModulePlugins(
+                compose = composePluginCheckBox.isSelected,
+                anvil = anvilPluginCheckBox.isSelected,
+                restApi = restApiPluginCheckBox.isSelected,
+                remoteConfig = remoteConfigPluginCheckBox.isSelected,
+                preferenceConfig = preferenceConfigPluginCheckBox.isSelected,
+                database = databasePluginCheckBox.isSelected,
+                testFixtures = testFixturesPluginCheckBox.isSelected
+            ),
             daggerConfig = if (generateDaggerModuleCheckBox.isSelected || composeConventionCheckBox.isSelected) {
                 DaggerModuleConfig(
                     name = daggerModuleNameInput.text,
