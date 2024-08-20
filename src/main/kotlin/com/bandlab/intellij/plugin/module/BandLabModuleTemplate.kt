@@ -1,17 +1,20 @@
 package com.bandlab.intellij.plugin.module
 
-import com.bandlab.intellij.plugin.module.BandLabModuleConst.BUILD_GRADLE
+import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
+import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
+import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_START
+import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
+import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
+import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
+import com.bandlab.intellij.plugin.utils.editFile
+import com.bandlab.intellij.plugin.utils.requireVirtualFile
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.impl.file.PsiDirectoryFactory
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.konan.file.File
 
 class BandLabModuleTemplate(
@@ -19,10 +22,8 @@ class BandLabModuleTemplate(
     private val config: BandLabModuleConfig
 ) {
 
-    private val psiDocumentManager = PsiDocumentManager.getInstance(project)
     private val psiDirectorFactory = PsiDirectoryFactory.getInstance(project)
     private val psiFileFactory = PsiFileFactory.getInstance(project)
-    private val localFileSystem = LocalFileSystem.getInstance()
 
     fun create() {
         WriteCommandAction.runWriteCommandAction(
@@ -83,26 +84,31 @@ class BandLabModuleTemplate(
 
         // Create build.gradle.kts
         fun StringBuilder.appendPlugin(pluginId: String) {
-            appendLine("    alias($pluginId)")
+            appendLine("    alias(bandlab.plugins.$pluginId)")
         }
 
         psiFileFactory.createFileFromText(
             BUILD_GRADLE,
             KotlinFileType.INSTANCE,
             buildString {
-                appendLine("plugins {")
+                appendLine(PLUGINS_START)
                 when (type) {
-                    BandLabModuleType.Kotlin -> appendPlugin("bandlab.plugins.library.kotlin")
-                    BandLabModuleType.Android -> appendPlugin("bandlab.plugins.library.android")
+                    BandLabModuleType.Kotlin -> appendPlugin("library.kotlin")
+                    BandLabModuleType.Android -> appendPlugin("library.android")
                 }
-                if (plugins.compose) appendPlugin("bandlab.plugins.compose")
-                if (plugins.anvil) appendPlugin("bandlab.plugins.anvil")
-                if (plugins.restApi) appendPlugin("bandlab.plugins.restApi")
-                if (plugins.remoteConfig) appendPlugin("bandlab.plugins.remoteConfig")
-                if (plugins.preferenceConfig) appendPlugin("bandlab.plugins.preferenceConfig")
-                if (plugins.database) appendPlugin("bandlab.plugins.database")
-                if (plugins.testFixtures) appendPlugin("bandlab.plugins.testFixtures")
-                appendLine("}")
+                if (plugins.compose) appendPlugin("compose")
+                if (plugins.anvil) appendPlugin("anvil")
+                if (plugins.restApi) appendPlugin("restApi")
+                if (plugins.remoteConfig) appendPlugin("remoteConfig")
+                if (plugins.preferenceConfig) appendPlugin("preferenceConfig")
+                if (plugins.database) appendPlugin("database")
+                if (plugins.testFixtures) {
+                    appendPlugin("testFixtures")
+                    // Create an empty folder for testFixtures
+                    File(project.basePath + moduleInfo.testFixturesPath).mkdirs()
+                }
+
+                appendLine(PLUGINS_END)
                 appendLine()
                 appendLine(DEPENDENCIES_START)
                 if (dependsOn != null) {
@@ -142,14 +148,7 @@ class BandLabModuleTemplate(
      *  Insert the new module in settings.gradle.kts, and sort the modules alphabetically.
      */
     private fun modifySettingsGradleKts(moduleInfo: ModuleInfo) {
-        val settingsGradle = requireVirtualFile("/settings.gradle.kts")
-        val settingsGradlePsi = requireNotNull(settingsGradle.toPsiFile(project))
-
-        val document = requireNotNull(psiDocumentManager.getDocument(settingsGradlePsi))
-        val currentText = document.text
-
-        val newText = buildString {
-            appendLine(currentText)
+        project.editFile(filePath = "/settings.gradle.kts", isAbsolute = false) {
             appendLine("include(\"${moduleInfo.reference}\")")
 
             val allModulesIdentifier = "// All Modules"
@@ -169,11 +168,6 @@ class BandLabModuleTemplate(
 
             replace(modulesStartIndex, lastIndex, sortedModules)
         }
-
-        document.replaceString(0, document.textLength, newText.trim())
-
-        // Refresh the VirtualFile to reflect the changes
-        settingsGradle.refresh(false, false)
     }
 
     /**
@@ -236,15 +230,7 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         destinationModule: String,
     ) {
-        val destGradle = requireVirtualFile("$destinationModule/$BUILD_GRADLE")
-        val destGradlePsi = requireNotNull(destGradle.toPsiFile(project))
-
-        val document = requireNotNull(psiDocumentManager.getDocument(destGradlePsi))
-        val currentText = document.text
-
-        val newText = buildString {
-            appendLine(currentText)
-
+        project.editFile(filePath = "$destinationModule/$BUILD_GRADLE", isAbsolute = false) {
             val dependenciesIndex = indexOf(DEPENDENCIES_START)
             if (dependenciesIndex == -1) {
                 throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/$BUILD_GRADLE.")
@@ -264,11 +250,6 @@ class BandLabModuleTemplate(
 
             replace(modulesToSortStartIndex, modulesToSortEndIndex, sortedModules)
         }
-
-        document.replaceString(0, document.textLength, newText.trim())
-
-        // Refresh the VirtualFile to reflect the changes
-        destGradle.refresh(false, false)
     }
 
     /**
@@ -355,47 +336,7 @@ class BandLabModuleTemplate(
     }
 
     private fun PsiFile.addToPath(path: String) {
-        val moduleVirtualPath = requireVirtualFile(path)
+        val moduleVirtualPath = project.requireVirtualFile(path, isAbsolute = false)
         psiDirectorFactory.createDirectory(moduleVirtualPath).add(this)
     }
-
-    private fun requireVirtualFile(path: String): VirtualFile {
-        return requireNotNull(localFileSystem.refreshAndFindFileByPath(project.basePath + path))
-    }
-
-    private companion object {
-        const val DEPENDENCIES_START = "dependencies {"
-        const val DEPENDENCIES_END = "}"
-        const val NEW_LINE = "\n"
-    }
-}
-
-private val snakeRegex = "-[a-zA-Z]".toRegex()
-
-private data class ModuleInfo(
-    // Ex: /user/profile/edit-screen
-    val path: String,
-) {
-
-    // Ex: :user:profile:edit-screen
-    val reference: String
-        get() = path.replace('/', ':')
-
-    // Ex: projects.user.profile.editScreen
-    val projectAccessorReference: String
-        get() = "projects" + snakeRegex.replace(path.replace('/', '.')) {
-            it.value.replace("-", "").uppercase()
-        }
-
-    // Ex: com/bandlab/user/profile/edit/screen
-    val srcPackage: String
-        get() = "com/bandlab" + path.replace('-', '/')
-
-    // Ex: com.bandlab.user.profile.edit.screen
-    val packageToImport: String
-        get() = srcPackage.replace('/', '.')
-
-    // Ex: /user/profile/edit-screen/src/main/kotlin/com/bandlab/user/profile/edit/screen
-    val filesPath: String
-        get() = "$path/src/main/kotlin/$srcPackage"
 }
