@@ -8,17 +8,17 @@
 - Generate Dagger module and expose to App or MixEditor
 - Sort dependencies automatically
 
-![Screenshot 2024-04-25 at 11 29 28 AM](https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/23663c05-1cbd-4e85-8791-7f9049ba8ce0)
+![Module Creation Wizard](https://i.imgur.com/PIEVCaO.png)
 
 ## Create Automation file templates
 Create Robot, Semantics and Verifier templates to align with our automation test convention.
 
-![Screenshot 2024-06-26 at 11 39 08 AM](https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/d8feac11-521e-4fea-8c91-d0223d498bd5)
+![Automation Template](https://i.imgur.com/UzIWk1y.png)
 
 ## Apply Test Fixtures plugin
 Apply the test fixtures plugin and create the required folder, the option is only available when right-clicking on build.gradle.
 
-![Screenshot 2024-08-20 at 10 14 51 AM](https://github.com/user-attachments/assets/8bb0c1f9-7e63-4509-a624-7ab144dc44bc)
+![Test Fixtures plugin](https://i.imgur.com/VbaYpQ2.png)
 
 
 <!-- Plugin description end -->
