@@ -2,6 +2,13 @@
 
 # bandlab-android-intellij-plugin Changelog
 
+## Unreleased
+
+### Added
+
+- Added preferenceConfig plugin checkbox in the module creation flow (#70)
+- Test fixtures support in the module creation flow + popup menu of build.gradle (#70)
+
 ## [1.4.2] - 2024-08-16
 
 ### Changed
