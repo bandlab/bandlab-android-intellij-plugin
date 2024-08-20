@@ -1,5 +1,6 @@
 package com.bandlab.intellij.plugin.utils
 
+import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
@@ -44,7 +45,8 @@ fun Project.editFile(
         editBlock()
     }
 
-    document.replaceString(0, document.textLength, newText.trim())
+    // Replace with the new text, follow up with an empty line at the end.
+    document.replaceString(0, document.textLength, newText.trim() + NEW_LINE)
 
     // Refresh the VirtualFile to reflect the changes
     file.refresh(false, false)
