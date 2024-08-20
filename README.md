@@ -15,6 +15,12 @@ Create Robot, Semantics and Verifier templates to align with our automation test
 
 ![Screenshot 2024-06-26 at 11 39 08 AM](https://github.com/bandlab/bandlab-android-intellij-plugin/assets/18852983/d8feac11-521e-4fea-8c91-d0223d498bd5)
 
+## Apply Test Fixtures plugin
+Apply the test fixtures plugin and create the required folder, the option is only available when right-clicking on build.gradle.
+
+![Screenshot 2024-08-20 at 10 14 51 AM](https://github.com/user-attachments/assets/8bb0c1f9-7e63-4509-a624-7ab144dc44bc)
+
+
 <!-- Plugin description end -->
 
 ## Installation
