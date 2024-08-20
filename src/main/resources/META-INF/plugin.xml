@@ -24,5 +24,10 @@
                 class="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction" text="Automation">
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
         </action>
+
+        <action id="com.bandlab.intellij.plugin.testFixtures.ApplyTestFixturesPluginAction"
+                class="com.bandlab.intellij.plugin.testFixtures.ApplyTestFixturesPluginAction" text="TestFixtures">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="last"/>
+        </action>
     </actions>
 </idea-plugin>

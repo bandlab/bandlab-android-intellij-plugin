@@ -7,7 +7,7 @@ import com.android.tools.idea.npw.template.BlankModel
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.bandlab.intellij.plugin.module.BandLabModuleConst.BUILD_GRADLE
+import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.observable.util.whenTextChanged
@@ -293,7 +293,6 @@ class BandLabModuleWizardStep(
                             "$modulePath$moduleName/$BUILD_GRADLE"
                         }
                     )
-                    // TODO: Add create one more in the future
                 )
             )
             .notify(project)
