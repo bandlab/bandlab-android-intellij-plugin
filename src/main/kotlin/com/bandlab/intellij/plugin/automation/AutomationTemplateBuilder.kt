@@ -25,10 +25,11 @@ class AutomationTemplateBuilder(
 
             import com.bandlab.bandlab.screens.AnyAndroidComposeCompositeRule
 
-            context(AnyAndroidComposeCompositeRule)
-            class ${name}Robot {
+            class ${name}Robot(
+                private val rule: AnyAndroidComposeCompositeRule,
+            ) {
 
-                private val semantics = ${name}Semantics()
+                private val semantics = ${name}Semantics(rule)
 
                 fun verify(block: ${name}Verifier.() -> Unit) = apply {
                     ${name}Verifier(semantics).block()
@@ -46,8 +47,9 @@ class AutomationTemplateBuilder(
 
             import com.bandlab.bandlab.screens.AnyAndroidComposeCompositeRule
 
-            context(AnyAndroidComposeCompositeRule)
-            class ${name}Semantics {
+            class ${name}Semantics(
+                private val rule: AnyAndroidComposeCompositeRule,
+            ) {
                 
             }
 
@@ -62,8 +64,8 @@ class AutomationTemplateBuilder(
 
             import com.bandlab.bandlab.screens.AnyAndroidComposeCompositeRule
 
-            context(AnyAndroidComposeCompositeRule)
             class ${name}Verifier(
+                private val rule: AnyAndroidComposeCompositeRule,
                 private val semantics: ${name}Semantics,
             ) {
                 
