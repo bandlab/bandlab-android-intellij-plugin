@@ -3,7 +3,6 @@ package com.bandlab.intellij.plugin.module
 data class BandLabModuleConfig(
     val type: BandLabModuleType,
     val path: String,
-    val name: String,
     val composeConvention: Boolean = false,
     val plugins: ModulePlugins,
     // Presented for generating dagger module, activity etc.

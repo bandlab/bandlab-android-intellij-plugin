@@ -36,7 +36,7 @@ class BandLabModuleTemplate(
 
     private fun createTemplate() {
         // Ex: /user/profile/edit-screen
-        val modulePath = config.path + config.name
+        val modulePath = config.path
 
         if (config.composeConvention) {
             val uiModuleInfo = ModuleInfo("$modulePath/ui")

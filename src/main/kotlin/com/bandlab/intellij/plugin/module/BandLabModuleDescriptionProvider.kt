@@ -28,6 +28,6 @@ private class BandLabModuleEntry : ModuleGalleryEntry {
         moduleParent: String,
         projectSyncInvoker: ProjectSyncInvoker
     ): SkippableWizardStep<*> {
-        return BandLabModuleWizardStep(project, projectSyncInvoker)
+        return BandLabModuleWizardStep(project, moduleParent, projectSyncInvoker)
     }
 }

@@ -2,16 +2,20 @@
 
 package com.bandlab.intellij.plugin.module
 
+import com.android.build.attribution.ui.warningIcon
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.npw.template.BlankModel
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
+import com.bandlab.intellij.plugin.utils.visibleIf
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.observable.properties.AtomicBooleanProperty
 import com.intellij.openapi.observable.util.whenTextChanged
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.modules
 import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
@@ -20,16 +24,15 @@ import com.intellij.ui.layout.and
 import com.intellij.ui.layout.not
 import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
-import java.io.File
 import javax.swing.JComponent
 
 class BandLabModuleWizardStep(
     private val project: Project,
+    private val moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
 ) : SkippableWizardStep<BlankModel>(BlankModel(), "BandLab Convention") {
 
     // Inputs
-    private lateinit var modulePathInput: JBTextField
     private lateinit var moduleNameInput: JBTextField
     private lateinit var daggerModuleNameInput: JBTextField
 
@@ -56,7 +59,16 @@ class BandLabModuleWizardStep(
     private lateinit var meViewModuleButton: JBRadioButton
     private lateinit var noneModuleButton: JBRadioButton
 
+    private val isModuleNameInvalid = AtomicBooleanProperty(false)
+    private val isModuleAlreadyExists = AtomicBooleanProperty(false)
     private val canCreate = BoolValueProperty(false)
+
+    private val existingModuleNames = project.modules.map { module ->
+        ':' + module.name
+            .split('.')
+            .drop(1) // drop the root folder
+            .joinToString(":")
+    }
 
     override fun getComponent(): JComponent = panel {
         indent {
@@ -67,18 +79,23 @@ class BandLabModuleWizardStep(
                 .bottomGap(BottomGap.SMALL)
 
             row {
-                modulePathInput = textField()
-                    .label("Module Path:", LabelPosition.LEFT)
-                    .comment("Eg: \"user\" or \"user/profile\", empty to locate the module at root level")
+                moduleNameInput = textField()
+                    .label("Module Name:", LabelPosition.LEFT)
+                    .comment("Eg: \":user:profile-edit\" or \":comments-api\"")
                     .component
+
+                moduleNameInput.text = moduleParent
             }
 
             row {
-                moduleNameInput = textField()
-                    .label("Module Name:", LabelPosition.LEFT)
-                    .comment("Eg: \"profile-edit\" or \"comments\"")
-                    .component
-            }
+                icon(warningIcon())
+                label(text = "Module name is invalid").bold()
+            }.visibleIf(isModuleNameInvalid)
+
+            row {
+                icon(warningIcon())
+                label(text = "Module already exists").bold()
+            }.visibleIf(isModuleAlreadyExists)
 
             buttonsGroup {
                 row {
@@ -205,27 +222,33 @@ class BandLabModuleWizardStep(
                 .visibleIf(composeConventionCheckBox.selected.or(generateDaggerModuleCheckBox.selected))
                 .topGap(TopGap.MEDIUM)
 
-            modulePathInput.whenTextChanged {
-                configureDaggerModuleName(path = modulePathInput.text, name = moduleNameInput.text)
-            }
-
             moduleNameInput.whenTextChanged {
-                configureDaggerModuleName(path = modulePathInput.text, name = moduleNameInput.text)
+                configureDaggerModuleName()
+                validateModuleName()
             }
         }
     }
 
-    private fun configureDaggerModuleName(path: String, name: String) {
-        val pathCamelCase = path.split('/', '-')
-            .filter { it.isNotBlank() }
+    private fun configureDaggerModuleName() {
+        val nameInCamelCase = moduleNameInput.text
+            .split(':', '-')
             .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
 
-        val nameCamelCase = name.split('-')
-            .filter { it.isNotBlank() }
-            .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
+        daggerModuleNameInput.text = nameInCamelCase
+    }
 
-        daggerModuleNameInput.text = pathCamelCase + nameCamelCase
-        canCreate.set(name.isNotBlank())
+    private fun validateModuleName() {
+        val moduleName = moduleNameInput.text
+
+        val isNameInvalid = !moduleName.startsWith(':')
+                || moduleName.contains('/')
+                || moduleName.contains("::")
+
+        val isModuleExists = moduleName in existingModuleNames
+
+        isModuleNameInvalid.set(isNameInvalid)
+        isModuleAlreadyExists.set(isModuleExists)
+        canCreate.set(!isNameInvalid && !isModuleExists)
     }
 
     override fun canGoForward(): ObservableBool {
@@ -233,15 +256,7 @@ class BandLabModuleWizardStep(
     }
 
     override fun onWizardFinished() {
-        val modulePath = buildString {
-            append(File.separatorChar)
-            if (modulePathInput.text.isNotBlank()) {
-                append(modulePathInput.text.replace(':', '/'))
-                if (!endsWith('/')) append('/')
-            }
-        }
-        val moduleName = moduleNameInput.text
-
+        val modulePath = moduleNameInput.text.replace(':', '/')
         val moduleConfig = BandLabModuleConfig(
             type = when {
                 kotlinModuleButton.isSelected -> BandLabModuleType.Kotlin
@@ -249,7 +264,6 @@ class BandLabModuleWizardStep(
                 else -> error("No module type is selected")
             },
             path = modulePath,
-            name = moduleName,
             composeConvention = composeConventionCheckBox.isSelected,
             plugins = ModulePlugins(
                 compose = composePluginCheckBox.isSelected,
@@ -281,16 +295,16 @@ class BandLabModuleWizardStep(
 
         NotificationGroupManager.getInstance()
             .getNotificationGroup("BandLab Notification Group")
-            .createNotification("Module $modulePath$moduleName is created", NotificationType.INFORMATION)
+            .createNotification("Module ${moduleNameInput.text} is created", NotificationType.INFORMATION)
             .addActions(
                 setOf(
                     BandLabModuleSyncAction(projectSyncInvoker),
                     BandLabModuleEditFileAction(
                         buttonText = "Edit $BUILD_GRADLE",
                         filePath = if (composeConventionCheckBox.isSelected) {
-                            "$modulePath$moduleName/screen/$BUILD_GRADLE"
+                            "$modulePath/screen/$BUILD_GRADLE"
                         } else {
-                            "$modulePath$moduleName/$BUILD_GRADLE"
+                            "$modulePath/$BUILD_GRADLE"
                         }
                     )
                 )

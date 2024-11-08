@@ -8,7 +8,7 @@
 - Generate Dagger module and expose to App or MixEditor
 - Sort dependencies automatically
 
-![Module Creation Wizard](https://i.imgur.com/PIEVCaO.png)
+![Module Creation Wizard](https://i.imgur.com/bpgcbfb.png)
 
 ## Create Automation file templates
 Create Robot, Semantics and Verifier templates to align with our automation test convention.
