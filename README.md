@@ -15,11 +15,14 @@ Create Robot, Semantics and Verifier templates to align with our automation test
 
 ![Automation Template](https://i.imgur.com/UzIWk1y.png)
 
-## Apply Test Fixtures plugin
+## Actions for build.gradle files
+![Automation Template](https://i.imgur.com/wMOB46s.png)
+
+### Sort dependencies
+Sort plugins and dependencies alphabetically, the option is only available when right-clicking on build.gradle.
+
+### Apply Test Fixtures plugin
 Apply the test fixtures plugin and create the required folder, the option is only available when right-clicking on build.gradle.
-
-![Test Fixtures plugin](https://i.imgur.com/VbaYpQ2.png)
-
 
 <!-- Plugin description end -->
 

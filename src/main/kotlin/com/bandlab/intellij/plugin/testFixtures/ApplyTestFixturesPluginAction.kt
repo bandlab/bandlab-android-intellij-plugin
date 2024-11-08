@@ -2,10 +2,12 @@ package com.bandlab.intellij.plugin.testFixtures
 
 import com.bandlab.intellij.plugin.BandLabIcons
 import com.bandlab.intellij.plugin.module.ModuleInfo
+import com.bandlab.intellij.plugin.sortDependencies.SortDependenciesAction
 import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
 import com.bandlab.intellij.plugin.utils.editFile
+import com.bandlab.intellij.plugin.utils.psiFileOrNull
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
@@ -13,7 +15,6 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import org.jetbrains.kotlin.idea.refactoring.psiElement
 import java.io.File
 
 class ApplyTestFixturesPluginAction : DumbAwareAction(
@@ -28,13 +29,12 @@ class ApplyTestFixturesPluginAction : DumbAwareAction(
      *  Make the action available only when the menu is shown for the build.gradle.kts
      */
     override fun update(e: AnActionEvent) {
-        val isBuildGradleFile = e.dataContext.psiElement?.containingFile?.name == BUILD_GRADLE
-        e.presentation.isEnabledAndVisible = isBuildGradleFile
+        e.presentation.isEnabledAndVisible = e.psiFileOrNull()?.name == BUILD_GRADLE
     }
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        val buildGradle = e.dataContext.psiElement?.containingFile?.virtualFile ?: return
+        val buildGradle = e.psiFileOrNull()?.virtualFile ?: return
 
         WriteCommandAction.runWriteCommandAction(
             /* project = */ project,
@@ -43,6 +43,8 @@ class ApplyTestFixturesPluginAction : DumbAwareAction(
             /* runnable = */ {
                 project.addTestFixturesPlugin(buildGradle.path)
                 project.createTestFixturesFolder(buildGradle)
+                // Make dependencies sorting a side effect of this action
+                SortDependenciesAction().actionPerformed(e)
             }
         )
     }
