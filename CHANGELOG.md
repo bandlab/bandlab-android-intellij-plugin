@@ -4,6 +4,13 @@
 
 ## Unreleased
 
+## [1.6.0] - 2024-11-08
+### Added
+- Introduce SortDependenciesAction
+
+### Changed
+- Module Creation: Prefill module path
+
 ## [1.5.1] - 2024-09-13
 ### Changed
 - Adjust AutomationTemplate to avoid using context receiver
