@@ -21,6 +21,14 @@ class SortDependenciesAction : DumbAwareAction(
     /* icon = */ BandLabIcons.logo
 ) {
 
+    private val moduleTypePluginIds = listOf(
+        "bandlab.plugins.app",
+        "bandlab.plugins.library",
+        "bandlab.plugins.android.benchmark",
+        "bandlab.plugins.android.baseline.generator",
+        "bandlab.plugins.base",
+    )
+
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     /**
@@ -60,9 +68,11 @@ class SortDependenciesAction : DumbAwareAction(
                 .filter { it.isNotBlank() }
                 .distinct()
                 .sorted()
-            // Always append library plugin at the beginning
-            val libraryPlugin = sortedPlugins.first { it.contains("bandlab.plugins.library") }
-            val plugins = (listOf(libraryPlugin) + (sortedPlugins - libraryPlugin)).joinToString(NEW_LINE)
+            // Always append module type plugin at the beginning
+            val moduleTypePlugin = sortedPlugins.first { plugin ->
+                moduleTypePluginIds.any { id -> id in plugin }
+            }
+            val plugins = (listOf(moduleTypePlugin) + (sortedPlugins - moduleTypePlugin)).joinToString(NEW_LINE)
 
             replace(pluginsToSortStartIndex, pluginsToSortEndIndex, plugins)
 
