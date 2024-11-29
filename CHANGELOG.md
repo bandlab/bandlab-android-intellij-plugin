@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## [1.6.1] - 2024-11-29
+
+### Changed
+- Fix SortDependenciesAction to support all module types (#80)
+
 ## [1.6.0] - 2024-11-08
 ### Added
 - Introduce SortDependenciesAction
