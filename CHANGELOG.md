@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## [1.6.2] - 2024-12-03
+
+### Changed
+- Fix AutomationTemplateCreateAction for new IDE version
+
 ## [1.6.1] - 2024-11-29
 
 ### Changed
