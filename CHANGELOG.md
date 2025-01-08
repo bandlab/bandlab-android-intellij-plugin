@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## [1.6.3] - 2025-01-08
+
+### Changed
+- Update ComponentActivity.setContent import and add default insets type
+
 ## [1.6.2] - 2024-12-03
 
 ### Changed
