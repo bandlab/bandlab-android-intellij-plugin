@@ -269,11 +269,12 @@ class BandLabModuleTemplate(
             import android.content.Context
             import android.content.Intent
             import android.os.Bundle
-            import androidx.activity.compose.setContent
             import com.bandlab.android.common.activity.CommonActivity2
             import com.bandlab.android.common.activity.CommonActivityDependencies
             import com.bandlab.common.android.di.ContributesInjector
             import com.bandlab.navigation.android.activityIntent
+            import com.bandlab.uikit.compose.activity.WindowInsetsType
+            import com.bandlab.uikit.compose.activity.setContent
             import javax.inject.Inject
             
             @ContributesInjector
@@ -285,7 +286,7 @@ class BandLabModuleTemplate(
                 override fun parseRequiredParams(bundle: Bundle) = Unit
             
                 override fun onCreate() {
-                    setContent {
+                    setContent(windowInsets = WindowInsetsType.Scrolling) {
                         
                     }
                 }
