@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## [1.7.0] - 2025-02-06
+- Update activity template to use ContributesComponent
+- Rename MixEditorViewComponent to MixEditorComponent
+- Create a new ActivityTemplateCreateAction
+
 ## [1.6.3] - 2025-01-08
 
 ### Changed

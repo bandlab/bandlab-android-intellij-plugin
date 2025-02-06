@@ -10,10 +10,15 @@
 
 ![Module Creation Wizard](https://i.imgur.com/bpgcbfb.png)
 
+## Create an Activity template
+Create an Activity, ViewModel and Manifest according to the latest screen building convention.
+
+![Activity Template](https://i.imgur.com/URAxt1Z.png)
+
 ## Create Automation file templates
 Create Robot, Semantics and Verifier templates to align with our automation test convention.
 
-![Automation Template](https://i.imgur.com/UzIWk1y.png)
+![Automation Template](https://i.imgur.com/upwfk3R.png)
 
 ## Actions for build.gradle files
 ![Automation Template](https://i.imgur.com/wMOB46s.png)
