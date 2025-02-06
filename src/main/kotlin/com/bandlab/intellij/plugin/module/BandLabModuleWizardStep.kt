@@ -56,7 +56,7 @@ class BandLabModuleWizardStep(
 
     // Dagger module exposure
     private lateinit var appModuleButton: JBRadioButton
-    private lateinit var meViewModuleButton: JBRadioButton
+    private lateinit var meComponentModuleButton: JBRadioButton
     private lateinit var noneModuleButton: JBRadioButton
 
     private val isModuleNameInvalid = AtomicBooleanProperty(false)
@@ -209,9 +209,7 @@ class BandLabModuleWizardStep(
                     }
 
                     row {
-                        meViewModuleButton = radioButton("MixEditorViewGraph")
-                            .comment("After the MixEditor is initialized.")
-                            .component
+                        meComponentModuleButton = radioButton("MixEditorComponentGraph").component
                     }
 
                     row {
@@ -279,7 +277,7 @@ class BandLabModuleWizardStep(
                     name = daggerModuleNameInput.text,
                     exposure = when {
                         appModuleButton.isSelected -> DaggerModuleExposure.AppComponent
-                        meViewModuleButton.isSelected -> DaggerModuleExposure.MixEditorViewComponent
+                        meComponentModuleButton.isSelected -> DaggerModuleExposure.MixEditorComponent
                         noneModuleButton.isSelected -> DaggerModuleExposure.None
                         else -> DaggerModuleExposure.None
                     }

@@ -186,13 +186,13 @@ class BandLabModuleTemplate(
             val scopeImport = when (exposure) {
                 DaggerModuleExposure.None -> null
                 DaggerModuleExposure.AppComponent -> "import com.bandlab.common.di.AppGraph"
-                DaggerModuleExposure.MixEditorViewComponent -> "import com.bandlab.common.di.MixEditorViewGraph"
+                DaggerModuleExposure.MixEditorComponent -> "import com.bandlab.common.di.MixEditorComponentGraph"
             }
 
             val contributionImport = when (exposure) {
                 DaggerModuleExposure.None -> null
                 DaggerModuleExposure.AppComponent -> "@ContributesTo(AppGraph::class)"
-                DaggerModuleExposure.MixEditorViewComponent -> "@ContributesTo(MixEditorViewGraph::class)"
+                DaggerModuleExposure.MixEditorComponent -> "@ContributesTo(MixEditorComponentGraph::class)"
             }
 
             psiFileFactory.createFileFromText(
@@ -221,7 +221,7 @@ class BandLabModuleTemplate(
                 exposeModule(moduleInfo, destinationModule = "/app")
             }
 
-            DaggerModuleExposure.MixEditorViewComponent -> {
+            DaggerModuleExposure.MixEditorComponent -> {
                 exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
             }
         }
