@@ -20,9 +20,14 @@
     </extensions>
 
     <actions>
+        <action id="ActivityTemplateCreateAction"
+                class="com.bandlab.intellij.plugin.template.ActivityTemplateCreateAction" text="Activity Template">
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="Android.CreateResourcesActionGroup"/>
+        </action>
+
         <action id="AutomationTemplateCreateAction"
-                class="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction" text="Automation">
-            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="NewDir"/>
+                class="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction" text="Automation Template">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="ActivityTemplateCreateAction"/>
         </action>
 
         <action id="SortDependenciesAction"

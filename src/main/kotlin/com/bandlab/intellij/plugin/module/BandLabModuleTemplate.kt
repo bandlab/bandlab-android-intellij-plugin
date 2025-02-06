@@ -1,5 +1,6 @@
 package com.bandlab.intellij.plugin.module
 
+import com.bandlab.intellij.plugin.template.ActivityTemplateBuilder
 import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_START
@@ -260,90 +261,30 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         name: String,
     ) {
+        val activityTemplateBuilder = ActivityTemplateBuilder(
+            name = name,
+            filePackage = moduleInfo.packageToImport
+        )
+
         // Create the Activity template
         psiFileFactory.createFileFromText(
             "${name}Activity.kt",
             KotlinFileType.INSTANCE,
-            """
-            package ${moduleInfo.packageToImport}
-
-            import android.content.Context
-            import android.content.Intent
-            import android.os.Bundle
-            import com.bandlab.android.common.activity.CommonActivity2
-            import com.bandlab.android.common.activity.CommonActivityDependencies
-            import com.bandlab.android.common.activity.componentCreator
-            import com.bandlab.common.android.di.ContributesComponent
-            import com.bandlab.common.android.di.HasServiceProvider
-            import com.bandlab.navigation.android.activityIntent
-            import com.bandlab.uikit.compose.activity.WindowInsetsType
-            import com.bandlab.uikit.compose.activity.setContent
-            import javax.inject.Inject
-            
-            @ContributesComponent(dependency = ${name}Activity.ServiceProvider::class)
-            class ${name}Activity : CommonActivity2<Unit>(), HasServiceProvider {
-            
-                @Inject override lateinit var dependencies: CommonActivityDependencies
-                @Inject lateinit var viewModel: ${name}ViewModel
-            
-                private val component by componentCreator(Dagger${name}ActivityComponent.factory())
-            
-                override fun parseRequiredParams(bundle: Bundle) = Unit
-            
-                override fun onCreate() {
-                    setContent(windowInsets = WindowInsetsType.Scrolling) {
-                        
-                    }
-                }
-            
-                override fun <T> resolve(): T = HasServiceProvider.resolveFrom(component)
-            
-                interface ServiceProvider {
-                    
-                }
-            
-                companion object {
-            
-                    fun buildIntent(context: Context): Intent {
-                        return activityIntent<${name}Activity>(context)
-                    }
-                }
-            }
-            """.trimIndent()
+            activityTemplateBuilder.createActivity()
         ).addToPath(moduleInfo.filesPath)
 
         // Create the ViewModel template
         psiFileFactory.createFileFromText(
             "${name}ViewModel.kt",
             KotlinFileType.INSTANCE,
-            """
-            package ${moduleInfo.packageToImport}
-
-            import javax.inject.Inject
-            
-            class ${name}ViewModel @Inject constructor(
-                
-            ) {
-                
-            }
-            """.trimIndent()
+            activityTemplateBuilder.createViewModel()
         ).addToPath(moduleInfo.filesPath)
 
         // Create the manifest file
         psiFileFactory.createFileFromText(
             "AndroidManifest.xml",
             XmlFileType.INSTANCE,
-            """
-            <?xml version="1.0" encoding="utf-8"?>
-            <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            
-                <application>
-                    <activity
-                        android:name=".${name}Activity"
-                        android:configChanges="colorMode|density|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|fontWeightAdjustment" />
-                </application>
-            </manifest>
-            """.trimIndent()
+            activityTemplateBuilder.createManifest()
         ).addToPath("${moduleInfo.path}/src/main")
     }
 

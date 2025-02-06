@@ -4,10 +4,8 @@ import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
+import com.intellij.psi.*
+import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.idea.core.util.toPsiFile
 import org.jetbrains.kotlin.psi.KtClassOrObject
 
@@ -26,8 +24,8 @@ fun Project.requireVirtualFile(path: String, isAbsolute: Boolean): VirtualFile {
 }
 
 /**
- *  Edit a given [filePath] in the project, [editBlock] provides you a callback with [StringBuilder]
- *  by helping you to fill in the existing content.
+ * Edit a given [filePath] in the project, [editBlock] provides you a callback with [StringBuilder]
+ * by helping you to fill in the existing content.
  */
 fun Project.editFile(
     filePath: String,
@@ -51,3 +49,28 @@ fun Project.editFile(
     // Refresh the VirtualFile to reflect the changes
     file.refresh(false, false)
 }
+
+/**
+ * Write a file given the [fileName] and [content] in the PsiDirectory.
+ */
+fun PsiDirectory.writeFile(
+    fileName: String,
+    content: String
+): PsiElement {
+    val psiFile = PsiFileFactory
+        .getInstance(project)
+        .createFileFromText(fileName, KotlinFileType.INSTANCE, content)
+
+    return add(psiFile)
+}
+
+val PsiDirectory.filePackage: String
+    get() = requireNotNull(resolvePath()) { "Directory path is null" }
+        .run {
+            when {
+                contains("kotlin/") -> substringAfter("kotlin/")
+                contains("java/") -> substringAfter("java/")
+                else -> this
+            }
+        }
+        .replace('/', '.')
