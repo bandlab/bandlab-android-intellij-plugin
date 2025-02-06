@@ -13,6 +13,7 @@ data class BandLabModuleConfig(
 data class ModulePlugins(
     val compose: Boolean = false,
     val anvil: Boolean = false,
+    val daggerCompiler: Boolean = false,
     val restApi: Boolean = false,
     val remoteConfig: Boolean = false,
     val preferenceConfig: Boolean = false,

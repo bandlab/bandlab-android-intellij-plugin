@@ -45,7 +45,7 @@ class BandLabModuleTemplate(
             createModule(
                 moduleInfo = ModuleInfo("$modulePath/screen"),
                 type = BandLabModuleType.Android,
-                plugins = config.plugins.copy(compose = true, anvil = true),
+                plugins = config.plugins.copy(compose = true, daggerCompiler = true),
                 daggerConfig = config.daggerConfig,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
@@ -96,12 +96,13 @@ class BandLabModuleTemplate(
                     BandLabModuleType.Kotlin -> appendPlugin("library.kotlin")
                     BandLabModuleType.Android -> appendPlugin("library.android")
                 }
-                if (plugins.compose) appendPlugin("compose")
                 if (plugins.anvil) appendPlugin("anvil")
-                if (plugins.restApi) appendPlugin("restApi")
-                if (plugins.remoteConfig) appendPlugin("remoteConfig")
-                if (plugins.preferenceConfig) appendPlugin("preferenceConfig")
+                if (plugins.compose) appendPlugin("compose")
+                if (plugins.daggerCompiler) appendPlugin("dagger.compiler.library")
                 if (plugins.database) appendPlugin("database")
+                if (plugins.preferenceConfig) appendPlugin("preferenceConfig")
+                if (plugins.remoteConfig) appendPlugin("remoteConfig")
+                if (plugins.restApi) appendPlugin("restApi")
                 if (plugins.testFixtures) {
                     appendPlugin("testFixtures")
                     // Create an empty folder for testFixtures
@@ -271,17 +272,21 @@ class BandLabModuleTemplate(
             import android.os.Bundle
             import com.bandlab.android.common.activity.CommonActivity2
             import com.bandlab.android.common.activity.CommonActivityDependencies
-            import com.bandlab.common.android.di.ContributesInjector
+            import com.bandlab.android.common.activity.componentCreator
+            import com.bandlab.common.android.di.ContributesComponent
+            import com.bandlab.common.android.di.HasServiceProvider
             import com.bandlab.navigation.android.activityIntent
             import com.bandlab.uikit.compose.activity.WindowInsetsType
             import com.bandlab.uikit.compose.activity.setContent
             import javax.inject.Inject
             
-            @ContributesInjector
-            class ${name}Activity : CommonActivity2<Unit>() {
+            @ContributesComponent(dependency = ${name}Activity.ServiceProvider::class)
+            class ${name}Activity : CommonActivity2<Unit>(), HasServiceProvider {
             
                 @Inject override lateinit var dependencies: CommonActivityDependencies
                 @Inject lateinit var viewModel: ${name}ViewModel
+            
+                private val component by componentCreator(Dagger${name}ActivityComponent.factory())
             
                 override fun parseRequiredParams(bundle: Bundle) = Unit
             
@@ -289,6 +294,12 @@ class BandLabModuleTemplate(
                     setContent(windowInsets = WindowInsetsType.Scrolling) {
                         
                     }
+                }
+            
+                override fun <T> resolve(): T = HasServiceProvider.resolveFrom(component)
+            
+                interface ServiceProvider {
+                    
                 }
             
                 companion object {
