@@ -21,7 +21,7 @@ class ActivityTemplateBuilder(
         import com.bandlab.uikit.compose.activity.setContent
         import javax.inject.Inject
         
-        @ContributesComponent(dependency = ${name}Activity.ServiceProvider::class)
+        @ContributesComponent(appDependencies = ${name}Activity.ServiceProvider::class)
         class ${name}Activity : CommonActivity2<Unit>(), HasServiceProvider {
             
             @Inject override lateinit var dependencies: CommonActivityDependencies
