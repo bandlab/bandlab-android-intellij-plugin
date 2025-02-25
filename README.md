@@ -10,10 +10,13 @@
 
 ![Module Creation Wizard](https://i.imgur.com/bpgcbfb.png)
 
-## Create an Activity template
-Create an Activity, ViewModel and Manifest according to the latest screen building convention.
+## Create Screen templates
+- Create an Activity, ViewModel and Manifest according to the latest screen building convention.
+- Create a Page, ViewModel with preferred injection strategy.
 
-![Activity Template](https://i.imgur.com/URAxt1Z.png)
+![Screen Template](https://i.imgur.com/Va9QFkb.png)
+
+![Page Template](https://i.imgur.com/7LmvABk.png)
 
 ## Create Automation file templates
 Create Robot, Semantics and Verifier templates to align with our automation test convention.

@@ -4,23 +4,30 @@
 
 ## Unreleased
 
+## [1.7.1] - 2025-02-25
+### Added
+- Create a new PageTemplateCreateAction
+
+### Changed
+- Update activity template related to ContributesComponent changes
+
 ## [1.7.0] - 2025-02-06
-- Update activity template to use ContributesComponent
-- Rename MixEditorViewComponent to MixEditorComponent
+### Added
 - Create a new ActivityTemplateCreateAction
 
-## [1.6.3] - 2025-01-08
+### Changed
+- Update activity template to use ContributesComponent
+- Rename MixEditorViewComponent to MixEditorComponent
 
+## [1.6.3] - 2025-01-08
 ### Changed
 - Update ComponentActivity.setContent import and add default insets type
 
 ## [1.6.2] - 2024-12-03
-
 ### Changed
 - Fix AutomationTemplateCreateAction for new IDE version
 
 ## [1.6.1] - 2024-11-29
-
 ### Changed
 - Fix SortDependenciesAction to support all module types (#80)
 
