@@ -62,14 +62,13 @@ class ActivityTemplateCreateAction : CreateFileAction(
             name = newName,
             filePackage = directory.filePackage
         )
-        directory
         return arrayOf(
             directory.writeFile("${newName}Activity.kt", activityBuilder.createActivity()),
             directory.writeFile("${newName}ViewModel.kt", activityBuilder.createViewModel()),
             // Known issue, if AndroidManifest exist already, the plugin cannot create a new instance, you'll see
             // the error and will need to add the declaration manually. I don't think we need to support this case,
             // having multiple activities in the same module is generally discouraged.
-            directory.requireMainDir().writeFile("AndroidManifest.xml", activityBuilder.createManifest())
+            directory.requireMainDir().writeFile("AndroidManifest.xml", activityBuilder.createManifest()),
         )
     }
 

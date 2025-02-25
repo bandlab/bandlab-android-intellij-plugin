@@ -4,7 +4,6 @@ class ActivityTemplateBuilder(
     private val name: String,
     private val filePackage: String,
 ) {
-
     fun createActivity(): String = """
         package $filePackage
         
