@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+## [1.7.2] - 2025-04-15
+### Changed
+- Adjust PageTemplateBuilder according to the latest ContributesComponent convention
+
 ## [1.7.1] - 2025-02-25
 ### Added
 - Create a new PageTemplateCreateAction
