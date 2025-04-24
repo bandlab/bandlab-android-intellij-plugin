@@ -81,7 +81,7 @@ class BandLabModuleWizardStep(
             row {
                 moduleNameInput = textField()
                     .label("Module Name:", LabelPosition.LEFT)
-                    .comment("Eg: \":user:profile-edit\" or \":comments-api\"")
+                    .comment("Eg: \":user:profile-edit:ui\" or \":comments:api\"")
                     .component
 
                 moduleNameInput.text = moduleParent
