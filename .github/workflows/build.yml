@@ -21,10 +21,17 @@ on:
   pull_request:
 
 jobs:
-  # https://github.com/marketplace/actions/free-disk-space-ubuntu
-  free-disk-space:
+
+  # Prepare environment and build the plugin
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.properties.outputs.version }}
+      changelog: ${{ steps.properties.outputs.changelog }}
+      pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
     steps:
+      # https://github.com/marketplace/actions/free-disk-space-ubuntu
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
         with:
@@ -34,18 +41,7 @@ jobs:
 
           # all of these default to true, but feel free to set to
           # "false" if necessary for your workflow
-          android: false
-
-  # Prepare environment and build the plugin
-  build:
-    name: Build
-    needs: [ free-disk-space ]
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.properties.outputs.version }}
-      changelog: ${{ steps.properties.outputs.changelog }}
-      pluginVerifierHomeDir: ${{ steps.properties.outputs.pluginVerifierHomeDir }}
-    steps:
+          docker-images: false
 
       # Check out current repository
       - name: Fetch Sources
