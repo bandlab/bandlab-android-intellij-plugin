@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## [1.7.3] - 2025-04-29
+### Changed
+- Rename CommonActivity2 to CommonActivity
+- Update the module naming example to avoid confusion
+
 ## [1.7.2] - 2025-04-15
 ### Changed
 - Adjust PageTemplateBuilder according to the latest ContributesComponent convention
