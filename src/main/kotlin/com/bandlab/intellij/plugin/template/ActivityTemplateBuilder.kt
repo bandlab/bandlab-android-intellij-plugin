@@ -10,7 +10,7 @@ class ActivityTemplateBuilder(
         import android.content.Context
         import android.content.Intent
         import android.os.Bundle
-        import com.bandlab.android.common.activity.CommonActivity2
+        import com.bandlab.android.common.activity.CommonActivity
         import com.bandlab.android.common.activity.CommonActivityDependencies
         import com.bandlab.android.common.activity.componentCreator
         import com.bandlab.common.android.di.ContributesComponent
@@ -21,7 +21,7 @@ class ActivityTemplateBuilder(
         import javax.inject.Inject
         
         @ContributesComponent(appDependencies = ${name}Activity.ServiceProvider::class)
-        class ${name}Activity : CommonActivity2<Unit>(), HasServiceProvider {
+        class ${name}Activity : CommonActivity<Unit>(), HasServiceProvider {
             
             @Inject override lateinit var dependencies: CommonActivityDependencies
             @Inject lateinit var viewModel: ${name}ViewModel

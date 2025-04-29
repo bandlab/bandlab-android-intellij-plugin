@@ -255,7 +255,7 @@ class BandLabModuleTemplate(
     }
 
     /**
-     *  Generate an Activity that extends CommonActivity2, as well as the ViewModel and Manifest.
+     *  Generate an Activity that extends CommonActivity, as well as the ViewModel and Manifest.
      */
     private fun generateActivityTemplate(
         moduleInfo: ModuleInfo,
