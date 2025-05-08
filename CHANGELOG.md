@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+## [1.7.4] - 2025-05-08
+### Changed
+- Support module sorting for AudioStretch standalone and Edu app (#94)
+
 ## [1.7.3] - 2025-04-29
 ### Changed
 - Rename CommonActivity2 to CommonActivity
