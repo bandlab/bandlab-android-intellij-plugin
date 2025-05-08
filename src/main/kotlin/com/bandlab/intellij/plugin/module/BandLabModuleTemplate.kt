@@ -151,24 +151,31 @@ class BandLabModuleTemplate(
      */
     private fun modifySettingsGradleKts(moduleInfo: ModuleInfo) {
         project.editFile(filePath = "/settings.gradle.kts", isAbsolute = false) {
-            appendLine("include(\"${moduleInfo.reference}\")")
-
-            val allModulesIdentifier = "// All Modules"
-            val allModulesIndex = indexOf(allModulesIdentifier)
-            if (allModulesIndex == -1) {
-                throw RuntimeException("Can't find $allModulesIdentifier in settings.gradle.")
+            val modulesSectionTag = when {
+                moduleInfo.reference.startsWith(":audiostretch:") -> "// AudioStretch standalone app"
+                moduleInfo.reference.startsWith(":edu:") -> "// EDU app"
+                else -> "// All Modules"
+            }
+            val modulesSectionTagIndex = indexOf(modulesSectionTag)
+            if (modulesSectionTagIndex == -1) {
+                throw RuntimeException("Can't find $modulesSectionTag in settings.gradle.")
             }
 
-            // Sort modules in settings.gradle.kts alphabetically
-            val modulesStartIndex = indexOf(NEW_LINE, allModulesIndex + allModulesIdentifier.length) + 1
-            val sortedModules = substring(modulesStartIndex)
+            val modulesStartIndex = indexOf(NEW_LINE, modulesSectionTagIndex + modulesSectionTag.length) + 1
+            // Insert the new module
+            insert(modulesStartIndex, "include(\"${moduleInfo.reference}\")\n")
+            // Try to find the end of the module declaration, return null if it's the end of the file
+            val modulesEndIndex = indexOf(NEW_LINE + NEW_LINE, modulesStartIndex)
+                .takeUnless { it == -1 } ?: length
+            // Sort all modules alphabetically
+            val sortedModules = substring(startIndex = modulesStartIndex, endIndex = modulesEndIndex)
                 .split(NEW_LINE)
                 .filter { it.isNotBlank() }
                 .distinct()
                 .sorted()
                 .joinToString(NEW_LINE)
 
-            replace(modulesStartIndex, lastIndex, sortedModules)
+            replace(modulesStartIndex, modulesEndIndex, sortedModules)
         }
     }
 
