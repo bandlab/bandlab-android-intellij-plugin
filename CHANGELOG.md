@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## [1.7.5] - 2025-06-19
+### Changed
+- Update Page package
+- Update config changes in manifest, we disabled all possible config changes in compose
+
 ## [1.7.4] - 2025-05-08
 ### Changed
 - Support module sorting for AudioStretch standalone and Edu app (#94)
