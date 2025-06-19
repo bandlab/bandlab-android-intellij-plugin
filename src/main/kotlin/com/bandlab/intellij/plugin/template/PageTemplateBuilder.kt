@@ -12,7 +12,7 @@ class PageTemplateBuilder(
         import com.bandlab.common.android.di.ContributesComponent
         import com.bandlab.common.android.pager.screen.di.HasPageServiceProvider
         import com.bandlab.common.android.pager.screen.di.componentCreator
-        import com.bandlab.uikit.compose.pager.Page
+        import com.bandlab.uikit.api.page.Page
         import javax.inject.Inject
 
         @ContributesComponent(appDependencies = ${name}Page.ServiceProvider::class)
@@ -39,7 +39,7 @@ class PageTemplateBuilder(
         import androidx.compose.runtime.Composable
         import com.bandlab.common.android.di.ContributesInjector
         import com.bandlab.common.di.FeatureGraph
-        import com.bandlab.uikit.compose.pager.Page
+        import com.bandlab.uikit.api.page.Page
         import javax.inject.Inject
         
         @ContributesInjector(FeatureGraph::class)
