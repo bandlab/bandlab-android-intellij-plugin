@@ -70,7 +70,7 @@ class ActivityTemplateBuilder(
             <application>
                 <activity
                     android:name=".${name}Activity"
-                    android:configChanges="colorMode|density|fontScale|keyboard|keyboardHidden|layoutDirection|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|fontWeightAdjustment" />
+                    android:configChanges="colorMode|density|fontScale|keyboard|keyboardHidden|layoutDirection|locale|mcc|mnc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|touchscreen|uiMode|fontWeightAdjustment" />
             </application>
         </manifest>
     """.trimIndent()
