@@ -5,15 +5,14 @@ data class BandLabModuleConfig(
     val path: String,
     val composeConvention: Boolean = false,
     val plugins: ModulePlugins,
-    // Presented for generating dagger module, activity etc.
-    val daggerConfig: DaggerModuleConfig? = null,
+    val exposure: ModuleExposure,
+    val featureName: String,
     val generateActivity: Boolean = false,
 )
 
 data class ModulePlugins(
     val compose: Boolean = false,
-    val anvil: Boolean = false,
-    val daggerCompiler: Boolean = false,
+    val metro: Boolean = false,
     val restApi: Boolean = false,
     val remoteConfig: Boolean = false,
     val preferenceConfig: Boolean = false,
@@ -25,11 +24,6 @@ enum class BandLabModuleType {
     Android, Kotlin
 }
 
-data class DaggerModuleConfig(
-    val name: String,
-    val exposure: DaggerModuleExposure
-)
-
-enum class DaggerModuleExposure {
-    None, AppComponent, MixEditorComponent
+enum class ModuleExposure {
+    AppGraph, MixEditorGraph, None
 }

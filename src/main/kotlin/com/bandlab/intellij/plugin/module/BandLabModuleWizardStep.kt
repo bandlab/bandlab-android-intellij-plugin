@@ -20,9 +20,7 @@ import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBRadioButton
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.*
-import com.intellij.ui.layout.and
 import com.intellij.ui.layout.not
-import com.intellij.ui.layout.or
 import com.intellij.ui.layout.selected
 import javax.swing.JComponent
 
@@ -34,7 +32,7 @@ class BandLabModuleWizardStep(
 
     // Inputs
     private lateinit var moduleNameInput: JBTextField
-    private lateinit var daggerModuleNameInput: JBTextField
+    private lateinit var featureNameInput: JBTextField
 
     // Module type
     private lateinit var androidModuleButton: JBRadioButton
@@ -46,15 +44,14 @@ class BandLabModuleWizardStep(
 
     // Plugins
     private lateinit var composePluginCheckBox: JBCheckBox
-    private lateinit var anvilPluginCheckBox: JBCheckBox
-    private lateinit var generateDaggerModuleCheckBox: JBCheckBox
+    private lateinit var metroPluginCheckBox: JBCheckBox
     private lateinit var restApiPluginCheckBox: JBCheckBox
     private lateinit var remoteConfigPluginCheckBox: JBCheckBox
     private lateinit var preferenceConfigPluginCheckBox: JBCheckBox
     private lateinit var databasePluginCheckBox: JBCheckBox
     private lateinit var testFixturesPluginCheckBox: JBCheckBox
 
-    // Dagger module exposure
+    // Module exposure
     private lateinit var appModuleButton: JBRadioButton
     private lateinit var meComponentModuleButton: JBRadioButton
     private lateinit var noneModuleButton: JBRadioButton
@@ -155,18 +152,8 @@ class BandLabModuleWizardStep(
                     .visibleIf(composeConventionCheckBox.selected.not())
 
                 row {
-                    anvilPluginCheckBox = checkBox("Apply Anvil plugin")
-                        .whenStateChangedFromUi { selected ->
-                            if (!selected) generateDaggerModuleCheckBox.isSelected = false
-                        }
-                        .component
+                    metroPluginCheckBox = checkBox("Apply Metro plugin").component
                 }.visibleIf(composeConventionCheckBox.selected.not())
-
-                indent {
-                    row {
-                        generateDaggerModuleCheckBox = checkBox("Generate Dagger Module").component
-                    }.visibleIf(composeConventionCheckBox.selected.not().and(anvilPluginCheckBox.selected))
-                }
 
                 row {
                     restApiPluginCheckBox = checkBox("Apply Rest API plugin").component
@@ -191,7 +178,7 @@ class BandLabModuleWizardStep(
 
             group("Feature Configuration") {
                 row {
-                    daggerModuleNameInput = textField()
+                    featureNameInput = textField()
                         .label("Name:", LabelPosition.LEFT)
                         .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\" or \"Activity\"")
                         .component
@@ -199,7 +186,7 @@ class BandLabModuleWizardStep(
 
                 buttonsGroup {
                     row {
-                        label("Contribute the new module/ activity to:")
+                        label("Expose the new module/ activity to:")
                     }
 
                     row {
@@ -209,7 +196,7 @@ class BandLabModuleWizardStep(
                     }
 
                     row {
-                        meComponentModuleButton = radioButton("MixEditorComponentGraph").component
+                        meComponentModuleButton = radioButton("MixEditorGraph").component
                     }
 
                     row {
@@ -217,22 +204,22 @@ class BandLabModuleWizardStep(
                     }
                 }
             }
-                .visibleIf(composeConventionCheckBox.selected.or(generateDaggerModuleCheckBox.selected))
+                .visibleIf(composeConventionCheckBox.selected)
                 .topGap(TopGap.MEDIUM)
 
             moduleNameInput.whenTextChanged {
-                configureDaggerModuleName()
+                configureFeatureName()
                 validateModuleName()
             }
         }
     }
 
-    private fun configureDaggerModuleName() {
+    private fun configureFeatureName() {
         val nameInCamelCase = moduleNameInput.text
             .split(':', '-')
             .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
 
-        daggerModuleNameInput.text = nameInCamelCase
+        featureNameInput.text = nameInCamelCase
     }
 
     private fun validateModuleName() {
@@ -265,26 +252,20 @@ class BandLabModuleWizardStep(
             composeConvention = composeConventionCheckBox.isSelected,
             plugins = ModulePlugins(
                 compose = composePluginCheckBox.isSelected,
-                anvil = anvilPluginCheckBox.isSelected,
+                metro = metroPluginCheckBox.isSelected,
                 restApi = restApiPluginCheckBox.isSelected,
                 remoteConfig = remoteConfigPluginCheckBox.isSelected,
                 preferenceConfig = preferenceConfigPluginCheckBox.isSelected,
                 database = databasePluginCheckBox.isSelected,
                 testFixtures = testFixturesPluginCheckBox.isSelected
             ),
-            daggerConfig = if (generateDaggerModuleCheckBox.isSelected || composeConventionCheckBox.isSelected) {
-                DaggerModuleConfig(
-                    name = daggerModuleNameInput.text,
-                    exposure = when {
-                        appModuleButton.isSelected -> DaggerModuleExposure.AppComponent
-                        meComponentModuleButton.isSelected -> DaggerModuleExposure.MixEditorComponent
-                        noneModuleButton.isSelected -> DaggerModuleExposure.None
-                        else -> DaggerModuleExposure.None
-                    }
-                )
-            } else {
-                null
+            exposure = when {
+                appModuleButton.isSelected -> ModuleExposure.AppGraph
+                meComponentModuleButton.isSelected -> ModuleExposure.MixEditorGraph
+                noneModuleButton.isSelected -> ModuleExposure.None
+                else -> ModuleExposure.None
             },
+            featureName = featureNameInput.text,
             generateActivity = generateActivityCheckBox.isSelected
         )
 

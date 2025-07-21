@@ -46,8 +46,7 @@ class BandLabModuleTemplate(
             createModule(
                 moduleInfo = ModuleInfo("$modulePath/screen"),
                 type = BandLabModuleType.Android,
-                plugins = config.plugins.copy(compose = true, daggerCompiler = true),
-                daggerConfig = config.daggerConfig,
+                plugins = config.plugins.copy(compose = true, metro = true),
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
                     add("projects.common.android.screen")
@@ -67,7 +66,6 @@ class BandLabModuleTemplate(
                 moduleInfo = ModuleInfo(modulePath),
                 type = config.type,
                 plugins = config.plugins,
-                daggerConfig = config.daggerConfig
             )
         }
     }
@@ -76,7 +74,6 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         type: BandLabModuleType,
         plugins: ModulePlugins,
-        daggerConfig: DaggerModuleConfig? = null,
         generateActivity: Boolean = false,
         dependsOn: List<String>? = null
     ) {
@@ -97,10 +94,9 @@ class BandLabModuleTemplate(
                     BandLabModuleType.Kotlin -> appendPlugin("library.kotlin")
                     BandLabModuleType.Android -> appendPlugin("library.android")
                 }
-                if (plugins.anvil) appendPlugin("anvil")
                 if (plugins.compose) appendPlugin("compose")
-                if (plugins.daggerCompiler) appendPlugin("dagger.compiler.library")
                 if (plugins.database) appendPlugin("database")
+                if (plugins.metro) appendPlugin("metro")
                 if (plugins.preferenceConfig) appendPlugin("preferenceConfig")
                 if (plugins.remoteConfig) appendPlugin("remoteConfig")
                 if (plugins.restApi) appendPlugin("restApi")
@@ -128,20 +124,24 @@ class BandLabModuleTemplate(
         // Modify settings.gradle.kts
         modifySettingsGradleKts(moduleInfo)
 
-        // Create the dagger module and expose the module to app
-        if (daggerConfig != null) {
-            generateDaggerModule(
-                moduleInfo = moduleInfo,
-                daggerConfig = daggerConfig,
-                addActivityComponent = generateActivity
-            )
+        // Expose the module to top-level module
+        when (config.exposure) {
+            ModuleExposure.AppGraph -> {
+                exposeModule(moduleInfo, destinationModule = "/app")
+            }
+
+            ModuleExposure.MixEditorGraph -> {
+                exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
+            }
+
+            ModuleExposure.None -> Unit
         }
 
         // Create the activity template
         if (generateActivity) {
             generateActivityTemplate(
                 moduleInfo = moduleInfo,
-                name = requireNotNull(daggerConfig?.name),
+                name = config.featureName,
             )
         }
     }
@@ -176,62 +176,6 @@ class BandLabModuleTemplate(
                 .joinToString(NEW_LINE)
 
             replace(modulesStartIndex, modulesEndIndex, sortedModules)
-        }
-    }
-
-    /**
-     *  Generate a Dagger module for the feature, and expose the module to the app-level graph.
-     */
-    private fun generateDaggerModule(
-        moduleInfo: ModuleInfo,
-        daggerConfig: DaggerModuleConfig,
-        addActivityComponent: Boolean
-    ) {
-        val (name, exposure) = daggerConfig
-
-        // Create the Dagger Module
-        if (!addActivityComponent) {
-            val scopeImport = when (exposure) {
-                DaggerModuleExposure.None -> null
-                DaggerModuleExposure.AppComponent -> "import com.bandlab.common.di.AppGraph"
-                DaggerModuleExposure.MixEditorComponent -> "import com.bandlab.common.di.MixEditorComponentGraph"
-            }
-
-            val contributionImport = when (exposure) {
-                DaggerModuleExposure.None -> null
-                DaggerModuleExposure.AppComponent -> "@ContributesTo(AppGraph::class)"
-                DaggerModuleExposure.MixEditorComponent -> "@ContributesTo(MixEditorComponentGraph::class)"
-            }
-
-            psiFileFactory.createFileFromText(
-                "${name}Module.kt",
-                KotlinFileType.INSTANCE,
-                buildString {
-                    appendLine("package ${moduleInfo.packageToImport}")
-                    appendLine()
-                    if (scopeImport != null) {
-                        appendLine(scopeImport)
-                        appendLine("import com.squareup.anvil.annotations.ContributesTo")
-                    }
-                    appendLine("import dagger.Module")
-                    appendLine()
-                    appendLine("@Module")
-                    contributionImport?.let(::appendLine)
-                    appendLine("interface ${name}Module")
-                }
-            ).addToPath(moduleInfo.filesPath)
-        }
-
-        when (exposure) {
-            DaggerModuleExposure.None -> Unit
-
-            DaggerModuleExposure.AppComponent -> {
-                exposeModule(moduleInfo, destinationModule = "/app")
-            }
-
-            DaggerModuleExposure.MixEditorComponent -> {
-                exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
-            }
         }
     }
 
