@@ -47,6 +47,7 @@ class BandLabModuleTemplate(
                 moduleInfo = ModuleInfo("$modulePath/screen"),
                 type = BandLabModuleType.Android,
                 plugins = config.plugins.copy(compose = true, metro = true),
+                exposure = config.exposure,
                 generateActivity = config.generateActivity,
                 dependsOn = buildList {
                     add("projects.common.android.screen")
@@ -60,12 +61,15 @@ class BandLabModuleTemplate(
                 moduleInfo = uiModuleInfo,
                 type = BandLabModuleType.Android,
                 plugins = ModulePlugins(compose = true),
+                // Do not expose ui module to top-level graph
+                exposure = ModuleExposure.None
             )
         } else {
             createModule(
                 moduleInfo = ModuleInfo(modulePath),
                 type = config.type,
                 plugins = config.plugins,
+                exposure = config.exposure
             )
         }
     }
@@ -74,6 +78,7 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         type: BandLabModuleType,
         plugins: ModulePlugins,
+        exposure: ModuleExposure,
         generateActivity: Boolean = false,
         dependsOn: List<String>? = null
     ) {
@@ -125,7 +130,7 @@ class BandLabModuleTemplate(
         modifySettingsGradleKts(moduleInfo)
 
         // Expose the module to top-level module
-        when (config.exposure) {
+        when (exposure) {
             ModuleExposure.AppGraph -> {
                 exposeModule(moduleInfo, destinationModule = "/app")
             }
