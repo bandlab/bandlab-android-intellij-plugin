@@ -18,7 +18,8 @@ class ActivityTemplateBuilder(
         import com.bandlab.navigation.android.activityIntent
         import com.bandlab.uikit.compose.activity.WindowInsetsType
         import com.bandlab.uikit.compose.activity.setContent
-        import javax.inject.Inject
+        import dev.zacsweers.metro.Inject
+        import dev.zacsweers.metro.createGraphFactory
         
         @ContributesComponent(appDependencies = ${name}Activity.ServiceProvider::class)
         class ${name}Activity : CommonActivity<Unit>(), HasServiceProvider {
@@ -26,7 +27,7 @@ class ActivityTemplateBuilder(
             @Inject override lateinit var dependencies: CommonActivityDependencies
             @Inject lateinit var viewModel: ${name}ViewModel
             
-            private val component by componentCreator(Dagger${name}ActivityComponent.factory())
+            private val graph by graphCreator(createGraphFactory<${name}ActivityGraph.Factory>())
             
             override fun parseRequiredParams(bundle: Bundle) = Unit
             
@@ -36,7 +37,7 @@ class ActivityTemplateBuilder(
                 }
             }
             
-            override fun <T> resolve(): T = HasServiceProvider.resolveFrom(component)
+            override fun <T> resolve(): T = HasServiceProvider.resolveFrom(graph)
             
             interface ServiceProvider {
                 
@@ -54,7 +55,7 @@ class ActivityTemplateBuilder(
     fun createViewModel(): String = """
         package $filePackage
         
-        import javax.inject.Inject
+        import dev.zacsweers.metro.Inject
         
         class ${name}ViewModel @Inject constructor(
             

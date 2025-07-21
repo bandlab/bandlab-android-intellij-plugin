@@ -11,14 +11,15 @@ class PageTemplateBuilder(
         import androidx.compose.runtime.Composable
         import com.bandlab.common.android.di.ContributesComponent
         import com.bandlab.common.android.pager.screen.di.HasPageServiceProvider
-        import com.bandlab.common.android.pager.screen.di.componentCreator
+        import com.bandlab.common.android.pager.screen.di.graphCreator
         import com.bandlab.uikit.api.page.Page
-        import javax.inject.Inject
+        import dev.zacsweers.metro.Inject
+        import dev.zacsweers.metro.createGraphFactory       
 
         @ContributesComponent(appDependencies = ${name}Page.ServiceProvider::class)
         class ${name}Page @Inject constructor(context: Context) : Page<${name}ViewModel>, HasPageServiceProvider {
 
-            override val componentCreator = componentCreator(context, Dagger${name}PageComponent.factory())
+            override val graphCreator = graphCreator(context, createGraphFactory<${name}PageGraph.Factory>())
 
             @Composable
             override fun Content(vm: ${name}ViewModel) {
@@ -38,11 +39,11 @@ class PageTemplateBuilder(
         
         import androidx.compose.runtime.Composable
         import com.bandlab.common.android.di.ContributesInjector
-        import com.bandlab.common.di.FeatureGraph
+        import com.bandlab.common.di.FeatureScope
         import com.bandlab.uikit.api.page.Page
-        import javax.inject.Inject
+        import dev.zacsweers.metro.Inject
         
-        @ContributesInjector(FeatureGraph::class)
+        @ContributesInjector(FeatureScope::class)
         class ${name}Page @Inject constructor() : Page<${name}ViewModel> {
         
             @Composable
@@ -56,7 +57,7 @@ class PageTemplateBuilder(
     fun createViewModel(): String = """
         package $filePackage
         
-        import javax.inject.Inject
+        import dev.zacsweers.metro.Inject
         
         class ${name}ViewModel @Inject constructor(
             
