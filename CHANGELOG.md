@@ -4,6 +4,11 @@
 
 ## Unreleased
 
+## [1.7.6] - 2025-07-21
+### Changed
+- Update Activity, Page template to align with metro
+- Adjust module creation flow with metro
+
 ## [1.7.5] - 2025-06-19
 ### Changed
 - Update Page package
