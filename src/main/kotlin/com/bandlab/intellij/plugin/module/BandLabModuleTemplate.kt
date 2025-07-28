@@ -126,8 +126,8 @@ class BandLabModuleTemplate(
             }
         ).addToPath(moduleInfo.path)
 
-        // Modify settings.gradle.kts
-        modifySettingsGradleKts(moduleInfo)
+        // Modify module declaration list file (all-projects.txt or settings.gradle.kts)
+        modifyModulesListFile(moduleInfo)
 
         // Expose the module to top-level module
         when (exposure) {
@@ -152,36 +152,49 @@ class BandLabModuleTemplate(
     }
 
     /**
-     *  Insert the new module in settings.gradle.kts, and sort the modules alphabetically.
+     *  Insert the new module in module declaration file, and sort the modules alphabetically.
+     *
+     *  If project is using spotlight, the declaration is in /gradle/all-projects.txt
+     *  otherwise, it will use /settings.gradle.kts
      */
-    private fun modifySettingsGradleKts(moduleInfo: ModuleInfo) {
-        project.editFile(filePath = "/settings.gradle.kts", isAbsolute = false) {
-            val modulesSectionTag = when {
-                moduleInfo.reference.startsWith(":audiostretch:") -> "// AudioStretch standalone app"
-                moduleInfo.reference.startsWith(":edu:") -> "// EDU app"
-                else -> "// All Modules"
-            }
-            val modulesSectionTagIndex = indexOf(modulesSectionTag)
-            if (modulesSectionTagIndex == -1) {
-                throw RuntimeException("Can't find $modulesSectionTag in settings.gradle.")
-            }
+    private fun modifyModulesListFile(moduleInfo: ModuleInfo) {
+        val spec = ModuleListSpecification.from(project)
 
-            val modulesStartIndex = indexOf(NEW_LINE, modulesSectionTagIndex + modulesSectionTag.length) + 1
-            // Insert the new module
-            insert(modulesStartIndex, "include(\"${moduleInfo.reference}\")\n")
-            // Try to find the end of the module declaration, return null if it's the end of the file
-            val modulesEndIndex = indexOf(NEW_LINE + NEW_LINE, modulesStartIndex)
-                .takeUnless { it == -1 } ?: length
-            // Sort all modules alphabetically
-            val sortedModules = substring(startIndex = modulesStartIndex, endIndex = modulesEndIndex)
-                .split(NEW_LINE)
-                .filter { it.isNotBlank() }
-                .distinct()
-                .sorted()
-                .joinToString(NEW_LINE)
-
-            replace(modulesStartIndex, modulesEndIndex, sortedModules)
+        project.editFile(filePath = spec.filePath, isAbsolute = false) {
+            editModuleDeclaration(moduleInfo = moduleInfo, spec = spec)
         }
+    }
+
+    private fun StringBuilder.editModuleDeclaration(
+        moduleInfo: ModuleInfo,
+        spec: ModuleListSpecification,
+    ) {
+        val tagName = when {
+            moduleInfo.reference.startsWith(":audiostretch:") -> "AudioStretch standalone app"
+            moduleInfo.reference.startsWith(":edu:") -> "EDU app"
+            else -> "All Modules"
+        }
+        val modulesSectionTag = "${spec.sectionIdentifier} $tagName"
+        val modulesSectionTagIndex = indexOf(modulesSectionTag)
+        if (modulesSectionTagIndex == -1) {
+            throw RuntimeException("Can't find $modulesSectionTag in ${spec.filePath}")
+        }
+
+        val modulesStartIndex = indexOf(NEW_LINE, modulesSectionTagIndex + modulesSectionTag.length) + 1
+        // Insert the new module
+        insert(modulesStartIndex, spec.newModuleStatement(moduleInfo))
+        // Try to find the end of the module declaration, return null if it's the end of the file
+        val modulesEndIndex = indexOf(NEW_LINE + NEW_LINE, modulesStartIndex)
+            .takeUnless { it == -1 } ?: length
+        // Sort all modules alphabetically
+        val sortedModules = substring(startIndex = modulesStartIndex, endIndex = modulesEndIndex)
+            .split(NEW_LINE)
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+            .joinToString(NEW_LINE)
+
+        replace(modulesStartIndex, modulesEndIndex, sortedModules)
     }
 
     private fun exposeModule(
@@ -247,5 +260,37 @@ class BandLabModuleTemplate(
     private fun PsiFile.addToPath(path: String) {
         val moduleVirtualPath = project.requireVirtualFile(path, isAbsolute = false)
         psiDirectorFactory.createDirectory(moduleVirtualPath).add(this)
+    }
+
+    private sealed interface ModuleListSpecification {
+
+        val filePath: String
+        val sectionIdentifier: String
+        val newModuleStatement: (ModuleInfo) -> String
+
+        class SettingsGradle : ModuleListSpecification {
+            override val filePath: String = "/settings.gradle.kts"
+            override val sectionIdentifier: String = "//"
+            override val newModuleStatement: (ModuleInfo) -> String = {
+                "include(\"${it.reference}\")\n"
+            }
+        }
+
+        class SpotlightAllProject : ModuleListSpecification {
+            override val filePath: String = FILE_PATH
+            override val sectionIdentifier: String = "#"
+            override val newModuleStatement: (ModuleInfo) -> String = { "${it.reference}\n" }
+
+            companion object {
+                const val FILE_PATH = "/gradle/all-projects.txt"
+            }
+        }
+
+        companion object {
+            fun from(project: Project): ModuleListSpecification {
+                val useSpotlight = project.basePath?.let { File(it, SpotlightAllProject.FILE_PATH) }?.exists == true
+                return if (useSpotlight) SpotlightAllProject() else SettingsGradle()
+            }
+        }
     }
 }
