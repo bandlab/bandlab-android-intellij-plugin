@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+## [1.8.0] - 2025-07-28
+### Added
+Add support for spotlight all-projects file (#102)
+
 ## [1.7.7] - 2025-07-21
 ### Changed
 - Update Activity, Page template to align with metro
