@@ -54,6 +54,7 @@ dependencies {
         testFramework(TestFrameworkType.Platform)
 
         // Use jewel for UI development
+        // https://github.com/JetBrains/intellij-community/tree/master/platform/jewel
         bundledModule("intellij.platform.jewel.foundation")
         bundledModule("intellij.platform.jewel.ui")
         bundledModule("intellij.platform.jewel.ideLafBridge")
