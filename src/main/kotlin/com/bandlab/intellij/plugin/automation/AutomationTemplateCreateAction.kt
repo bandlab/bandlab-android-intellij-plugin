@@ -15,9 +15,9 @@ import java.awt.event.InputEvent
 import java.util.function.Consumer
 
 class AutomationTemplateCreateAction : CreateFileAction(
-    /* text = */ "Automation Template",
-    /* description = */ "Create template files for automation testing.",
-    /* icon = */ BandLabIcons.logo
+    { "Automation Template" },
+    { "Create template files for automation testing." },
+    { BandLabIcons.logo },
 ), DumbAware {
 
     /**

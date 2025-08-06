@@ -21,9 +21,9 @@ import java.util.function.Consumer
 import javax.swing.*
 
 class PageTemplateCreateAction : CreateFileAction(
-    /* text = */ "Page Template",
-    /* description = */ "Create a Page template with latest convention.",
-    /* icon = */ BandLabIcons.logo
+    { "Page Template" },
+    { "Create a Page template with latest convention." },
+    { BandLabIcons.logo }
 ) {
 
     private var injectionMode = InjectionMode.ContributesComponent

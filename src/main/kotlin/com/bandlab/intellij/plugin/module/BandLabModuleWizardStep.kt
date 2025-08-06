@@ -4,12 +4,11 @@ package com.bandlab.intellij.plugin.module
 
 import com.android.build.attribution.ui.warningIcon
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.template.BlankModel
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
+import com.android.tools.idea.wizard.model.WizardModel
 import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
-import com.bandlab.intellij.plugin.utils.visibleIf
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.observable.properties.AtomicBooleanProperty
@@ -24,11 +23,15 @@ import com.intellij.ui.layout.not
 import com.intellij.ui.layout.selected
 import javax.swing.JComponent
 
+class EmptyModel: WizardModel() {
+    override fun handleFinished() = Unit
+}
+
 class BandLabModuleWizardStep(
     private val project: Project,
     private val moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
-) : SkippableWizardStep<BlankModel>(BlankModel(), "BandLab Convention") {
+) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
     // Inputs
     private lateinit var moduleNameInput: JBTextField
