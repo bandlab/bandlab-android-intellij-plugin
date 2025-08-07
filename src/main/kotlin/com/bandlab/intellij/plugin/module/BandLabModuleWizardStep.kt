@@ -23,7 +23,7 @@ class BandLabModuleWizardStep(
     private val projectSyncInvoker: ProjectSyncInvoker,
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
-    private val viewModel = BandLabModuleWizardViewModel(project)
+    private val viewModel = BandLabModuleWizardViewModel(project, moduleParent)
 
     override fun getComponent(): JComponent {
         @OptIn(ExperimentalJewelApi::class)
