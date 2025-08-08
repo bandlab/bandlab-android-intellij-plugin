@@ -44,7 +44,7 @@ internal fun BandLabScreenModuleSelector(
 
                 Column {
                     TextField(state = featureName)
-                    TextFieldHint("ex: UserProfile, don't include Activity or Page")
+                    HintText("ex: UserProfile, don't include Activity or Page")
                 }
             }
         }

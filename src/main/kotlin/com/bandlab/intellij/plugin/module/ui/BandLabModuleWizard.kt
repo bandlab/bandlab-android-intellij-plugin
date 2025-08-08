@@ -8,17 +8,16 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bandlab.intellij.plugin.module.BandLabModuleType
-import com.bandlab.intellij.plugin.module.BandLabModuleVariant
-import com.bandlab.intellij.plugin.module.ModuleExposure
-import com.bandlab.intellij.plugin.module.ModulePlugin
+import com.bandlab.intellij.plugin.module.*
+import com.bandlab.intellij.plugin.module.ModuleValidationError.Companion.errorMessageOrNull
 import kotlinx.coroutines.flow.StateFlow
+import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -38,10 +37,13 @@ internal data class WizardState(
     val onGenerateActivityClick: () -> Unit,
     val onGeneratePageClick: () -> Unit,
     val featureName: TextFieldState,
+    val validationErrors: StateFlow<Set<ModuleValidationError>>,
 )
 
 @Composable
 internal fun BandLabModuleWizard(state: WizardState) {
+    val validationErrors by state.validationErrors.collectAsState()
+
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -67,10 +69,21 @@ internal fun BandLabModuleWizard(state: WizardState) {
                 TextField(
                     state = state.moduleName,
                     trailingIcon = null,
-//                    outline = Outline.of(warning = false, error = true)
+                    outline = Outline.of(
+                        warning = false,
+                        error = validationErrors.any { it.isNameError }
+                    )
                 )
 
-                TextFieldHint("ex :user:profile")
+                val nameError = validationErrors.firstOrNull { it.isNameError }
+                if (nameError != null) {
+                    ErrorText(
+                        errorMessage = nameError.errorMessage,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                HintText("ex :user:profile")
             }
         }
 
@@ -82,15 +95,12 @@ internal fun BandLabModuleWizard(state: WizardState) {
                 uriHandler.openUri(MODULE_STRUCTURE_CONVENTION_URL)
             }
         ) {
-            Text(
-                text = "See the convention doc",
-                fontSize = 12.sp,
-                fontStyle = FontStyle.Italic
-            )
+            HintText(hint = "See the convention doc")
 
             Icon(
                 key = AllIconsKeys.Ide.External_link_arrow,
                 contentDescription = "Link",
+                modifier = Modifier.padding(top = 4.dp)
             )
         }
 
@@ -104,6 +114,11 @@ internal fun BandLabModuleWizard(state: WizardState) {
         )
             .forEach { variantState ->
                 val variant = variantState.collectAsState().value
+                val errorMessage = validationErrors.errorMessageOrNull(
+                    variant = variant,
+                    parentModule = state.featureName.text
+                )
+
                 BandLabModuleVariantSelector(
                     state = variant,
                     onVariantClick = state.onVariantClick,
@@ -121,7 +136,8 @@ internal fun BandLabModuleWizard(state: WizardState) {
                         }
                     } else {
                         null
-                    }
+                    },
+                    errorMessage = errorMessage
                 )
             }
     }

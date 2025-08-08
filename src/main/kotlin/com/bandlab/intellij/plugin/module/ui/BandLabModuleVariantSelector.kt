@@ -3,10 +3,10 @@ package com.bandlab.intellij.plugin.module.ui
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -25,7 +25,8 @@ internal fun BandLabModuleVariantSelector(
     onModuleTypeClick: (BandLabModuleVariant, BandLabModuleType) -> Unit,
     onPluginClick: (BandLabModuleVariant, ModulePlugin) -> Unit,
     onExposureClick: (BandLabModuleVariant, ModuleExposure) -> Unit,
-    screenSettingsSlot: @Composable ((BandLabModuleVariant.Screen) -> Unit)? = null
+    screenSettingsSlot: @Composable ((BandLabModuleVariant.Screen) -> Unit)?,
+    errorMessage: String?,
 ) {
     Column(
         modifier = Modifier.animateContentSize()
@@ -37,19 +38,29 @@ internal fun BandLabModuleVariantSelector(
             is BandLabModuleVariant.Screen -> ":screen"
         }
 
-        CheckboxRow(
-            text = variantName,
-            checked = state.isSelected,
-            onCheckedChange = { _ -> onVariantClick(state) },
-            textStyle = TextStyle(
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            CheckboxRow(
+                text = variantName,
+                checked = state.isSelected,
+                onCheckedChange = { _ -> onVariantClick(state) },
+                textStyle = TextStyle(
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
             )
-        )
+
+            if (errorMessage != null) {
+                ErrorText(errorMessage)
+            }
+        }
 
         if (state.isSelected) {
             val startPadding = 12.dp
             val bottomPadding = 16.dp
+            val groupBorderColor = GroupBorderColor
             Column(
                 modifier = Modifier
                     .drawBehind {
@@ -58,13 +69,13 @@ internal fun BandLabModuleVariantSelector(
                         val topPaddingPx = 8.dp.toPx()
                         val bottomPaddingPx = bottomPadding.toPx()
                         drawLine(
-                            color = Color.LightGray,
+                            color = groupBorderColor,
                             start = Offset(x = startPaddingPx, y = topPaddingPx),
                             end = Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
                             strokeWidth = strokeWidth
                         )
                         drawLine(
-                            color = Color.LightGray,
+                            color = groupBorderColor,
                             start = Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
                             end = Offset(
                                 x = startPaddingPx + GroupIndicatorWidth.toPx(),

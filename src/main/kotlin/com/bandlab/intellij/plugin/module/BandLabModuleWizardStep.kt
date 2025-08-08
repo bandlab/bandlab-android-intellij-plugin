@@ -8,6 +8,8 @@ import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
 import com.bandlab.intellij.plugin.module.ui.BandLabModuleWizard
 import com.intellij.openapi.project.Project
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import org.jetbrains.jewel.bridge.JewelComposePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -23,7 +25,8 @@ class BandLabModuleWizardStep(
     private val projectSyncInvoker: ProjectSyncInvoker,
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
-    private val viewModel = BandLabModuleWizardViewModel(project, moduleParent)
+    private val wizardScope = CoroutineScope(Dispatchers.Main)
+    private val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
 
     override fun getComponent(): JComponent {
         @OptIn(ExperimentalJewelApi::class)
@@ -33,28 +36,6 @@ class BandLabModuleWizardStep(
             BandLabModuleWizard(viewModel.state)
         }
     }
-
-//    private fun configureFeatureName() {
-//        val nameInCamelCase = moduleNameInput.text
-//            .split(':', '-')
-//            .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
-//
-//        featureNameInput.text = nameInCamelCase
-//    }
-//
-//    private fun validateModuleName() {
-//        val moduleName = moduleNameInput.text
-//
-//        val isNameInvalid = !moduleName.startsWith(':')
-//                || moduleName.contains('/')
-//                || moduleName.contains("::")
-//
-//        val isModuleExists = moduleName in existingModuleNames
-//
-//        isModuleNameInvalid.set(isNameInvalid)
-//        isModuleAlreadyExists.set(isModuleExists)
-//        canCreate.set(!isNameInvalid && !isModuleExists)
-//    }
 
     override fun canGoForward(): ObservableBool {
         return viewModel.canCreate

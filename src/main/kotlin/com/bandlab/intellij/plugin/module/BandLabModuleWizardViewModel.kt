@@ -1,21 +1,21 @@
 package com.bandlab.intellij.plugin.module
 
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.bandlab.intellij.plugin.module.ui.WizardState
-import com.intellij.openapi.observable.properties.AtomicBooleanProperty
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.modules
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.*
 
 internal class BandLabModuleWizardViewModel(
+    wizardScope: CoroutineScope,
     project: Project,
     moduleParent: String,
 ) {
-
-    private val isModuleNameInvalid = AtomicBooleanProperty(false)
-    private val isModuleAlreadyExists = AtomicBooleanProperty(false)
+    private val moduleNameRegex = "^(:[a-z-]+)+$".toRegex()
 
     private val moduleName = TextFieldState(moduleParent)
     private val featureName = TextFieldState("UserProfile")
@@ -25,7 +25,50 @@ internal class BandLabModuleWizardViewModel(
     private val uiVariant = MutableStateFlow(BandLabModuleVariant.Ui())
     private val screenVariant = MutableStateFlow(BandLabModuleVariant.Screen())
 
-    val canCreate = BoolValueProperty(false)
+    private val moduleNameTextFlow = snapshotFlow { moduleName.text.toString() }
+    private val validationErrors: StateFlow<Set<ModuleValidationError>> = combine(
+        apiVariant.map { it.isSelected }.distinctUntilChanged(),
+        implVariant.map { it.isSelected }.distinctUntilChanged(),
+        uiVariant.map { it.isSelected }.distinctUntilChanged(),
+        screenVariant.map { it.isSelected }.distinctUntilChanged(),
+        moduleNameTextFlow
+    ) { isApiSelected, isImplSelected, isUiSelected, isScreenSelected, name ->
+        buildSet {
+            if (name.isBlank() || name == ":") {
+                add(ModuleValidationError.ModuleNameEmpty)
+                return@buildSet
+            }
+            if (!name.startsWith(':')) {
+                add(ModuleValidationError.ModuleNameShouldStartWithColon)
+                return@buildSet
+            }
+            if (name.endsWith(':')) {
+                add(ModuleValidationError.ModuleNameEndsWithColon)
+                return@buildSet
+            }
+            if (!moduleNameRegex.matches(name)) {
+                add(ModuleValidationError.ModuleNameInvalidChar)
+                return@buildSet
+            }
+
+            // Check for modules existence
+            if (isApiSelected && "$name:api" in existingModuleNames) {
+                add(ModuleValidationError.ApiModuleExist)
+            }
+            if (isImplSelected && "$name:impl" in existingModuleNames) {
+                add(ModuleValidationError.ImplModuleExist)
+            }
+            if (isUiSelected && "$name:ui" in existingModuleNames) {
+                add(ModuleValidationError.UiModuleExist)
+            }
+            if (isScreenSelected && "$name:screen" in existingModuleNames) {
+                add(ModuleValidationError.ScreenModuleExist)
+            }
+        }
+    }
+        // Skip the initial result when the wizard is just opened.
+        .drop(1)
+        .stateIn(wizardScope, SharingStarted.WhileSubscribed(), emptySet())
 
     private val existingModuleNames = project.modules.map { module ->
         ':' + module.name
@@ -33,6 +76,8 @@ internal class BandLabModuleWizardViewModel(
             .drop(1) // drop the root folder
             .joinToString(":")
     }
+
+    val canCreate = BoolValueProperty(false)
 
     val state = WizardState(
         moduleName = moduleName,
@@ -46,8 +91,23 @@ internal class BandLabModuleWizardViewModel(
         onExposureClick = ::onExposureClick,
         onGenerateActivityClick = ::onGenerateActivityClick,
         onGeneratePageClick = ::onGeneratePageClick,
-        featureName = featureName
+        featureName = featureName,
+        validationErrors = validationErrors
     )
+
+    init {
+        // Map feature name with the module path by default
+        moduleNameTextFlow
+            .onEach { name ->
+                featureName.setTextAndPlaceCursorAtEnd(
+                    name.split(':', '-')
+                        .joinToString("") {
+                            it.replaceFirstChar { c -> c.uppercaseChar() }
+                        }
+                )
+            }
+            .launchIn(wizardScope)
+    }
 
     private fun onVariantClick(variant: BandLabModuleVariant) {
         when (variant) {
