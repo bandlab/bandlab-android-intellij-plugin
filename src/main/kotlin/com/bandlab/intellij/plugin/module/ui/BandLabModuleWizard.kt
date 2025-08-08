@@ -2,7 +2,9 @@ package com.bandlab.intellij.plugin.module.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
@@ -13,8 +15,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bandlab.intellij.plugin.module.BandLabModuleVariant
+import com.bandlab.intellij.plugin.module.ModuleExposure
+import com.bandlab.intellij.plugin.module.ModulePlugin
 import kotlinx.coroutines.flow.StateFlow
-import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -27,13 +30,20 @@ internal data class WizardState(
     val implVariant: StateFlow<BandLabModuleVariant.Impl>,
     val uiVariant: StateFlow<BandLabModuleVariant.Ui>,
     val screenVariant: StateFlow<BandLabModuleVariant.Screen>,
-    val onVariantClick: (BandLabModuleVariant) -> Unit
+    val onVariantClick: (BandLabModuleVariant) -> Unit,
+    val onPluginClick: (BandLabModuleVariant, ModulePlugin) -> Unit,
+    val onExposureClick: (BandLabModuleVariant, ModuleExposure) -> Unit,
+    val onGenerateActivityClick: () -> Unit,
+    val onGeneratePageClick: () -> Unit,
+    val featureName: TextFieldState,
 )
 
 @Composable
 internal fun BandLabModuleWizard(state: WizardState) {
     Column(
-        modifier = Modifier.padding(24.dp)
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .padding(24.dp)
     ) {
         Text(
             text = "BandLab Module Structure Convention",
@@ -55,28 +65,14 @@ internal fun BandLabModuleWizard(state: WizardState) {
                 TextField(
                     state = state.moduleName,
                     trailingIcon = null,
-                    outline = Outline.of(warning = false, error = true)
+//                    outline = Outline.of(warning = false, error = true)
                 )
 
-                Spacer(Modifier.height(4.dp))
-
-                Text(
-                    text = "ex :user:profile",
-                    fontSize = 12.sp,
-                    fontStyle = FontStyle.Italic
-                )
+                TextFieldHint("ex :user:profile")
             }
         }
 
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            text = "Select the module variants you need",
-            fontSize = 14.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-
-        Spacer(Modifier.height(4.dp))
+        SubTitle("Select the module variants you need")
 
         val uriHandler = LocalUriHandler.current
         Row(
@@ -96,27 +92,35 @@ internal fun BandLabModuleWizard(state: WizardState) {
             )
         }
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(8.dp))
 
-        BandLabModuleVariantSelector(
-            state = state.apiVariant.collectAsState().value,
-            onClick = state.onVariantClick
+        listOf(
+            state.apiVariant,
+            state.implVariant,
+            state.screenVariant,
+            state.uiVariant
         )
-
-        BandLabModuleVariantSelector(
-            state = state.implVariant.collectAsState().value,
-            onClick = state.onVariantClick
-        )
-
-        BandLabModuleVariantSelector(
-            state = state.screenVariant.collectAsState().value,
-            onClick = state.onVariantClick
-        )
-
-        BandLabModuleVariantSelector(
-            state = state.uiVariant.collectAsState().value,
-            onClick = state.onVariantClick
-        )
+            .forEach { variantState ->
+                val variant = variantState.collectAsState().value
+                BandLabModuleVariantSelector(
+                    state = variant,
+                    onVariantClick = state.onVariantClick,
+                    onPluginClick = state.onPluginClick,
+                    onExposureClick = state.onExposureClick,
+                    screenSettingsSlot = if (variant is BandLabModuleVariant.Screen) {
+                        {
+                            BandLabScreenModuleSelector(
+                                state = variant,
+                                onGenerateActivityClick = state.onGenerateActivityClick,
+                                onGeneratePageClick = state.onGeneratePageClick,
+                                featureName = state.featureName
+                            )
+                        }
+                    } else {
+                        null
+                    }
+                )
+            }
     }
 }
 

@@ -18,6 +18,8 @@ internal class BandLabModuleWizardViewModel(
     private val isModuleAlreadyExists = AtomicBooleanProperty(false)
 
     private val moduleName = TextFieldState(moduleParent)
+    private val featureName = TextFieldState("UserProfile")
+
     private val apiVariant = MutableStateFlow(BandLabModuleVariant.Api())
     private val implVariant = MutableStateFlow(BandLabModuleVariant.Impl())
     private val uiVariant = MutableStateFlow(BandLabModuleVariant.Ui())
@@ -38,7 +40,12 @@ internal class BandLabModuleWizardViewModel(
         implVariant = implVariant,
         uiVariant = uiVariant,
         screenVariant = screenVariant,
-        onVariantClick = ::onVariantClick
+        onVariantClick = ::onVariantClick,
+        onPluginClick = ::onPluginClick,
+        onExposureClick = ::onExposureClick,
+        onGenerateActivityClick = ::onGenerateActivityClick,
+        onGeneratePageClick = ::onGeneratePageClick,
+        featureName = featureName
     )
 
     private fun onVariantClick(variant: BandLabModuleVariant) {
@@ -55,5 +62,41 @@ internal class BandLabModuleWizardViewModel(
                 }
             }
         }
+    }
+
+    private fun onPluginClick(variant: BandLabModuleVariant, plugin: ModulePlugin) {
+        val currentSelected = when (variant) {
+            is BandLabModuleVariant.Api -> apiVariant.value.selectedPlugins
+            is BandLabModuleVariant.Impl -> implVariant.value.selectedPlugins
+            is BandLabModuleVariant.Ui -> uiVariant.value.selectedPlugins
+            is BandLabModuleVariant.Screen -> screenVariant.value.selectedPlugins
+        }
+        val selectedPlugins = if (plugin in currentSelected) {
+            currentSelected - plugin
+        } else {
+            currentSelected + plugin
+        }
+        when (variant) {
+            is BandLabModuleVariant.Api -> apiVariant.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleVariant.Impl -> implVariant.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleVariant.Ui -> uiVariant.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleVariant.Screen -> screenVariant.update { it.copy(selectedPlugins = selectedPlugins) }
+        }
+    }
+
+    private fun onExposureClick(variant: BandLabModuleVariant, exposure: ModuleExposure) {
+        when (variant) {
+            is BandLabModuleVariant.Impl -> implVariant.update { it.copy(exposure = exposure) }
+            is BandLabModuleVariant.Screen -> screenVariant.update { it.copy(exposure = exposure) }
+            is BandLabModuleVariant.Api, is BandLabModuleVariant.Ui -> error("Api and Ui module can't be exposed")
+        }
+    }
+
+    private fun onGenerateActivityClick() {
+        screenVariant.update { it.copy(generateActivityTemplate = !it.generateActivityTemplate) }
+    }
+
+    private fun onGeneratePageClick() {
+        screenVariant.update { it.copy(generatePageTemplate = !it.generatePageTemplate) }
     }
 }
