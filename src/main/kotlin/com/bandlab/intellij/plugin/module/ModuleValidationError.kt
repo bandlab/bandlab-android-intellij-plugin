@@ -31,13 +31,13 @@ enum class ModuleValidationError {
 
     companion object {
         fun Set<ModuleValidationError>.errorMessageOrNull(
-            variant: BandLabModuleVariant,
+            config: BandLabModuleConfig,
             parentModule: CharSequence,
-        ): String? = when (variant) {
-            is BandLabModuleVariant.Api -> if (contains(ApiModuleExist)) "$parentModule${ApiModuleExist.errorMessage}" else null
-            is BandLabModuleVariant.Impl -> if (contains(ImplModuleExist)) "$parentModule${ImplModuleExist.errorMessage}" else null
-            is BandLabModuleVariant.Screen -> if (contains(ScreenModuleExist)) "$parentModule${ScreenModuleExist.errorMessage}" else null
-            is BandLabModuleVariant.Ui -> if (contains(UiModuleExist)) "$parentModule${UiModuleExist.errorMessage}" else null
+        ): String? = when (config) {
+            is BandLabModuleConfig.Api -> if (contains(ApiModuleExist)) "$parentModule${ApiModuleExist.errorMessage}" else null
+            is BandLabModuleConfig.Impl -> if (contains(ImplModuleExist)) "$parentModule${ImplModuleExist.errorMessage}" else null
+            is BandLabModuleConfig.Screen -> if (contains(ScreenModuleExist)) "$parentModule${ScreenModuleExist.errorMessage}" else null
+            is BandLabModuleConfig.Ui -> if (contains(UiModuleExist)) "$parentModule${UiModuleExist.errorMessage}" else null
         }
     }
 }

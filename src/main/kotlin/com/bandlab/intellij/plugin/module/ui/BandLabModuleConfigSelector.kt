@@ -11,31 +11,31 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bandlab.intellij.plugin.module.BandLabModuleConfig
 import com.bandlab.intellij.plugin.module.BandLabModuleType
-import com.bandlab.intellij.plugin.module.BandLabModuleVariant
 import com.bandlab.intellij.plugin.module.ModuleExposure
 import com.bandlab.intellij.plugin.module.ModulePlugin
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 
 @Composable
-internal fun BandLabModuleVariantSelector(
-    state: BandLabModuleVariant,
-    onVariantClick: (BandLabModuleVariant) -> Unit,
-    onModuleTypeClick: (BandLabModuleVariant, BandLabModuleType) -> Unit,
-    onPluginClick: (BandLabModuleVariant, ModulePlugin) -> Unit,
-    onExposureClick: (BandLabModuleVariant, ModuleExposure) -> Unit,
-    screenSettingsSlot: @Composable ((BandLabModuleVariant.Screen) -> Unit)?,
+internal fun BandLabModuleConfigSelector(
+    state: BandLabModuleConfig,
+    onConfigClick: (BandLabModuleConfig) -> Unit,
+    onModuleTypeClick: (BandLabModuleConfig, BandLabModuleType) -> Unit,
+    onPluginClick: (BandLabModuleConfig, ModulePlugin) -> Unit,
+    onExposureClick: (BandLabModuleConfig, ModuleExposure) -> Unit,
+    screenSettingsSlot: @Composable ((BandLabModuleConfig.Screen) -> Unit)?,
     errorMessage: String?,
 ) {
     Column(
         modifier = Modifier.animateContentSize()
     ) {
-        val variantName = when (state) {
-            is BandLabModuleVariant.Api -> ":api"
-            is BandLabModuleVariant.Impl -> ":impl"
-            is BandLabModuleVariant.Ui -> ":ui"
-            is BandLabModuleVariant.Screen -> ":screen"
+        val configName = when (state) {
+            is BandLabModuleConfig.Api -> ":api"
+            is BandLabModuleConfig.Impl -> ":impl"
+            is BandLabModuleConfig.Ui -> ":ui"
+            is BandLabModuleConfig.Screen -> ":screen"
         }
 
         Row(
@@ -43,9 +43,9 @@ internal fun BandLabModuleVariantSelector(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             CheckboxRow(
-                text = variantName,
+                text = configName,
                 checked = state.isSelected,
-                onCheckedChange = { _ -> onVariantClick(state) },
+                onCheckedChange = { _ -> onConfigClick(state) },
                 textStyle = TextStyle(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -125,7 +125,7 @@ internal fun BandLabModuleVariantSelector(
                     }
                 }
 
-                if (state is BandLabModuleVariant.Screen) {
+                if (state is BandLabModuleConfig.Screen) {
                     screenSettingsSlot?.invoke(state)
                 }
 

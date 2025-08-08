@@ -26,14 +26,14 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 @Stable
 internal data class WizardState(
     val moduleName: TextFieldState,
-    val apiVariant: StateFlow<BandLabModuleVariant.Api>,
-    val implVariant: StateFlow<BandLabModuleVariant.Impl>,
-    val uiVariant: StateFlow<BandLabModuleVariant.Ui>,
-    val screenVariant: StateFlow<BandLabModuleVariant.Screen>,
-    val onVariantClick: (BandLabModuleVariant) -> Unit,
-    val onModuleTypeClick: (BandLabModuleVariant, BandLabModuleType) -> Unit,
-    val onPluginClick: (BandLabModuleVariant, ModulePlugin) -> Unit,
-    val onExposureClick: (BandLabModuleVariant, ModuleExposure) -> Unit,
+    val apiConfig: StateFlow<BandLabModuleConfig.Api>,
+    val implConfig: StateFlow<BandLabModuleConfig.Impl>,
+    val uiConfig: StateFlow<BandLabModuleConfig.Ui>,
+    val screenConfig: StateFlow<BandLabModuleConfig.Screen>,
+    val onConfigClick: (BandLabModuleConfig) -> Unit,
+    val onModuleTypeClick: (BandLabModuleConfig, BandLabModuleType) -> Unit,
+    val onPluginClick: (BandLabModuleConfig, ModulePlugin) -> Unit,
+    val onExposureClick: (BandLabModuleConfig, ModuleExposure) -> Unit,
     val onGenerateActivityClick: () -> Unit,
     val onGeneratePageClick: () -> Unit,
     val featureName: TextFieldState,
@@ -107,28 +107,28 @@ internal fun BandLabModuleWizard(state: WizardState) {
         Spacer(Modifier.height(8.dp))
 
         listOf(
-            state.apiVariant,
-            state.implVariant,
-            state.screenVariant,
-            state.uiVariant
+            state.apiConfig,
+            state.implConfig,
+            state.screenConfig,
+            state.uiConfig
         )
-            .forEach { variantState ->
-                val variant = variantState.collectAsState().value
+            .forEach { configState ->
+                val config = configState.collectAsState().value
                 val errorMessage = validationErrors.errorMessageOrNull(
-                    variant = variant,
+                    config = config,
                     parentModule = state.featureName.text
                 )
 
-                BandLabModuleVariantSelector(
-                    state = variant,
-                    onVariantClick = state.onVariantClick,
+                BandLabModuleConfigSelector(
+                    state = config,
+                    onConfigClick = state.onConfigClick,
                     onModuleTypeClick = state.onModuleTypeClick,
                     onPluginClick = state.onPluginClick,
                     onExposureClick = state.onExposureClick,
-                    screenSettingsSlot = if (variant is BandLabModuleVariant.Screen) {
+                    screenSettingsSlot = if (config is BandLabModuleConfig.Screen) {
                         {
                             BandLabScreenModuleSelector(
-                                state = variant,
+                                state = config,
                                 onGenerateActivityClick = state.onGenerateActivityClick,
                                 onGeneratePageClick = state.onGeneratePageClick,
                                 featureName = state.featureName

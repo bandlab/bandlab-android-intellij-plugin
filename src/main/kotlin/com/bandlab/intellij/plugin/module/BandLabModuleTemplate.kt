@@ -20,7 +20,10 @@ import org.jetbrains.kotlin.konan.file.File
 
 class BandLabModuleTemplate(
     private val project: Project,
-    private val config: BandLabModuleConfig
+    private val moduleInfo: ModuleInfo,
+    private val config: BandLabModuleConfig,
+    private val featureName: String,
+    private val dependsOn: List<Dependency>
 ) {
 
     private val psiDirectorFactory = PsiDirectoryFactory.getInstance(project)
@@ -31,57 +34,11 @@ class BandLabModuleTemplate(
             /* project = */ project,
             /* commandName = */ "Create Template",
             /* groupID = */ null,
-            /* runnable = */ ::createTemplate
+            /* runnable = */ { createModule(moduleInfo) }
         )
     }
 
-    private fun createTemplate() {
-        // Ex: /user/profile/edit-screen
-        val modulePath = config.path
-
-        if (config.composeConvention) {
-            val uiModuleInfo = ModuleInfo("$modulePath/ui")
-
-            // Create feature:screen module
-            createModule(
-                moduleInfo = ModuleInfo("$modulePath/screen"),
-                type = BandLabModuleType.Android,
-                plugins = config.plugins.copy(compose = true, metro = true),
-                exposure = config.exposure,
-                generateActivity = config.generateActivity,
-                dependsOn = buildList {
-                    add("projects.common.android.screen")
-                    // Depends on the ui module where the composables located
-                    add(uiModuleInfo.projectAccessorReference)
-                }
-            )
-
-            // Create feature:ui module
-            createModule(
-                moduleInfo = uiModuleInfo,
-                type = BandLabModuleType.Android,
-                plugins = ModulePlugins(compose = true),
-                // Do not expose ui module to top-level graph
-                exposure = ModuleExposure.None
-            )
-        } else {
-            createModule(
-                moduleInfo = ModuleInfo(modulePath),
-                type = config.type,
-                plugins = config.plugins,
-                exposure = config.exposure
-            )
-        }
-    }
-
-    private fun createModule(
-        moduleInfo: ModuleInfo,
-        type: BandLabModuleType,
-        plugins: ModulePlugins,
-        exposure: ModuleExposure,
-        generateActivity: Boolean = false,
-        dependsOn: List<String>? = null
-    ) {
+    private fun createModule(moduleInfo: ModuleInfo) {
         // Create the src folder
         File(project.basePath + moduleInfo.filesPath).mkdirs()
 
@@ -90,22 +47,24 @@ class BandLabModuleTemplate(
             appendLine("    alias(bandlab.plugins.$pluginId)")
         }
 
+        val plugins = config.selectedPlugins
         psiFileFactory.createFileFromText(
             BUILD_GRADLE,
             KotlinFileType.INSTANCE,
             buildString {
                 appendLine(PLUGINS_START)
-                when (type) {
+                when (config.type) {
                     BandLabModuleType.Kotlin -> appendPlugin("library.kotlin")
                     BandLabModuleType.Android -> appendPlugin("library.android")
+                    null -> error("Module type isn't selected, it should not be possible.")
                 }
-                if (plugins.compose) appendPlugin("compose")
-                if (plugins.database) appendPlugin("database")
-                if (plugins.metro) appendPlugin("metro")
-                if (plugins.preferenceConfig) appendPlugin("preferenceConfig")
-                if (plugins.remoteConfig) appendPlugin("remoteConfig")
-                if (plugins.restApi) appendPlugin("restApi")
-                if (plugins.testFixtures) {
+                if (ModulePlugin.Compose in plugins) appendPlugin("compose")
+                if (ModulePlugin.Database in plugins) appendPlugin("database")
+                if (ModulePlugin.Metro in plugins) appendPlugin("metro")
+                if (ModulePlugin.PreferenceConfig in plugins) appendPlugin("preferenceConfig")
+                if (ModulePlugin.RemoteConfig in plugins) appendPlugin("remoteConfig")
+                if (ModulePlugin.RestApi in plugins) appendPlugin("restApi")
+                if (ModulePlugin.TestFixtures in plugins) {
                     appendPlugin("testFixtures")
                     // Create an empty folder for testFixtures
                     File(project.basePath + moduleInfo.testFixturesPath).mkdirs()
@@ -114,13 +73,21 @@ class BandLabModuleTemplate(
                 appendLine(PLUGINS_END)
                 appendLine()
                 appendLine(DEPENDENCIES_START)
-                if (dependsOn != null) {
-                    dependsOn.forEach { dependency ->
-                        appendLine("    implementation($dependency)")
-                    }
-                } else {
+                if (dependsOn.isEmpty()) {
                     // Append indent
                     appendLine("    ")
+                } else {
+                    dependsOn.forEach { dependency ->
+                        when (dependency.config) {
+                            DependencyConfiguration.Implementation -> {
+                                appendLine("    implementation($dependency)")
+                            }
+
+                            DependencyConfiguration.Api -> {
+                                appendLine("    api($dependency)")
+                            }
+                        }
+                    }
                 }
                 appendLine(DEPENDENCIES_END)
             }
@@ -130,7 +97,7 @@ class BandLabModuleTemplate(
         modifyModulesListFile(moduleInfo)
 
         // Expose the module to top-level module
-        when (exposure) {
+        when (config.exposure) {
             ModuleExposure.AppGraph -> {
                 exposeModule(moduleInfo, destinationModule = "/app")
             }
@@ -139,15 +106,25 @@ class BandLabModuleTemplate(
                 exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
             }
 
-            ModuleExposure.None -> Unit
+            ModuleExposure.None, null -> Unit
         }
 
         // Create the activity template
-        if (generateActivity) {
-            generateActivityTemplate(
-                moduleInfo = moduleInfo,
-                name = config.featureName,
-            )
+        if (config is BandLabModuleConfig.Screen) {
+            if (config.generateActivityTemplate) {
+                generateActivityTemplate(
+                    moduleInfo = moduleInfo,
+                    name = featureName,
+                )
+            }
+
+            // Create the page template
+            if (config.generatePageTemplate) {
+                generatePageTemplate(
+                    moduleInfo = moduleInfo,
+                    name = featureName,
+                )
+            }
         }
     }
 
@@ -257,6 +234,13 @@ class BandLabModuleTemplate(
         ).addToPath("${moduleInfo.path}/src/main")
     }
 
+    private fun generatePageTemplate(
+        moduleInfo: ModuleInfo,
+        name: String,
+    ) {
+        TODO()
+    }
+
     private fun PsiFile.addToPath(path: String) {
         val moduleVirtualPath = project.requireVirtualFile(path, isAbsolute = false)
         psiDirectorFactory.createDirectory(moduleVirtualPath).add(this)
@@ -294,3 +278,12 @@ class BandLabModuleTemplate(
         }
     }
 }
+
+enum class DependencyConfiguration {
+    Implementation, Api
+}
+
+data class Dependency(
+    val name: String,
+    val config: DependencyConfiguration = DependencyConfiguration.Implementation
+)

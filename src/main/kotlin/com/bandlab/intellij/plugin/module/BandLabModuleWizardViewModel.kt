@@ -18,19 +18,19 @@ internal class BandLabModuleWizardViewModel(
     private val moduleNameRegex = "^(:[a-z-]+)+$".toRegex()
 
     private val moduleName = TextFieldState(moduleParent)
-    private val featureName = TextFieldState("UserProfile")
+    private val featureName = TextFieldState()
 
-    private val apiVariant = MutableStateFlow(BandLabModuleVariant.Api())
-    private val implVariant = MutableStateFlow(BandLabModuleVariant.Impl())
-    private val uiVariant = MutableStateFlow(BandLabModuleVariant.Ui())
-    private val screenVariant = MutableStateFlow(BandLabModuleVariant.Screen())
+    private val apiConfig = MutableStateFlow(BandLabModuleConfig.Api())
+    private val implConfig = MutableStateFlow(BandLabModuleConfig.Impl())
+    private val uiConfig = MutableStateFlow(BandLabModuleConfig.Ui())
+    private val screenConfig = MutableStateFlow(BandLabModuleConfig.Screen())
 
     private val moduleNameTextFlow = snapshotFlow { moduleName.text.toString() }
     private val validationErrors: StateFlow<Set<ModuleValidationError>> = combine(
-        apiVariant.map { it.isSelected }.distinctUntilChanged(),
-        implVariant.map { it.isSelected }.distinctUntilChanged(),
-        uiVariant.map { it.isSelected }.distinctUntilChanged(),
-        screenVariant.map { it.isSelected }.distinctUntilChanged(),
+        apiConfig.map { it.isSelected }.distinctUntilChanged(),
+        implConfig.map { it.isSelected }.distinctUntilChanged(),
+        uiConfig.map { it.isSelected }.distinctUntilChanged(),
+        screenConfig.map { it.isSelected }.distinctUntilChanged(),
         moduleNameTextFlow
     ) { isApiSelected, isImplSelected, isUiSelected, isScreenSelected, name ->
         buildSet {
@@ -81,11 +81,11 @@ internal class BandLabModuleWizardViewModel(
 
     val state = WizardState(
         moduleName = moduleName,
-        apiVariant = apiVariant,
-        implVariant = implVariant,
-        uiVariant = uiVariant,
-        screenVariant = screenVariant,
-        onVariantClick = ::onVariantClick,
+        apiConfig = apiConfig,
+        implConfig = implConfig,
+        uiConfig = uiConfig,
+        screenConfig = screenConfig,
+        onConfigClick = ::onConfigClick,
         onModuleTypeClick = ::onModuleTypeClick,
         onPluginClick = ::onPluginClick,
         onExposureClick = ::onExposureClick,
@@ -96,6 +96,8 @@ internal class BandLabModuleWizardViewModel(
     )
 
     init {
+        println(existingModuleNames)
+
         // Map feature name with the module path by default
         moduleNameTextFlow
             .onEach { name ->
@@ -107,64 +109,77 @@ internal class BandLabModuleWizardViewModel(
                 )
             }
             .launchIn(wizardScope)
+
+        combine(
+            apiConfig.map { it.isSelected }.distinctUntilChanged(),
+            implConfig.map { it.isSelected }.distinctUntilChanged(),
+            uiConfig.map { it.isSelected }.distinctUntilChanged(),
+            screenConfig.map { it.isSelected }.distinctUntilChanged(),
+            validationErrors
+        ) { isApiSelected, isImplSelected, isUiSelected, isScreenSelected, errors ->
+            val isAnyModuleSelected = isApiSelected || isImplSelected || isUiSelected || isScreenSelected
+            val isValid = isAnyModuleSelected && errors.isEmpty()
+            canCreate.set(isValid)
+        }
+            .launchIn(wizardScope)
     }
 
-    private fun onVariantClick(variant: BandLabModuleVariant) {
-        when (variant) {
-            is BandLabModuleVariant.Api -> apiVariant.update { it.copy(isSelected = !it.isSelected) }
-            is BandLabModuleVariant.Impl -> implVariant.update { it.copy(isSelected = !it.isSelected) }
-            is BandLabModuleVariant.Ui -> uiVariant.update { it.copy(isSelected = !it.isSelected) }
-            is BandLabModuleVariant.Screen -> {
-                screenVariant.update { it.copy(isSelected = !it.isSelected) }
-                // Select ui variant as well when the screen is selected
-                val isScreenSelected = screenVariant.value.isSelected
+    private fun onConfigClick(config: BandLabModuleConfig) {
+        when (config) {
+            is BandLabModuleConfig.Api -> apiConfig.update { it.copy(isSelected = !it.isSelected) }
+            is BandLabModuleConfig.Impl -> implConfig.update { it.copy(isSelected = !it.isSelected) }
+            is BandLabModuleConfig.Ui -> uiConfig.update { it.copy(isSelected = !it.isSelected) }
+            is BandLabModuleConfig.Screen -> {
+                screenConfig.update { it.copy(isSelected = !it.isSelected) }
+                // Select ui config as well when the screen is selected
+                val isScreenSelected = screenConfig.value.isSelected
                 if (isScreenSelected) {
-                    uiVariant.update { it.copy(isSelected = true) }
+                    uiConfig.update { it.copy(isSelected = true) }
                 }
             }
         }
     }
 
-    private fun onModuleTypeClick(variant: BandLabModuleVariant, type: BandLabModuleType) {
-        if (variant !is BandLabModuleVariant.Impl) {
+    private fun onModuleTypeClick(config: BandLabModuleConfig, type: BandLabModuleType) {
+        if (config !is BandLabModuleConfig.Impl) {
             error("Not supported yet")
         }
-        implVariant.update { it.copy(type = type) }
+        implConfig.update { it.copy(type = type) }
     }
 
-    private fun onPluginClick(variant: BandLabModuleVariant, plugin: ModulePlugin) {
-        val currentSelected = when (variant) {
-            is BandLabModuleVariant.Api -> apiVariant.value.selectedPlugins
-            is BandLabModuleVariant.Impl -> implVariant.value.selectedPlugins
-            is BandLabModuleVariant.Ui -> uiVariant.value.selectedPlugins
-            is BandLabModuleVariant.Screen -> screenVariant.value.selectedPlugins
+    private fun onPluginClick(config: BandLabModuleConfig, plugin: ModulePlugin) {
+        val currentSelected = when (config) {
+            is BandLabModuleConfig.Api -> apiConfig.value.selectedPlugins
+            is BandLabModuleConfig.Impl -> implConfig.value.selectedPlugins
+            is BandLabModuleConfig.Ui -> uiConfig.value.selectedPlugins
+            is BandLabModuleConfig.Screen -> screenConfig.value.selectedPlugins
         }
         val selectedPlugins = if (plugin in currentSelected) {
             currentSelected - plugin
         } else {
             currentSelected + plugin
         }
-        when (variant) {
-            is BandLabModuleVariant.Api -> apiVariant.update { it.copy(selectedPlugins = selectedPlugins) }
-            is BandLabModuleVariant.Impl -> implVariant.update { it.copy(selectedPlugins = selectedPlugins) }
-            is BandLabModuleVariant.Ui -> uiVariant.update { it.copy(selectedPlugins = selectedPlugins) }
-            is BandLabModuleVariant.Screen -> screenVariant.update { it.copy(selectedPlugins = selectedPlugins) }
+        when (config) {
+            is BandLabModuleConfig.Api -> apiConfig.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleConfig.Impl -> implConfig.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleConfig.Ui -> uiConfig.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleConfig.Screen -> screenConfig.update { it.copy(selectedPlugins = selectedPlugins) }
         }
     }
 
-    private fun onExposureClick(variant: BandLabModuleVariant, exposure: ModuleExposure) {
-        when (variant) {
-            is BandLabModuleVariant.Impl -> implVariant.update { it.copy(exposure = exposure) }
-            is BandLabModuleVariant.Screen -> screenVariant.update { it.copy(exposure = exposure) }
-            is BandLabModuleVariant.Api, is BandLabModuleVariant.Ui -> error("Api and Ui module can't be exposed")
+    private fun onExposureClick(config: BandLabModuleConfig, exposure: ModuleExposure) {
+        when (config) {
+            is BandLabModuleConfig.Impl -> implConfig.update { it.copy(exposure = exposure) }
+            is BandLabModuleConfig.Screen -> screenConfig.update { it.copy(exposure = exposure) }
+            is BandLabModuleConfig.Api, is BandLabModuleConfig.Ui -> error("Api and Ui module can't be exposed")
         }
     }
 
     private fun onGenerateActivityClick() {
-        screenVariant.update { it.copy(generateActivityTemplate = !it.generateActivityTemplate) }
+        screenConfig.update { it.copy(generateActivityTemplate = !it.generateActivityTemplate) }
     }
 
     private fun onGeneratePageClick() {
-        screenVariant.update { it.copy(generatePageTemplate = !it.generatePageTemplate) }
+        screenConfig.update { it.copy(generatePageTemplate = !it.generatePageTemplate) }
     }
 }

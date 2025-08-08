@@ -5,14 +5,14 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.bandlab.intellij.plugin.module.BandLabModuleVariant
+import com.bandlab.intellij.plugin.module.BandLabModuleConfig
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
 @Composable
 internal fun BandLabScreenModuleSelector(
-    state: BandLabModuleVariant.Screen,
+    state: BandLabModuleConfig.Screen,
     onGenerateActivityClick: () -> Unit,
     onGeneratePageClick: () -> Unit,
     featureName: TextFieldState,
