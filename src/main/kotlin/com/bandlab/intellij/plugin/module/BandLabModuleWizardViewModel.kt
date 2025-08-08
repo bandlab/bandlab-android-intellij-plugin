@@ -41,6 +41,7 @@ internal class BandLabModuleWizardViewModel(
         uiVariant = uiVariant,
         screenVariant = screenVariant,
         onVariantClick = ::onVariantClick,
+        onModuleTypeClick = ::onModuleTypeClick,
         onPluginClick = ::onPluginClick,
         onExposureClick = ::onExposureClick,
         onGenerateActivityClick = ::onGenerateActivityClick,
@@ -62,6 +63,13 @@ internal class BandLabModuleWizardViewModel(
                 }
             }
         }
+    }
+
+    private fun onModuleTypeClick(variant: BandLabModuleVariant, type: BandLabModuleType) {
+        if (variant !is BandLabModuleVariant.Impl) {
+            error("Not supported yet")
+        }
+        implVariant.update { it.copy(type = type) }
     }
 
     private fun onPluginClick(variant: BandLabModuleVariant, plugin: ModulePlugin) {

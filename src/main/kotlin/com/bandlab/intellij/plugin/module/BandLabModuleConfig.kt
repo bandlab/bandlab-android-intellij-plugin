@@ -40,6 +40,8 @@ sealed interface BandLabModuleVariant {
 
     val isSelected: Boolean
     val type: BandLabModuleType?
+    val requireTypeSelection: Boolean
+        get() = false
 
     val availablePlugins: Set<ModulePlugin>
     val selectedPlugins: Set<ModulePlugin>
@@ -59,7 +61,8 @@ sealed interface BandLabModuleVariant {
 
     data class Impl(
         override val isSelected: Boolean = false,
-        override val type: BandLabModuleType? = null, // Require explicit selection
+        override val type: BandLabModuleType? = null,
+        override val requireTypeSelection: Boolean = true,
         override val availablePlugins: Set<ModulePlugin> = ModulePlugin.entries.toSet(),
         override val selectedPlugins: Set<ModulePlugin> = emptySet(),
         override val exposure: ModuleExposure = ModuleExposure.AppGraph,

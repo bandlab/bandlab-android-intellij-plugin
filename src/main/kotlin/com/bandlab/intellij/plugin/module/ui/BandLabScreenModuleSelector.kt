@@ -17,34 +17,35 @@ internal fun BandLabScreenModuleSelector(
     onGeneratePageClick: () -> Unit,
     featureName: TextFieldState,
 ) {
-    SubTitle("Grab some templates to go?")
+    SettingsGroup("Grab some templates to go?") {
 
-    CheckboxRow(
-        text = "Generate Activity Template",
-        checked = state.generateActivityTemplate,
-        onCheckedChange = { onGenerateActivityClick() }
-    )
+        CheckboxRow(
+            text = "Generate Activity Template",
+            checked = state.generateActivityTemplate,
+            onCheckedChange = { onGenerateActivityClick() }
+        )
 
-    CheckboxRow(
-        text = "Generate Page Template",
-        checked = state.generatePageTemplate,
-        onCheckedChange = { onGeneratePageClick() }
-    )
+        CheckboxRow(
+            text = "Generate Page Template",
+            checked = state.generatePageTemplate,
+            onCheckedChange = { onGeneratePageClick() }
+        )
 
-    if (state.generateActivityTemplate || state.generatePageTemplate) {
-        Spacer(Modifier.height(16.dp))
+        if (state.generateActivityTemplate || state.generatePageTemplate) {
+            Spacer(Modifier.height(16.dp))
 
-        Row {
-            Text(
-                text = "Feature Name",
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Row {
+                Text(
+                    text = "Feature Name",
+                    modifier = Modifier.padding(top = 4.dp)
+                )
 
-            Spacer(Modifier.width(16.dp))
+                Spacer(Modifier.width(16.dp))
 
-            Column {
-                TextField(state = featureName)
-                TextFieldHint("ex: UserProfile, don't include Activity or Page")
+                Column {
+                    TextField(state = featureName)
+                    TextFieldHint("ex: UserProfile, don't include Activity or Page")
+                }
             }
         }
     }

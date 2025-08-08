@@ -1,15 +1,17 @@
 package com.bandlab.intellij.plugin.module.ui
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bandlab.intellij.plugin.module.BandLabModuleType
 import com.bandlab.intellij.plugin.module.BandLabModuleVariant
 import com.bandlab.intellij.plugin.module.ModuleExposure
 import com.bandlab.intellij.plugin.module.ModulePlugin
@@ -20,6 +22,7 @@ import org.jetbrains.jewel.ui.component.RadioButtonRow
 internal fun BandLabModuleVariantSelector(
     state: BandLabModuleVariant,
     onVariantClick: (BandLabModuleVariant) -> Unit,
+    onModuleTypeClick: (BandLabModuleVariant, BandLabModuleType) -> Unit,
     onPluginClick: (BandLabModuleVariant, ModulePlugin) -> Unit,
     onExposureClick: (BandLabModuleVariant, ModuleExposure) -> Unit,
     screenSettingsSlot: @Composable ((BandLabModuleVariant.Screen) -> Unit)? = null
@@ -45,20 +48,48 @@ internal fun BandLabModuleVariantSelector(
         )
 
         if (state.isSelected) {
-            Row(
-                modifier = Modifier.padding(start = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            val startPadding = 12.dp
+            val bottomPadding = 16.dp
+            Column(
+                modifier = Modifier
+                    .drawBehind {
+                        val strokeWidth = 0.5.dp.toPx()
+                        val startPaddingPx = startPadding.toPx()
+                        val topPaddingPx = 8.dp.toPx()
+                        val bottomPaddingPx = bottomPadding.toPx()
+                        drawLine(
+                            color = Color.LightGray,
+                            start = Offset(x = startPaddingPx, y = topPaddingPx),
+                            end = Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
+                            strokeWidth = strokeWidth
+                        )
+                        drawLine(
+                            color = Color.LightGray,
+                            start = Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
+                            end = Offset(
+                                x = startPaddingPx + GroupIndicatorWidth.toPx(),
+                                y = size.height - bottomPaddingPx
+                            ),
+                            strokeWidth = strokeWidth
+                        )
+                    }
+                    .padding(start = startPadding)
             ) {
-                Spacer(
-                    modifier = Modifier
-                        .background(Color.White)
-                        .width(1.dp)
-                        .requiredHeight(IntrinsicSize.Max)
-                )
+                if (state.requireTypeSelection) {
+                    SettingsGroup("Module Type") {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            BandLabModuleType.entries.forEach { type ->
+                                RadioButtonRow(
+                                    text = type.name,
+                                    selected = type == state.type,
+                                    onClick = { onModuleTypeClick(state, type) }
+                                )
+                            }
+                        }
+                    }
+                }
 
-                Column {
-                    SubTitle("Plugins")
-
+                SettingsGroup("Plugins") {
                     state.availablePlugins.forEach { plugin ->
                         CheckboxRow(
                             text = plugin.name,
@@ -66,26 +97,28 @@ internal fun BandLabModuleVariantSelector(
                             onCheckedChange = { onPluginClick(state, plugin) }
                         )
                     }
+                }
 
-                    val selectedExposure = state.exposure
-                    if (selectedExposure != null) {
-                        SubTitle("Expose your module to :app, :mixeditor?")
-
-                        ModuleExposure.entries.forEach { exposure ->
-                            RadioButtonRow(
-                                text = exposure.name,
-                                selected = exposure == selectedExposure,
-                                onClick = { onExposureClick(state, exposure) }
-                            )
+                val selectedExposure = state.exposure
+                if (selectedExposure != null) {
+                    SettingsGroup("Expose your module to?") {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            ModuleExposure.entries.forEach { exposure ->
+                                RadioButtonRow(
+                                    text = exposure.name,
+                                    selected = exposure == selectedExposure,
+                                    onClick = { onExposureClick(state, exposure) }
+                                )
+                            }
                         }
                     }
-
-                    if (state is BandLabModuleVariant.Screen) {
-                        screenSettingsSlot?.invoke(state)
-                    }
-
-                    Spacer(Modifier.height(16.dp))
                 }
+
+                if (state is BandLabModuleVariant.Screen) {
+                    screenSettingsSlot?.invoke(state)
+                }
+
+                Spacer(Modifier.height(bottomPadding))
             }
         }
     }

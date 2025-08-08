@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.bandlab.intellij.plugin.module.BandLabModuleType
 import com.bandlab.intellij.plugin.module.BandLabModuleVariant
 import com.bandlab.intellij.plugin.module.ModuleExposure
 import com.bandlab.intellij.plugin.module.ModulePlugin
@@ -31,6 +32,7 @@ internal data class WizardState(
     val uiVariant: StateFlow<BandLabModuleVariant.Ui>,
     val screenVariant: StateFlow<BandLabModuleVariant.Screen>,
     val onVariantClick: (BandLabModuleVariant) -> Unit,
+    val onModuleTypeClick: (BandLabModuleVariant, BandLabModuleType) -> Unit,
     val onPluginClick: (BandLabModuleVariant, ModulePlugin) -> Unit,
     val onExposureClick: (BandLabModuleVariant, ModuleExposure) -> Unit,
     val onGenerateActivityClick: () -> Unit,
@@ -105,6 +107,7 @@ internal fun BandLabModuleWizard(state: WizardState) {
                 BandLabModuleVariantSelector(
                     state = variant,
                     onVariantClick = state.onVariantClick,
+                    onModuleTypeClick = state.onModuleTypeClick,
                     onPluginClick = state.onPluginClick,
                     onExposureClick = state.onExposureClick,
                     screenSettingsSlot = if (variant is BandLabModuleVariant.Screen) {
