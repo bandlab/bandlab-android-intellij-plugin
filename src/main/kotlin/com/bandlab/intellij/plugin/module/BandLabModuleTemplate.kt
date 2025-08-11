@@ -1,6 +1,7 @@
 package com.bandlab.intellij.plugin.module
 
 import com.bandlab.intellij.plugin.template.ActivityTemplateBuilder
+import com.bandlab.intellij.plugin.template.PageTemplateBuilder
 import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_START
@@ -238,7 +239,22 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         name: String,
     ) {
-        TODO()
+        val pageTemplateBuilder = PageTemplateBuilder(
+            name = name,
+            filePackage = moduleInfo.packageToImport
+        )
+
+        psiFileFactory.createFileFromText(
+            "${name}Page.kt",
+            KotlinFileType.INSTANCE,
+            pageTemplateBuilder.createPageWithContributesComponent()
+        ).addToPath(moduleInfo.filesPath)
+
+        psiFileFactory.createFileFromText(
+            "${name}ViewModel.kt",
+            KotlinFileType.INSTANCE,
+            pageTemplateBuilder.createViewModel()
+        ).addToPath(moduleInfo.filesPath)
     }
 
     private fun PsiFile.addToPath(path: String) {
