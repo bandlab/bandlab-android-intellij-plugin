@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.bandlab.intellij.plugin.module.BandLabModuleConfig
-import org.jetbrains.jewel.ui.component.CheckboxRow
+import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
 
@@ -17,21 +17,22 @@ internal fun BandLabScreenModuleSelector(
     onGeneratePageClick: () -> Unit,
     featureName: TextFieldState,
 ) {
-    SettingsGroup("Grab some templates to go?") {
+    SettingsGroup("Grab a screen template to go?") {
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            RadioButtonRow(
+                text = "Generate Activity Template",
+                selected = state.template == BandLabModuleConfig.Screen.Template.Activity,
+                onClick = { onGenerateActivityClick() }
+            )
 
-        CheckboxRow(
-            text = "Generate Activity Template",
-            checked = state.generateActivityTemplate,
-            onCheckedChange = { onGenerateActivityClick() }
-        )
+            RadioButtonRow(
+                text = "Generate Page Template",
+                selected = state.template == BandLabModuleConfig.Screen.Template.Page,
+                onClick = { onGeneratePageClick() }
+            )
+        }
 
-        CheckboxRow(
-            text = "Generate Page Template",
-            checked = state.generatePageTemplate,
-            onCheckedChange = { onGeneratePageClick() }
-        )
-
-        if (state.generateActivityTemplate || state.generatePageTemplate) {
+        if (state.template != null) {
             Spacer(Modifier.height(16.dp))
 
             Row {

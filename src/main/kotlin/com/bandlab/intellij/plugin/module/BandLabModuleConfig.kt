@@ -72,12 +72,15 @@ sealed interface BandLabModuleConfig {
         override val isSelected: Boolean = false,
         override val selectedPlugins: Set<ModulePlugin> = setOf(Compose, Metro),
         override val exposure: ModuleExposure = ModuleExposure.AppGraph,
-        val generateActivityTemplate: Boolean = false,
-        val generatePageTemplate: Boolean = false,
+        val template: Template? = null,
     ) : BandLabModuleConfig {
         override val typeSelection: ModuleTypeSelection
             get() = ModuleTypeSelection.LockTo(BandLabModuleType.Android)
         override val availablePlugins: Set<ModulePlugin>
             get() = ModulePlugin.entries.toSet() - Database
+
+        enum class Template {
+            Activity, Page
+        }
     }
 }

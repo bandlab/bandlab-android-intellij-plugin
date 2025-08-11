@@ -81,11 +81,11 @@ class BandLabModuleTemplate(
                     dependsOn.forEach { dependency ->
                         when (dependency.config) {
                             DependencyConfiguration.Implementation -> {
-                                appendLine("    implementation($dependency)")
+                                appendLine("    implementation(${dependency.name})")
                             }
 
                             DependencyConfiguration.Api -> {
-                                appendLine("    api($dependency)")
+                                appendLine("    api(${dependency.name})")
                             }
                         }
                     }
@@ -110,21 +110,24 @@ class BandLabModuleTemplate(
             ModuleExposure.None, null -> Unit
         }
 
-        // Create the activity template
+        // Create the screen template
         if (config is BandLabModuleConfig.Screen) {
-            if (config.generateActivityTemplate) {
-                generateActivityTemplate(
-                    moduleInfo = moduleInfo,
-                    name = featureName,
-                )
-            }
+            when (config.template) {
+                BandLabModuleConfig.Screen.Template.Activity -> {
+                    generateActivityTemplate(
+                        moduleInfo = moduleInfo,
+                        name = featureName,
+                    )
+                }
 
-            // Create the page template
-            if (config.generatePageTemplate) {
-                generatePageTemplate(
-                    moduleInfo = moduleInfo,
-                    name = featureName,
-                )
+                BandLabModuleConfig.Screen.Template.Page -> {
+                    generatePageTemplate(
+                        moduleInfo = moduleInfo,
+                        name = featureName,
+                    )
+                }
+
+                null -> Unit
             }
         }
     }

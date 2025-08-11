@@ -112,13 +112,14 @@ internal class BandLabModuleWizardViewModel(
 
         combine(
             apiConfig.map { it.isSelected }.distinctUntilChanged(),
-            implConfig.map { it.isSelected }.distinctUntilChanged(),
+            implConfig,
             uiConfig.map { it.isSelected }.distinctUntilChanged(),
             screenConfig.map { it.isSelected }.distinctUntilChanged(),
             validationErrors
-        ) { isApiSelected, isImplSelected, isUiSelected, isScreenSelected, errors ->
-            val isAnyModuleSelected = isApiSelected || isImplSelected || isUiSelected || isScreenSelected
-            val isValid = isAnyModuleSelected && errors.isEmpty()
+        ) { isApiSelected, impl, isUiSelected, isScreenSelected, errors ->
+            val isAnyModuleSelected = isApiSelected || impl.isSelected || isUiSelected || isScreenSelected
+            val isImplModuleTypeValid = !impl.isSelected || impl.typeSelection.type != null
+            val isValid = isAnyModuleSelected && isImplModuleTypeValid && errors.isEmpty()
             canCreate.set(isValid)
         }
             .launchIn(wizardScope)
@@ -176,10 +177,22 @@ internal class BandLabModuleWizardViewModel(
     }
 
     private fun onGenerateActivityClick() {
-        screenConfig.update { it.copy(generateActivityTemplate = !it.generateActivityTemplate) }
+        screenConfig.update {
+            if (it.template == BandLabModuleConfig.Screen.Template.Activity) {
+                it.copy(template = null)
+            } else {
+                it.copy(template = BandLabModuleConfig.Screen.Template.Activity)
+            }
+        }
     }
 
     private fun onGeneratePageClick() {
-        screenConfig.update { it.copy(generatePageTemplate = !it.generatePageTemplate) }
+        screenConfig.update {
+            if (it.template == BandLabModuleConfig.Screen.Template.Page) {
+                it.copy(template = null)
+            } else {
+                it.copy(template = BandLabModuleConfig.Screen.Template.Page)
+            }
+        }
     }
 }
