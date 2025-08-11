@@ -11,7 +11,6 @@ import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
 import com.bandlab.intellij.plugin.utils.editFile
 import com.bandlab.intellij.plugin.utils.requireVirtualFile
 import com.intellij.ide.highlighter.XmlFileType
-import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
@@ -31,15 +30,6 @@ class BandLabModuleTemplate(
     private val psiFileFactory = PsiFileFactory.getInstance(project)
 
     fun create() {
-        WriteCommandAction.runWriteCommandAction(
-            /* project = */ project,
-            /* commandName = */ "Create Template",
-            /* groupID = */ null,
-            /* runnable = */ { createModule(moduleInfo) }
-        )
-    }
-
-    private fun createModule(moduleInfo: ModuleInfo) {
         // Create the src folder
         File(project.basePath + moduleInfo.filesPath).mkdirs()
 

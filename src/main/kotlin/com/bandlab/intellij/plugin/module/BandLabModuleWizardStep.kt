@@ -7,6 +7,7 @@ import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
 import com.bandlab.intellij.plugin.module.ui.BandLabModuleWizard
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,51 +51,53 @@ class BandLabModuleWizardStep(
         val apiModuleInfo = ModuleInfo("$modulePath/api")
         val uiModuleInfo = ModuleInfo("$modulePath/ui")
 
-        listOf(
-            state.apiConfig,
-            state.implConfig,
-            state.screenConfig,
-            state.uiConfig,
-        )
-            .filter { it.value.isSelected }
-            .forEach { configState ->
-                val config = configState.value
-                val moduleInfo = when (config) {
-                    is BandLabModuleConfig.Api -> apiModuleInfo
-                    is BandLabModuleConfig.Impl -> ModuleInfo("$modulePath/impl")
-                    is BandLabModuleConfig.Screen -> ModuleInfo("$modulePath/screen")
-                    is BandLabModuleConfig.Ui -> uiModuleInfo
-                }
-                val dependsOn = buildList {
-                    if (config is BandLabModuleConfig.Screen) {
-                        add(Dependency("projects.common.android.screen"))
-                        if (state.uiConfig.value.isSelected) {
-                            // Depends on the ui module where the composables located
-                            add(Dependency(uiModuleInfo.projectAccessorReference))
-                        }
+        runWriteCommandAction {
+            listOf(
+                state.apiConfig,
+                state.implConfig,
+                state.screenConfig,
+                state.uiConfig,
+            )
+                .filter { it.value.isSelected }
+                .forEach { configState ->
+                    val config = configState.value
+                    val moduleInfo = when (config) {
+                        is BandLabModuleConfig.Api -> apiModuleInfo
+                        is BandLabModuleConfig.Impl -> ModuleInfo("$modulePath/impl")
+                        is BandLabModuleConfig.Screen -> ModuleInfo("$modulePath/screen")
+                        is BandLabModuleConfig.Ui -> uiModuleInfo
                     }
-                    if (config !is BandLabModuleConfig.Api) {
-                        if (state.apiConfig.value.isSelected) {
-                            // Expose api transitively from ui, impl and screen module
-                            add(
-                                Dependency(
-                                    name = apiModuleInfo.projectAccessorReference,
-                                    config = DependencyConfiguration.Api
+                    val dependsOn = buildList {
+                        if (config is BandLabModuleConfig.Screen) {
+                            add(Dependency("projects.common.android.screen"))
+                            if (state.uiConfig.value.isSelected) {
+                                // Depends on the ui module where the composables located
+                                add(Dependency(uiModuleInfo.projectAccessorReference))
+                            }
+                        }
+                        if (config !is BandLabModuleConfig.Api) {
+                            if (state.apiConfig.value.isSelected) {
+                                // Expose api transitively from ui, impl and screen module
+                                add(
+                                    Dependency(
+                                        name = apiModuleInfo.projectAccessorReference,
+                                        config = DependencyConfiguration.Api
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
-                }
 
-                val template = BandLabModuleTemplate(
-                    project = project,
-                    moduleInfo = moduleInfo,
-                    config = config,
-                    featureName = featureName,
-                    dependsOn = dependsOn
-                )
-                template.create()
-            }
+                    val template = BandLabModuleTemplate(
+                        project = project,
+                        moduleInfo = moduleInfo,
+                        config = config,
+                        featureName = featureName,
+                        dependsOn = dependsOn
+                    )
+                    template.create()
+                }
+        }
 
 //        NotificationGroupManager.getInstance()
 //            .getNotificationGroup("BandLab Notification Group")
@@ -111,5 +114,14 @@ class BandLabModuleWizardStep(
 //            .notify(project)
 
         wizardScope.cancel("Wizard step is finished")
+    }
+
+    private fun runWriteCommandAction(block: () -> Unit) {
+        WriteCommandAction.runWriteCommandAction(
+            /* project = */ project,
+            /* commandName = */ "Create Template",
+            /* groupID = */ null,
+            /* runnable = */ block
+        )
     }
 }
