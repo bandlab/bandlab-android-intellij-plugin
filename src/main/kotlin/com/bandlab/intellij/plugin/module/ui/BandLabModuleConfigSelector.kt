@@ -50,7 +50,10 @@ internal fun BandLabModuleConfigSelector(
             )
 
             if (errorMessage != null) {
-                ErrorText(errorMessage)
+                ErrorText(
+                    errorMessage = errorMessage,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
             }
         }
 

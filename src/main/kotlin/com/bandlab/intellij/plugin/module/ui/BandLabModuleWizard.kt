@@ -116,7 +116,7 @@ internal fun BandLabModuleWizard(state: WizardState) {
                 val config = configState.collectAsState().value
                 val errorMessage = validationErrors.errorMessageOrNull(
                     config = config,
-                    parentModule = state.featureName.text
+                    parentModule = state.moduleName.text
                 )
 
                 BandLabModuleConfigSelector(
