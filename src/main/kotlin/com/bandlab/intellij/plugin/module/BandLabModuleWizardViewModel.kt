@@ -5,14 +5,19 @@ import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.runtime.snapshotFlow
 import com.android.tools.idea.observable.core.BoolValueProperty
 import com.bandlab.intellij.plugin.module.ui.WizardState
+import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
+import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
+import com.bandlab.intellij.plugin.utils.combine
+import com.bandlab.intellij.plugin.utils.readFile
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withContext
 
 internal class BandLabModuleWizardViewModel(
     wizardScope: CoroutineScope,
-    project: Project,
+    private val project: Project,
     moduleParent: String,
 ) {
     private val moduleNameRegex = "^(:[a-z-]+)+$".toRegex()
@@ -26,13 +31,19 @@ internal class BandLabModuleWizardViewModel(
     private val screenConfig = MutableStateFlow(BandLabModuleConfig.Screen())
 
     private val moduleNameTextFlow = snapshotFlow { moduleName.text.toString() }
+
+    private val existingModuleNames = ::retrieveExistingModules
+        .asFlow()
+        .shareIn(wizardScope, SharingStarted.WhileSubscribed(), replay = 1)
+
     private val validationErrors: StateFlow<Set<ModuleValidationError>> = combine(
         apiConfig.map { it.isSelected }.distinctUntilChanged(),
         implConfig.map { it.isSelected }.distinctUntilChanged(),
         uiConfig.map { it.isSelected }.distinctUntilChanged(),
         screenConfig.map { it.isSelected }.distinctUntilChanged(),
-        moduleNameTextFlow
-    ) { isApiSelected, isImplSelected, isUiSelected, isScreenSelected, name ->
+        moduleNameTextFlow,
+        existingModuleNames
+    ) { isApiSelected, isImplSelected, isUiSelected, isScreenSelected, name, existingModuleNames ->
         buildSet {
             if (name.isBlank() || name == ":") {
                 add(ModuleValidationError.ModuleNameEmpty)
@@ -70,13 +81,6 @@ internal class BandLabModuleWizardViewModel(
         .drop(1)
         .stateIn(wizardScope, SharingStarted.WhileSubscribed(), emptySet())
 
-    private val existingModuleNames = project.modules.map { module ->
-        ':' + module.name
-            .split('.')
-            .drop(1) // drop the root folder
-            .joinToString(":")
-    }
-
     val canCreate = BoolValueProperty(false)
 
     val state = WizardState(
@@ -92,6 +96,7 @@ internal class BandLabModuleWizardViewModel(
         onGenerateActivityClick = ::onGenerateActivityClick,
         onGeneratePageClick = ::onGeneratePageClick,
         featureName = featureName,
+        existingModuleNames = existingModuleNames,
         validationErrors = validationErrors
     )
 
@@ -194,5 +199,16 @@ internal class BandLabModuleWizardViewModel(
                 it.copy(template = BandLabModuleConfig.Screen.Template.Page)
             }
         }
+    }
+
+    private suspend fun retrieveExistingModules(): Set<String> = withContext(Dispatchers.IO) {
+        //TODO: Better read operation
+        project.readFile(
+            filePath = ALL_PROJECTS_PATH,
+            isAbsolute = false
+        )
+            .split(NEW_LINE)
+            .filter { it.isNotBlank() }
+            .toSet()
     }
 }

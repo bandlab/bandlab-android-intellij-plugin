@@ -16,11 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bandlab.intellij.plugin.module.*
 import com.bandlab.intellij.plugin.module.ModuleValidationError.Companion.errorMessageOrNull
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
-import org.jetbrains.jewel.ui.component.TextField
 import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Stable
@@ -37,6 +37,7 @@ internal data class WizardState(
     val onGenerateActivityClick: () -> Unit,
     val onGeneratePageClick: () -> Unit,
     val featureName: TextFieldState,
+    val existingModuleNames: Flow<Set<String>>,
     val validationErrors: StateFlow<Set<ModuleValidationError>>,
 )
 
@@ -66,9 +67,9 @@ internal fun BandLabModuleWizard(state: WizardState) {
             Spacer(Modifier.width(16.dp))
 
             Column {
-                TextField(
+                AutoCompleteTextField(
                     state = state.moduleName,
-                    trailingIcon = null,
+                    suggestionsFlow = state.existingModuleNames,
                     outline = Outline.of(
                         warning = false,
                         error = validationErrors.any { it.isNameError }

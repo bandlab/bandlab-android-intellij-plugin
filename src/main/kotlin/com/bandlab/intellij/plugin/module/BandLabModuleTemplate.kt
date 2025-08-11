@@ -2,6 +2,7 @@ package com.bandlab.intellij.plugin.module
 
 import com.bandlab.intellij.plugin.template.ActivityTemplateBuilder
 import com.bandlab.intellij.plugin.template.PageTemplateBuilder
+import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_START
@@ -270,18 +271,14 @@ class BandLabModuleTemplate(
         }
 
         class SpotlightAllProject : ModuleListSpecification {
-            override val filePath: String = FILE_PATH
+            override val filePath: String = ALL_PROJECTS_PATH
             override val sectionIdentifier: String = "#"
             override val newModuleStatement: (ModuleInfo) -> String = { "${it.reference}\n" }
-
-            companion object {
-                const val FILE_PATH = "/gradle/all-projects.txt"
-            }
         }
 
         companion object {
             fun from(project: Project): ModuleListSpecification {
-                val useSpotlight = project.basePath?.let { File(it, SpotlightAllProject.FILE_PATH) }?.exists == true
+                val useSpotlight = project.basePath?.let { File(it, ALL_PROJECTS_PATH) }?.exists == true
                 return if (useSpotlight) SpotlightAllProject() else SettingsGradle()
             }
         }

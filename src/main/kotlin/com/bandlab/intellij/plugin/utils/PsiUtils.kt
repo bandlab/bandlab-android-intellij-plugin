@@ -62,6 +62,20 @@ fun Project.editFile(
 }
 
 /**
+ * Read a given [filePath] in the project.
+ */
+fun Project.readFile(
+    filePath: String,
+    isAbsolute: Boolean
+): String {
+    val file = requireVirtualFile(filePath, isAbsolute)
+    val filePsi = requireNotNull(file.toPsiFile(this))
+
+    val document = requireNotNull(PsiDocumentManager.getInstance(this).getDocument(filePsi))
+    return document.text
+}
+
+/**
  * Write a file given the [fileName] and [content] in the PsiDirectory.
  */
 fun PsiDirectory.writeFile(
