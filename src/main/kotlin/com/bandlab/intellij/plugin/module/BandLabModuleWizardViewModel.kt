@@ -144,7 +144,7 @@ internal class BandLabModuleWizardViewModel(
         if (config !is BandLabModuleConfig.Impl) {
             error("Not supported yet")
         }
-        implConfig.update { it.copy(type = type) }
+        implConfig.update { it.copy(typeSelection = ModuleTypeSelection.RequireSelection(type)) }
     }
 
     private fun onPluginClick(config: BandLabModuleConfig, plugin: ModulePlugin) {

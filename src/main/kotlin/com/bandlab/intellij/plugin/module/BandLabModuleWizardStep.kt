@@ -10,6 +10,7 @@ import com.bandlab.intellij.plugin.module.ui.BandLabModuleWizard
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import org.jetbrains.jewel.bridge.JewelComposePanel
 import org.jetbrains.jewel.foundation.ExperimentalJewelApi
 import org.jetbrains.jewel.foundation.enableNewSwingCompositing
@@ -108,5 +109,7 @@ class BandLabModuleWizardStep(
 //                )
 //            )
 //            .notify(project)
+
+        wizardScope.cancel("Wizard step is finished")
     }
 }

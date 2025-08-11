@@ -53,7 +53,7 @@ class BandLabModuleTemplate(
             KotlinFileType.INSTANCE,
             buildString {
                 appendLine(PLUGINS_START)
-                when (config.type) {
+                when (config.typeSelection.type) {
                     BandLabModuleType.Kotlin -> appendPlugin("library.kotlin")
                     BandLabModuleType.Android -> appendPlugin("library.android")
                     null -> error("Module type isn't selected, it should not be possible.")

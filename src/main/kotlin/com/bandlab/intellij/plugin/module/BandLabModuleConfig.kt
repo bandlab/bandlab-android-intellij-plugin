@@ -11,6 +11,13 @@ enum class BandLabModuleType {
     Android, Kotlin
 }
 
+sealed interface ModuleTypeSelection {
+    val type: BandLabModuleType?
+
+    data class LockTo(override val type: BandLabModuleType) : ModuleTypeSelection
+    data class RequireSelection(override val type: BandLabModuleType?) : ModuleTypeSelection
+}
+
 enum class ModuleExposure {
     AppGraph, MixEditorGraph, None
 }
@@ -19,9 +26,7 @@ enum class ModuleExposure {
 sealed interface BandLabModuleConfig {
 
     val isSelected: Boolean
-    val type: BandLabModuleType?
-    val requireTypeSelection: Boolean
-        get() = false
+    val typeSelection: ModuleTypeSelection
 
     val availablePlugins: Set<ModulePlugin>
     val selectedPlugins: Set<ModulePlugin>
@@ -33,36 +38,46 @@ sealed interface BandLabModuleConfig {
 
     data class Api(
         override val isSelected: Boolean = false,
-        override val type: BandLabModuleType = BandLabModuleType.Kotlin,
-        override val availablePlugins: Set<ModulePlugin> = ModulePlugin.entries.toSet() - Compose - Database,
         override val selectedPlugins: Set<ModulePlugin> = emptySet(),
+    ) : BandLabModuleConfig {
+        override val typeSelection: ModuleTypeSelection
+            get() = ModuleTypeSelection.LockTo(BandLabModuleType.Kotlin)
+        override val availablePlugins: Set<ModulePlugin>
+            get() = ModulePlugin.entries.toSet() - Compose - Database
         override val exposure: ModuleExposure? = null
-    ) : BandLabModuleConfig
+    }
 
     data class Impl(
         override val isSelected: Boolean = false,
-        override val type: BandLabModuleType? = null,
-        override val requireTypeSelection: Boolean = true,
-        override val availablePlugins: Set<ModulePlugin> = ModulePlugin.entries.toSet(),
-        override val selectedPlugins: Set<ModulePlugin> = emptySet(),
+        override val typeSelection: ModuleTypeSelection = ModuleTypeSelection.RequireSelection(null),
+        override val selectedPlugins: Set<ModulePlugin> = setOf(Metro),
         override val exposure: ModuleExposure = ModuleExposure.AppGraph,
-    ) : BandLabModuleConfig
+    ) : BandLabModuleConfig {
+        override val availablePlugins: Set<ModulePlugin>
+            get() = ModulePlugin.entries.toSet() - Compose
+    }
 
     data class Ui(
         override val isSelected: Boolean = false,
-        override val type: BandLabModuleType = BandLabModuleType.Android,
-        override val availablePlugins: Set<ModulePlugin> = setOf(Compose, Metro),
         override val selectedPlugins: Set<ModulePlugin> = setOf(Compose),
+    ) : BandLabModuleConfig {
+        override val typeSelection: ModuleTypeSelection
+            get() = ModuleTypeSelection.LockTo(BandLabModuleType.Android)
+        override val availablePlugins: Set<ModulePlugin>
+            get() = setOf(Compose, Metro)
         override val exposure: ModuleExposure? = null
-    ) : BandLabModuleConfig
+    }
 
     data class Screen(
         override val isSelected: Boolean = false,
-        override val type: BandLabModuleType = BandLabModuleType.Android,
-        override val availablePlugins: Set<ModulePlugin> = ModulePlugin.entries.toSet() - Database,
         override val selectedPlugins: Set<ModulePlugin> = setOf(Compose, Metro),
         override val exposure: ModuleExposure = ModuleExposure.AppGraph,
         val generateActivityTemplate: Boolean = false,
         val generatePageTemplate: Boolean = false,
-    ) : BandLabModuleConfig
+    ) : BandLabModuleConfig {
+        override val typeSelection: ModuleTypeSelection
+            get() = ModuleTypeSelection.LockTo(BandLabModuleType.Android)
+        override val availablePlugins: Set<ModulePlugin>
+            get() = ModulePlugin.entries.toSet() - Database
+    }
 }

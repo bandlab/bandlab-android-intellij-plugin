@@ -11,10 +11,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.bandlab.intellij.plugin.module.BandLabModuleConfig
-import com.bandlab.intellij.plugin.module.BandLabModuleType
-import com.bandlab.intellij.plugin.module.ModuleExposure
-import com.bandlab.intellij.plugin.module.ModulePlugin
+import com.bandlab.intellij.plugin.module.*
 import org.jetbrains.jewel.ui.component.CheckboxRow
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 
@@ -86,13 +83,14 @@ internal fun BandLabModuleConfigSelector(
                     }
                     .padding(start = startPadding)
             ) {
-                if (state.requireTypeSelection) {
+                val typeSelection = state.typeSelection
+                if (typeSelection is ModuleTypeSelection.RequireSelection) {
                     SettingsGroup("Module Type") {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             BandLabModuleType.entries.forEach { type ->
                                 RadioButtonRow(
                                     text = type.name,
-                                    selected = type == state.type,
+                                    selected = type == typeSelection.type,
                                     onClick = { onModuleTypeClick(state, type) }
                                 )
                             }
