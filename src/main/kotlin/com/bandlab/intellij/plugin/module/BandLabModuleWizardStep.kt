@@ -1,5 +1,3 @@
-@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
-
 package com.bandlab.intellij.plugin.module
 
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -7,6 +5,9 @@ import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
 import com.bandlab.intellij.plugin.module.ui.BandLabModuleWizard
+import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
+import com.intellij.notification.NotificationGroupManager
+import com.intellij.notification.NotificationType
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
@@ -23,7 +24,7 @@ class EmptyModel : WizardModel() {
 
 class BandLabModuleWizardStep(
     private val project: Project,
-    private val moduleParent: String,
+    moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
@@ -45,10 +46,13 @@ class BandLabModuleWizardStep(
 
     override fun onWizardFinished() {
         val state = viewModel.state
-        val modulePath = state.moduleName.text.toString().replace(':', '/')
+        val moduleName = state.moduleName.text
+        val modulePath = moduleName.toString().replace(':', '/')
         val featureName = state.featureName.text.toString()
 
         val apiModuleInfo = ModuleInfo("$modulePath/api")
+        val implModuleInfo = ModuleInfo("$modulePath/impl")
+        val screenModuleInfo = ModuleInfo("$modulePath/screen")
         val uiModuleInfo = ModuleInfo("$modulePath/ui")
 
         runWriteCommandAction {
@@ -63,8 +67,8 @@ class BandLabModuleWizardStep(
                     val config = configState.value
                     val moduleInfo = when (config) {
                         is BandLabModuleConfig.Api -> apiModuleInfo
-                        is BandLabModuleConfig.Impl -> ModuleInfo("$modulePath/impl")
-                        is BandLabModuleConfig.Screen -> ModuleInfo("$modulePath/screen")
+                        is BandLabModuleConfig.Impl -> implModuleInfo
+                        is BandLabModuleConfig.Screen -> screenModuleInfo
                         is BandLabModuleConfig.Ui -> uiModuleInfo
                     }
                     val dependsOn = buildList {
@@ -99,29 +103,59 @@ class BandLabModuleWizardStep(
                 }
         }
 
-//        NotificationGroupManager.getInstance()
-//            .getNotificationGroup("BandLab Notification Group")
-//            .createNotification("Module ${moduleNameInput.text} is created", NotificationType.INFORMATION)
-//            .addActions(
-//                setOf(
-//                    BandLabModuleSyncAction(projectSyncInvoker),
-//                    BandLabModuleEditFileAction(
-//                        buttonText = "Edit $BUILD_GRADLE",
-//                        filePath = "$modulePath/screen/$BUILD_GRADLE"
-//                    )
-//                )
-//            )
-//            .notify(project)
+        NotificationGroupManager.getInstance()
+            .getNotificationGroup("BandLab Notification Group")
+            .createNotification("Your $moduleName modules are ready!", NotificationType.INFORMATION)
+            .addActions(
+                buildSet {
+                    if (state.apiConfig.value.isSelected) {
+                        BandLabModuleEditFileAction(
+                            buttonText = "Edit :api $BUILD_GRADLE",
+                            filePath = "$modulePath/api/$BUILD_GRADLE"
+                        ).also(::add)
+                    }
+                    if (state.uiConfig.value.isSelected) {
+                        BandLabModuleEditFileAction(
+                            buttonText = "Edit :ui $BUILD_GRADLE",
+                            filePath = "$modulePath/ui/$BUILD_GRADLE"
+                        ).also(::add)
+                    }
+                    if (state.implConfig.value.isSelected) {
+                        BandLabModuleEditFileAction(
+                            buttonText = "Edit :impl $BUILD_GRADLE",
+                            filePath = "$modulePath/impl/$BUILD_GRADLE"
+                        ).also(::add)
+
+                        BandLabModuleAddToSpotlightAction(
+                            buttonText = "Add :impl to spotlight",
+                            moduleInfo = implModuleInfo
+                        ).also(::add)
+                    }
+                    if (state.screenConfig.value.isSelected) {
+                        BandLabModuleEditFileAction(
+                            buttonText = "Edit :screen $BUILD_GRADLE",
+                            filePath = "$modulePath/screen/$BUILD_GRADLE"
+                        ).also(::add)
+
+                        BandLabModuleAddToSpotlightAction(
+                            buttonText = "Add :screen to spotlight",
+                            moduleInfo = screenModuleInfo
+                        ).also(::add)
+                    }
+                    add(BandLabModuleSyncAction(projectSyncInvoker))
+                }
+            )
+            .notify(project)
 
         wizardScope.cancel("Wizard step is finished")
     }
 
     private fun runWriteCommandAction(block: () -> Unit) {
         WriteCommandAction.runWriteCommandAction(
-            /* project = */ project,
-            /* commandName = */ "Create Template",
-            /* groupID = */ null,
-            /* runnable = */ block
+            project,
+            "Create Template",
+            null,
+            block
         )
     }
 }
