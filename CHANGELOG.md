@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.0.0] - 2025-08-12
 ### Added
 - Rework Module Creation Dialog with CMP to align with convention (#106)
 - Follow-up actions dialog after creating modules (#106)
