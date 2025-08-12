@@ -25,7 +25,7 @@ import org.jetbrains.jewel.ui.icons.AllIconsKeys
 
 @Stable
 internal data class WizardState(
-    val moduleName: TextFieldState,
+    val moduleRoot: TextFieldState,
     val apiConfig: StateFlow<BandLabModuleConfig.Api>,
     val implConfig: StateFlow<BandLabModuleConfig.Impl>,
     val uiConfig: StateFlow<BandLabModuleConfig.Ui>,
@@ -60,7 +60,7 @@ internal fun BandLabModuleWizard(state: WizardState) {
 
         Row {
             Text(
-                text = "Module Name",
+                text = "Module Root",
                 modifier = Modifier.padding(top = 4.dp)
             )
 
@@ -68,7 +68,7 @@ internal fun BandLabModuleWizard(state: WizardState) {
 
             Column {
                 AutoCompleteTextField(
-                    state = state.moduleName,
+                    state = state.moduleRoot,
                     suggestionsFlow = state.existingModuleNames,
                     outline = Outline.of(
                         warning = false,
@@ -117,7 +117,7 @@ internal fun BandLabModuleWizard(state: WizardState) {
                 val config = configState.collectAsState().value
                 val errorMessage = validationErrors.errorMessageOrNull(
                     config = config,
-                    parentModule = state.moduleName.text
+                    parentModule = state.moduleRoot.text
                 )
 
                 BandLabModuleConfigSelector(

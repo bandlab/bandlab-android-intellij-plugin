@@ -46,8 +46,8 @@ class BandLabModuleWizardStep(
 
     override fun onWizardFinished() {
         val state = viewModel.state
-        val moduleName = state.moduleName.text
-        val modulePath = moduleName.toString().replace(':', '/')
+        val moduleRoot = state.moduleRoot.text
+        val modulePath = moduleRoot.toString().replace(':', '/')
         val featureName = state.featureName.text.toString()
 
         val apiModuleInfo = ModuleInfo("$modulePath/api")

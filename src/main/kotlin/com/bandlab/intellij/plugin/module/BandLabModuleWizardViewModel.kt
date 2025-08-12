@@ -85,7 +85,7 @@ internal class BandLabModuleWizardViewModel(
     val canCreate = BoolValueProperty(false)
 
     val state = WizardState(
-        moduleName = moduleName,
+        moduleRoot = moduleName,
         apiConfig = apiConfig,
         implConfig = implConfig,
         uiConfig = uiConfig,
