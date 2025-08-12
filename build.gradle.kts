@@ -14,7 +14,6 @@ plugins {
     alias(libs.plugins.kotlin)
     alias(libs.plugins.kover)
     alias(libs.plugins.plugin.uploader)
-    alias(libs.plugins.qodana)
 }
 
 group = providers.gradleProperty("pluginGroup").get()
