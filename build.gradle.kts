@@ -115,6 +115,11 @@ intellijPlatform {
     }
 
     pluginVerification {
+        // Our plugin id is "com.bandlab.intellij.plugin", lately jetbrains added a check that
+        // plugin id doesn't contain the word intellij and treats it as error. so we need
+        // '-mute TemplateWordInPluginId' to silence this error.
+        freeArgs = listOf("-mute", "TemplateWordInPluginId")
+
         ides {
             recommended()
         }
