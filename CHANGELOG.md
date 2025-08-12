@@ -3,10 +3,17 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Added
+- Rework Module Creation Dialog with CMP to align with convention (#106)
+- Follow-up actions dialog after creating modules (#106)
+- Support adding :impl and :screen to spotlight (#106)
+
+### Changed
+- Adjust activity template to private members injection, and make VM internal
 
 ## [1.8.0] - 2025-07-28
 ### Added
-Add support for spotlight all-projects file (#102)
+- Add support for spotlight all-projects file (#102)
 
 ## [1.7.7] - 2025-07-21
 ### Changed
