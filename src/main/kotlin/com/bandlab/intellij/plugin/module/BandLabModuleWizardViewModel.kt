@@ -9,6 +9,7 @@ import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
 import com.bandlab.intellij.plugin.utils.combine
 import com.bandlab.intellij.plugin.utils.readFile
+import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -101,8 +102,6 @@ internal class BandLabModuleWizardViewModel(
     )
 
     init {
-        println(existingModuleNames)
-
         // Map feature name with the module path by default
         moduleNameTextFlow
             .onEach { name ->
@@ -202,13 +201,14 @@ internal class BandLabModuleWizardViewModel(
     }
 
     private suspend fun retrieveExistingModules(): Set<String> = withContext(Dispatchers.IO) {
-        //TODO: Better read operation
-        project.readFile(
-            filePath = ALL_PROJECTS_PATH,
-            isAbsolute = false
-        )
-            .split(NEW_LINE)
-            .filter { it.isNotBlank() }
-            .toSet()
+        readAction {
+            project.readFile(
+                filePath = ALL_PROJECTS_PATH,
+                isAbsolute = false
+            )
+                .split(NEW_LINE)
+                .filter { it.isNotBlank() }
+                .toSet()
+        }
     }
 }
