@@ -20,12 +20,6 @@
                 id="bandlab_convention"/>
     </extensions>
 
-    <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup
-                id="BandLab Notification Group"
-                displayType="BALLOON"/>
-    </extensions>
-
     <actions>
         <action id="ActivityTemplateCreateAction"
                 class="com.bandlab.intellij.plugin.template.ActivityTemplateCreateAction" text="Activity Template">

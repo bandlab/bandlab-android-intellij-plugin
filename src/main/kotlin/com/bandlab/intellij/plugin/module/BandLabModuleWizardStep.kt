@@ -4,10 +4,10 @@ import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
 import com.android.tools.idea.wizard.model.WizardModel
+import com.bandlab.intellij.plugin.module.dialog.BandLabModuleFollowUpActionsDialog
+import com.bandlab.intellij.plugin.module.dialog.BandLabModuleFollowUpActionsViewModel
 import com.bandlab.intellij.plugin.module.ui.BandLabModuleWizard
-import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
@@ -51,8 +51,6 @@ class BandLabModuleWizardStep(
         val featureName = state.featureName.text.toString()
 
         val apiModuleInfo = ModuleInfo("$modulePath/api")
-        val implModuleInfo = ModuleInfo("$modulePath/impl")
-        val screenModuleInfo = ModuleInfo("$modulePath/screen")
         val uiModuleInfo = ModuleInfo("$modulePath/ui")
 
         runWriteCommandAction {
@@ -67,8 +65,8 @@ class BandLabModuleWizardStep(
                     val config = configState.value
                     val moduleInfo = when (config) {
                         is BandLabModuleConfig.Api -> apiModuleInfo
-                        is BandLabModuleConfig.Impl -> implModuleInfo
-                        is BandLabModuleConfig.Screen -> screenModuleInfo
+                        is BandLabModuleConfig.Impl -> ModuleInfo("$modulePath/impl")
+                        is BandLabModuleConfig.Screen -> ModuleInfo("$modulePath/screen")
                         is BandLabModuleConfig.Ui -> uiModuleInfo
                     }
                     val dependsOn = buildList {
@@ -103,49 +101,17 @@ class BandLabModuleWizardStep(
                 }
         }
 
-        NotificationGroupManager.getInstance()
-            .getNotificationGroup("BandLab Notification Group")
-            .createNotification("Your $moduleName modules are ready!", NotificationType.INFORMATION)
-            .addActions(
-                buildSet {
-                    if (state.apiConfig.value.isSelected) {
-                        BandLabModuleEditFileAction(
-                            buttonText = "Edit :api $BUILD_GRADLE",
-                            filePath = "$modulePath/api/$BUILD_GRADLE"
-                        ).also(::add)
-                    }
-                    if (state.uiConfig.value.isSelected) {
-                        BandLabModuleEditFileAction(
-                            buttonText = "Edit :ui $BUILD_GRADLE",
-                            filePath = "$modulePath/ui/$BUILD_GRADLE"
-                        ).also(::add)
-                    }
-                    if (state.implConfig.value.isSelected) {
-                        BandLabModuleEditFileAction(
-                            buttonText = "Edit :impl $BUILD_GRADLE",
-                            filePath = "$modulePath/impl/$BUILD_GRADLE"
-                        ).also(::add)
-
-                        BandLabModuleAddToSpotlightAction(
-                            buttonText = "Add :impl to spotlight",
-                            moduleInfo = implModuleInfo
-                        ).also(::add)
-                    }
-                    if (state.screenConfig.value.isSelected) {
-                        BandLabModuleEditFileAction(
-                            buttonText = "Edit :screen $BUILD_GRADLE",
-                            filePath = "$modulePath/screen/$BUILD_GRADLE"
-                        ).also(::add)
-
-                        BandLabModuleAddToSpotlightAction(
-                            buttonText = "Add :screen to spotlight",
-                            moduleInfo = screenModuleInfo
-                        ).also(::add)
-                    }
-                    add(BandLabModuleSyncAction(projectSyncInvoker))
-                }
-            )
-            .notify(project)
+        ApplicationManager.getApplication().invokeLater {
+            BandLabModuleFollowUpActionsDialog(
+                project = project,
+                viewModel = BandLabModuleFollowUpActionsViewModel(
+                    project = project,
+                    modulePath = modulePath,
+                    state = state,
+                    projectSyncInvoker = projectSyncInvoker
+                )
+            ).show()
+        }
 
         wizardScope.cancel("Wizard step is finished")
     }
