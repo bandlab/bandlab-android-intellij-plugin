@@ -2,13 +2,15 @@
 
 <!-- Plugin description -->
 ## Create modules with BandLab Android convention
-- Select Android/ Kotlin module
-- Select plugins that you want to apply
-- Opt-in the compose convention for new features
-- Generate Dagger module and expose to App or MixEditor
-- Sort dependencies automatically
+- Allow only api, impl, ui, screen name for modules
+- Support creating multiple modules at once
+- Contextual Module path pre-fill and autocomplete
+- You can optionally expose impl and screen to AppGraph or MixEditorGraph, AppGraph is selected by default
+- Activity and Page template options
+- Module existence check per submodules, ex. check :foo:api and :foo:impl existence separately
+- Support adding to spotlight after module creation
 
-![Module Creation Wizard](https://i.imgur.com/bpgcbfb.png)
+![Module Creation Wizard](https://i.imgur.com/nD1wqPw.png)
 
 ## Create Screen templates
 - Create an Activity, ViewModel and Manifest according to the latest screen building convention.

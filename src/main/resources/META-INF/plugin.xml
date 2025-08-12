@@ -4,19 +4,20 @@
     <name>BandLab Android Convention</name>
     <vendor>BandLab</vendor>
 
-    <depends>com.intellij.java</depends>
-    <depends>org.jetbrains.android</depends>
+    <dependencies>
+        <plugin id="com.intellij.java"/>
+        <plugin id="org.jetbrains.android"/>
+        <module name="intellij.platform.jewel.foundation"/>
+        <module name="intellij.platform.jewel.ui"/>
+        <module name="intellij.platform.jewel.ideLafBridge"/>
+        <module name="intellij.libraries.compose.foundation.desktop"/>
+        <module name="intellij.libraries.skiko"/>
+    </dependencies>
 
     <extensions defaultExtensionNs="com.android">
         <moduleDescriptionProvider
                 implementation="com.bandlab.intellij.plugin.module.BandLabModuleDescriptionProvider"
                 id="bandlab_convention"/>
-    </extensions>
-
-    <extensions defaultExtensionNs="com.intellij">
-        <notificationGroup
-                id="BandLab Notification Group"
-                displayType="BALLOON"/>
     </extensions>
 
     <actions>
@@ -31,7 +32,8 @@
         </action>
 
         <action id="AutomationTemplateCreateAction"
-                class="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction" text="Automation Template">
+                class="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction"
+                text="Automation Template">
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="PageTemplateCreateAction"/>
         </action>
 

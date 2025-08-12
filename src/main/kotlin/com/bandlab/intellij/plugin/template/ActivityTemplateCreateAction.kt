@@ -16,9 +16,9 @@ import java.awt.event.InputEvent
 import java.util.function.Consumer
 
 class ActivityTemplateCreateAction : CreateFileAction(
-    /* text = */ "Activity Template",
-    /* description = */ "Create an activity template with latest convention.",
-    /* icon = */ BandLabIcons.logo
+    { "Activity Template" },
+    { "Create an activity template with latest convention." },
+    { BandLabIcons.logo },
 ) {
 
     /**

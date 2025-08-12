@@ -1,293 +1,127 @@
-@file:Suppress("DialogTitleCapitalization", "UnstableApiUsage")
-
 package com.bandlab.intellij.plugin.module
 
-import com.android.build.attribution.ui.warningIcon
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
-import com.android.tools.idea.npw.template.BlankModel
-import com.android.tools.idea.observable.core.BoolValueProperty
 import com.android.tools.idea.observable.core.ObservableBool
 import com.android.tools.idea.wizard.model.SkippableWizardStep
-import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
-import com.bandlab.intellij.plugin.utils.visibleIf
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
-import com.intellij.openapi.observable.properties.AtomicBooleanProperty
-import com.intellij.openapi.observable.util.whenTextChanged
+import com.android.tools.idea.wizard.model.WizardModel
+import com.bandlab.intellij.plugin.module.dialog.BandLabModuleFollowUpActionsDialog
+import com.bandlab.intellij.plugin.module.dialog.BandLabModuleFollowUpActionsViewModel
+import com.bandlab.intellij.plugin.module.ui.BandLabModuleWizard
+import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.project.modules
-import com.intellij.ui.components.JBCheckBox
-import com.intellij.ui.components.JBRadioButton
-import com.intellij.ui.components.JBTextField
-import com.intellij.ui.dsl.builder.*
-import com.intellij.ui.layout.not
-import com.intellij.ui.layout.selected
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import org.jetbrains.jewel.bridge.JewelComposePanel
+import org.jetbrains.jewel.foundation.ExperimentalJewelApi
+import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import javax.swing.JComponent
+
+class EmptyModel : WizardModel() {
+    override fun handleFinished() = Unit
+}
 
 class BandLabModuleWizardStep(
     private val project: Project,
-    private val moduleParent: String,
+    moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
-) : SkippableWizardStep<BlankModel>(BlankModel(), "BandLab Convention") {
+) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
-    // Inputs
-    private lateinit var moduleNameInput: JBTextField
-    private lateinit var featureNameInput: JBTextField
+    private val wizardScope = CoroutineScope(Dispatchers.Main)
+    private val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
 
-    // Module type
-    private lateinit var androidModuleButton: JBRadioButton
-    private lateinit var kotlinModuleButton: JBRadioButton
+    override fun getComponent(): JComponent {
+        @OptIn(ExperimentalJewelApi::class)
+        enableNewSwingCompositing()
 
-    // Compose convention
-    private lateinit var composeConventionCheckBox: JBCheckBox
-    private lateinit var generateActivityCheckBox: JBCheckBox
-
-    // Plugins
-    private lateinit var composePluginCheckBox: JBCheckBox
-    private lateinit var metroPluginCheckBox: JBCheckBox
-    private lateinit var restApiPluginCheckBox: JBCheckBox
-    private lateinit var remoteConfigPluginCheckBox: JBCheckBox
-    private lateinit var preferenceConfigPluginCheckBox: JBCheckBox
-    private lateinit var databasePluginCheckBox: JBCheckBox
-    private lateinit var testFixturesPluginCheckBox: JBCheckBox
-
-    // Module exposure
-    private lateinit var appModuleButton: JBRadioButton
-    private lateinit var meComponentModuleButton: JBRadioButton
-    private lateinit var noneModuleButton: JBRadioButton
-
-    private val isModuleNameInvalid = AtomicBooleanProperty(false)
-    private val isModuleAlreadyExists = AtomicBooleanProperty(false)
-    private val canCreate = BoolValueProperty(false)
-
-    private val existingModuleNames = project.modules.map { module ->
-        ':' + module.name
-            .split('.')
-            .drop(1) // drop the root folder
-            .joinToString(":")
-    }
-
-    override fun getComponent(): JComponent = panel {
-        indent {
-            row {
-                label("Create modules with BandLab Android project convention.").bold()
-            }
-                .topGap(TopGap.MEDIUM)
-                .bottomGap(BottomGap.SMALL)
-
-            row {
-                moduleNameInput = textField()
-                    .label("Module Name:", LabelPosition.LEFT)
-                    .comment("Eg: \":user:profile-edit:ui\" or \":comments:api\"")
-                    .component
-
-                moduleNameInput.text = moduleParent
-            }
-
-            row {
-                icon(warningIcon())
-                label(text = "Module name is invalid").bold()
-            }.visibleIf(isModuleNameInvalid)
-
-            row {
-                icon(warningIcon())
-                label(text = "Module already exists").bold()
-            }.visibleIf(isModuleAlreadyExists)
-
-            buttonsGroup {
-                row {
-                    androidModuleButton = radioButton("Android Module")
-                        .component
-                        .also { it.isSelected = true }
-
-                    kotlinModuleButton = radioButton("Kotlin Module")
-                        .actionListener { _, component ->
-                            if (component.isSelected) {
-                                composeConventionCheckBox.isSelected = false
-                                composePluginCheckBox.isSelected = false
-                                generateActivityCheckBox.isSelected = false
-                            }
-                        }
-                        .component
-                }.topGap(TopGap.SMALL)
-            }
-
-            group("Compose Feature Convention") {
-                row {
-                    text(
-                        text = "Building a new UI feature with compose? Follow our project convention to split up composables with your business logic.",
-                        maxLineLength = DEFAULT_COMMENT_WIDTH
-                    ).bold()
-                }
-
-                row {
-                    browserLink(
-                        "Check out the convention",
-                        "https://bandlab.atlassian.net/wiki/spaces/Android/pages/2712862819/Isolate+composables+from+business+logic+and+bindings"
-                    )
-                }
-
-                row {
-                    composeConventionCheckBox = checkBox("Create :screen and :ui modules")
-                        .whenStateChangedFromUi { selected ->
-                            if (!selected) generateActivityCheckBox.isSelected = false
-                        }
-                        .component
-                }
-
-                row {
-                    generateActivityCheckBox = checkBox("Generate Activity template")
-                        .comment("Create empty Activity, ViewModel, and Manifest")
-                        .component
-                }.visibleIf(composeConventionCheckBox.selected)
-            }
-                .visibleIf(androidModuleButton.selected)
-                .topGap(TopGap.MEDIUM)
-
-            group("Plugins") {
-                row {
-                    composePluginCheckBox = checkBox("Apply Compose plugin").component
-                }
-                    .enabledIf(androidModuleButton.selected)
-                    .visibleIf(composeConventionCheckBox.selected.not())
-
-                row {
-                    metroPluginCheckBox = checkBox("Apply Metro plugin").component
-                }.visibleIf(composeConventionCheckBox.selected.not())
-
-                row {
-                    restApiPluginCheckBox = checkBox("Apply Rest API plugin").component
-                }
-
-                row {
-                    remoteConfigPluginCheckBox = checkBox("Apply Remote Config plugin").component
-                }
-
-                row {
-                    preferenceConfigPluginCheckBox = checkBox("Apply Preference Config plugin").component
-                }
-
-                row {
-                    databasePluginCheckBox = checkBox("Apply Database plugin").component
-                }
-
-                row {
-                    testFixturesPluginCheckBox = checkBox("Apply Test Fixtures plugin").component
-                }
-            }.topGap(TopGap.MEDIUM)
-
-            group("Feature Configuration") {
-                row {
-                    featureNameInput = textField()
-                        .label("Name:", LabelPosition.LEFT)
-                        .comment("Eg: \"Album\" or \"UserProfileEdit\", no need to mention \"Module\" or \"Activity\"")
-                        .component
-                }
-
-                buttonsGroup {
-                    row {
-                        label("Expose the new module/ activity to:")
-                    }
-
-                    row {
-                        appModuleButton = radioButton("AppGraph")
-                            .component
-                            .also { it.isSelected = true }
-                    }
-
-                    row {
-                        meComponentModuleButton = radioButton("MixEditorGraph").component
-                    }
-
-                    row {
-                        noneModuleButton = radioButton("None").component
-                    }
-                }
-            }
-                .visibleIf(composeConventionCheckBox.selected)
-                .topGap(TopGap.MEDIUM)
-
-            moduleNameInput.whenTextChanged {
-                configureFeatureName()
-                validateModuleName()
-            }
+        return JewelComposePanel {
+            BandLabModuleWizard(viewModel.state)
         }
     }
 
-    private fun configureFeatureName() {
-        val nameInCamelCase = moduleNameInput.text
-            .split(':', '-')
-            .joinToString("") { it.replaceFirstChar { c -> c.uppercaseChar() } }
-
-        featureNameInput.text = nameInCamelCase
-    }
-
-    private fun validateModuleName() {
-        val moduleName = moduleNameInput.text
-
-        val isNameInvalid = !moduleName.startsWith(':')
-                || moduleName.contains('/')
-                || moduleName.contains("::")
-
-        val isModuleExists = moduleName in existingModuleNames
-
-        isModuleNameInvalid.set(isNameInvalid)
-        isModuleAlreadyExists.set(isModuleExists)
-        canCreate.set(!isNameInvalid && !isModuleExists)
-    }
-
     override fun canGoForward(): ObservableBool {
-        return canCreate
+        return viewModel.canCreate
     }
 
     override fun onWizardFinished() {
-        val modulePath = moduleNameInput.text.replace(':', '/')
-        val moduleConfig = BandLabModuleConfig(
-            type = when {
-                kotlinModuleButton.isSelected -> BandLabModuleType.Kotlin
-                androidModuleButton.isSelected -> BandLabModuleType.Android
-                else -> error("No module type is selected")
-            },
-            path = modulePath,
-            composeConvention = composeConventionCheckBox.isSelected,
-            plugins = ModulePlugins(
-                compose = composePluginCheckBox.isSelected,
-                metro = metroPluginCheckBox.isSelected,
-                restApi = restApiPluginCheckBox.isSelected,
-                remoteConfig = remoteConfigPluginCheckBox.isSelected,
-                preferenceConfig = preferenceConfigPluginCheckBox.isSelected,
-                database = databasePluginCheckBox.isSelected,
-                testFixtures = testFixturesPluginCheckBox.isSelected
-            ),
-            exposure = when {
-                appModuleButton.isSelected -> ModuleExposure.AppGraph
-                meComponentModuleButton.isSelected -> ModuleExposure.MixEditorGraph
-                noneModuleButton.isSelected -> ModuleExposure.None
-                else -> ModuleExposure.None
-            },
-            featureName = featureNameInput.text,
-            generateActivity = generateActivityCheckBox.isSelected
-        )
+        val state = viewModel.state
+        val moduleRoot = state.moduleRoot.text
+        val modulePath = moduleRoot.toString().replace(':', '/')
+        val featureName = state.featureName.text.toString()
 
-        // Create and modify all the required files
-        BandLabModuleTemplate(project, moduleConfig).create()
+        val apiModuleInfo = ModuleInfo("$modulePath/api")
+        val uiModuleInfo = ModuleInfo("$modulePath/ui")
 
-        NotificationGroupManager.getInstance()
-            .getNotificationGroup("BandLab Notification Group")
-            .createNotification("Module ${moduleNameInput.text} is created", NotificationType.INFORMATION)
-            .addActions(
-                setOf(
-                    BandLabModuleSyncAction(projectSyncInvoker),
-                    BandLabModuleEditFileAction(
-                        buttonText = "Edit $BUILD_GRADLE",
-                        filePath = if (composeConventionCheckBox.isSelected) {
-                            "$modulePath/screen/$BUILD_GRADLE"
-                        } else {
-                            "$modulePath/$BUILD_GRADLE"
-                        }
-                    )
-                )
+        runWriteCommandAction {
+            listOf(
+                state.apiConfig,
+                state.implConfig,
+                state.screenConfig,
+                state.uiConfig,
             )
-            .notify(project)
+                .filter { it.value.isSelected }
+                .forEach { configState ->
+                    val config = configState.value
+                    val moduleInfo = when (config) {
+                        is BandLabModuleConfig.Api -> apiModuleInfo
+                        is BandLabModuleConfig.Impl -> ModuleInfo("$modulePath/impl")
+                        is BandLabModuleConfig.Screen -> ModuleInfo("$modulePath/screen")
+                        is BandLabModuleConfig.Ui -> uiModuleInfo
+                    }
+                    val dependsOn = buildList {
+                        if (config is BandLabModuleConfig.Screen) {
+                            add(Dependency("projects.common.android.screen"))
+                            if (state.uiConfig.value.isSelected) {
+                                // Depends on the ui module where the composables located
+                                add(Dependency(uiModuleInfo.projectAccessorReference))
+                            }
+                        }
+                        if (config !is BandLabModuleConfig.Api) {
+                            if (state.apiConfig.value.isSelected) {
+                                // Expose api transitively from ui, impl and screen module
+                                add(
+                                    Dependency(
+                                        name = apiModuleInfo.projectAccessorReference,
+                                        config = DependencyConfiguration.Api
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    val template = BandLabModuleTemplate(
+                        project = project,
+                        moduleInfo = moduleInfo,
+                        config = config,
+                        featureName = featureName,
+                        dependsOn = dependsOn
+                    )
+                    template.create()
+                }
+        }
+
+        ApplicationManager.getApplication().invokeLater {
+            BandLabModuleFollowUpActionsDialog(
+                project = project,
+                viewModel = BandLabModuleFollowUpActionsViewModel(
+                    project = project,
+                    modulePath = modulePath,
+                    state = state,
+                    projectSyncInvoker = projectSyncInvoker
+                )
+            ).show()
+        }
+
+        wizardScope.cancel("Wizard step is finished")
+    }
+
+    private fun runWriteCommandAction(block: () -> Unit) {
+        WriteCommandAction.runWriteCommandAction(
+            project,
+            "Create Template",
+            null,
+            block
+        )
     }
 }

@@ -33,6 +33,17 @@ fun Project.editFile(
     editBlock: StringBuilder.() -> Unit
 ) {
     val file = requireVirtualFile(filePath, isAbsolute)
+    editFile(file, editBlock)
+}
+
+/**
+ * Edit a given [file] in the project, [editBlock] provides you a callback with [StringBuilder]
+ * by helping you to fill in the existing content.
+ */
+fun Project.editFile(
+    file: VirtualFile,
+    editBlock: StringBuilder.() -> Unit
+) {
     val filePsi = requireNotNull(file.toPsiFile(this))
 
     val document = requireNotNull(PsiDocumentManager.getInstance(this).getDocument(filePsi))
@@ -48,6 +59,20 @@ fun Project.editFile(
 
     // Refresh the VirtualFile to reflect the changes
     file.refresh(false, false)
+}
+
+/**
+ * Read a given [filePath] in the project.
+ */
+fun Project.readFile(
+    filePath: String,
+    isAbsolute: Boolean
+): String {
+    val file = requireVirtualFile(filePath, isAbsolute)
+    val filePsi = requireNotNull(file.toPsiFile(this))
+
+    val document = requireNotNull(PsiDocumentManager.getInstance(this).getDocument(filePsi))
+    return document.text
 }
 
 /**

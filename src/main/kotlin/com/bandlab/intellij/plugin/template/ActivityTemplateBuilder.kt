@@ -25,7 +25,7 @@ class ActivityTemplateBuilder(
         class ${name}Activity : CommonActivity<Unit>(), HasServiceProvider {
             
             @Inject override lateinit var dependencies: CommonActivityDependencies
-            @Inject lateinit var viewModel: ${name}ViewModel
+            @Inject private lateinit var viewModel: ${name}ViewModel
             
             private val graph by graphCreator(createGraphFactory<${name}ActivityGraph.Factory>())
             
@@ -57,7 +57,7 @@ class ActivityTemplateBuilder(
         
         import dev.zacsweers.metro.Inject
         
-        class ${name}ViewModel @Inject constructor(
+        internal class ${name}ViewModel @Inject constructor(
             
         ) {
             
