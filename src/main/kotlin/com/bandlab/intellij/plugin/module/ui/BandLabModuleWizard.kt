@@ -1,5 +1,6 @@
 package com.bandlab.intellij.plugin.module.ui
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -66,7 +67,9 @@ internal fun BandLabModuleWizard(state: WizardState) {
 
             Spacer(Modifier.width(16.dp))
 
-            Column {
+            Column(
+                modifier = Modifier.animateContentSize()
+            ) {
                 AutoCompleteTextField(
                     state = state.moduleRoot,
                     suggestionsFlow = state.existingModuleNames,

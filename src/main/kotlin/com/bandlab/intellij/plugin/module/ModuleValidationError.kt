@@ -5,6 +5,7 @@ enum class ModuleValidationError {
     ModuleNameInvalidChar,
     ModuleNameShouldStartWithColon,
     ModuleNameEndsWithColon,
+    ModuleNameEndsWithConfig,
 
     ApiModuleExist,
     ImplModuleExist,
@@ -13,7 +14,9 @@ enum class ModuleValidationError {
 
     val isNameError: Boolean
         get() = when (this) {
-            ModuleNameEmpty, ModuleNameInvalidChar, ModuleNameShouldStartWithColon, ModuleNameEndsWithColon -> true
+            ModuleNameEmpty, ModuleNameInvalidChar, ModuleNameShouldStartWithColon,
+            ModuleNameEndsWithColon, ModuleNameEndsWithConfig -> true
+
             ApiModuleExist, ImplModuleExist, ScreenModuleExist, UiModuleExist -> false
         }
 
@@ -23,6 +26,7 @@ enum class ModuleValidationError {
             ModuleNameInvalidChar -> "Invalid char, only lowercase, '-' and ':' are allowed"
             ModuleNameShouldStartWithColon -> "Module name should start with ':'"
             ModuleNameEndsWithColon -> "Module name shouldn't end with ':'"
+            ModuleNameEndsWithConfig -> "Redundant name, toggle the checkboxes below instead"
             ApiModuleExist -> ":api module already exist"
             ImplModuleExist -> ":impl module already exist"
             ScreenModuleExist -> ":screen module already exist"

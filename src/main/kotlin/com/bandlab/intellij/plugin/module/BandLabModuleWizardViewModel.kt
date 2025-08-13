@@ -62,6 +62,13 @@ internal class BandLabModuleWizardViewModel(
                 add(ModuleValidationError.ModuleNameInvalidChar)
                 return@buildSet
             }
+            if (
+                name.endsWith(":api") || name.endsWith(":impl") ||
+                name.endsWith(":screen") || name.endsWith(":ui")
+            ) {
+                add(ModuleValidationError.ModuleNameEndsWithConfig)
+                return@buildSet
+            }
 
             // Check for modules existence
             if (isApiSelected && "$name:api" in existingModuleNames) {
