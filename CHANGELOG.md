@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Show error when the module root contains :api, :impl, :screen or :ui
 
 ## [2.0.0] - 2025-08-12
 ### Added
