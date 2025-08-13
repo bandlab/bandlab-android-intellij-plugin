@@ -5,6 +5,7 @@
 ## Unreleased
 ### Changed
 - Show error when the module root contains :api, :impl, :screen or :ui
+- Check submodules existence eagerly
 
 ## [2.0.0] - 2025-08-12
 ### Added
