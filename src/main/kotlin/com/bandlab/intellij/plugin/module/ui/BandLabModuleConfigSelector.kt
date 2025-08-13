@@ -42,6 +42,7 @@ internal fun BandLabModuleConfigSelector(
             CheckboxRow(
                 text = configName,
                 checked = state.isSelected,
+                enabled = errorMessage == null,
                 onCheckedChange = { _ -> onConfigClick(state) },
                 textStyle = TextStyle(
                     fontSize = 14.sp,

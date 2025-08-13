@@ -7,7 +7,6 @@ import com.android.tools.idea.observable.core.BoolValueProperty
 import com.bandlab.intellij.plugin.module.ui.WizardState
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
-import com.bandlab.intellij.plugin.utils.combine
 import com.bandlab.intellij.plugin.utils.readFile
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
@@ -38,13 +37,9 @@ internal class BandLabModuleWizardViewModel(
         .shareIn(wizardScope, SharingStarted.WhileSubscribed(), replay = 1)
 
     private val validationErrors: StateFlow<Set<ModuleValidationError>> = combine(
-        apiConfig.map { it.isSelected }.distinctUntilChanged(),
-        implConfig.map { it.isSelected }.distinctUntilChanged(),
-        uiConfig.map { it.isSelected }.distinctUntilChanged(),
-        screenConfig.map { it.isSelected }.distinctUntilChanged(),
         moduleNameTextFlow,
         existingModuleNames
-    ) { isApiSelected, isImplSelected, isUiSelected, isScreenSelected, name, existingModuleNames ->
+    ) { name, existingModuleNames ->
         buildSet {
             if (name.isBlank() || name == ":") {
                 add(ModuleValidationError.ModuleNameEmpty)
@@ -71,16 +66,20 @@ internal class BandLabModuleWizardViewModel(
             }
 
             // Check for modules existence
-            if (isApiSelected && "$name:api" in existingModuleNames) {
+            if ("$name:api" in existingModuleNames) {
+                apiConfig.update { it.copy(isSelected = false) }
                 add(ModuleValidationError.ApiModuleExist)
             }
-            if (isImplSelected && "$name:impl" in existingModuleNames) {
+            if ("$name:impl" in existingModuleNames) {
+                implConfig.update { it.copy(isSelected = false) }
                 add(ModuleValidationError.ImplModuleExist)
             }
-            if (isUiSelected && "$name:ui" in existingModuleNames) {
+            if ("$name:ui" in existingModuleNames) {
+                uiConfig.update { it.copy(isSelected = false) }
                 add(ModuleValidationError.UiModuleExist)
             }
-            if (isScreenSelected && "$name:screen" in existingModuleNames) {
+            if ("$name:screen" in existingModuleNames) {
+                screenConfig.update { it.copy(isSelected = false) }
                 add(ModuleValidationError.ScreenModuleExist)
             }
         }
@@ -130,7 +129,7 @@ internal class BandLabModuleWizardViewModel(
         ) { isApiSelected, impl, isUiSelected, isScreenSelected, errors ->
             val isAnyModuleSelected = isApiSelected || impl.isSelected || isUiSelected || isScreenSelected
             val isImplModuleTypeValid = !impl.isSelected || impl.typeSelection.type != null
-            val isValid = isAnyModuleSelected && isImplModuleTypeValid && errors.isEmpty()
+            val isValid = isAnyModuleSelected && isImplModuleTypeValid && errors.none { it.isNameError }
             canCreate.set(isValid)
         }
             .launchIn(wizardScope)
