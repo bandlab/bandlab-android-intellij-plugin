@@ -41,7 +41,7 @@ Apply the test fixtures plugin and create the required folder, the option is onl
 Add the following URL to [your plugin configuration](https://www.jetbrains.com/help/idea/managing-plugins.html#add_plugin_repos) 
 and search for "BandLab", you'll see our shiny plugin!
 ```
-https://artifactory.bandlab.io/artifactory/intellij-idea-plugins/updatePlugins.xml
+https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/updatePlugins.xml
 ```
 
 ---
