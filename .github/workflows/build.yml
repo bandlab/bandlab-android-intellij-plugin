@@ -38,6 +38,9 @@ jobs:
       # Check out the current repository
       - name: Fetch Sources
         uses: actions/checkout@v5
+        with:
+          # Fetch only the latest commit, instead of full git history
+          fetch-depth: 0
 
       # Set up Java environment for the next steps
       - name: Setup Java
@@ -49,6 +52,18 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
+
+      # https://github.com/orgs/community/discussions/26351#discussioncomment-3251595
+      - name: Free Disk Space
+        run: |
+          sudo swapoff -a
+          sudo rm -f /swapfile
+          sudo apt clean
+          images=$(docker images -q)
+          if [[ -n "$images" ]]; then
+          docker rmi $images
+          fi
+          df -h
 
       # Set environment variables
       - name: Export Properties
