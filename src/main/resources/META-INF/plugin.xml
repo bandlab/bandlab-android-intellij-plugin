@@ -20,6 +20,33 @@
                 id="bandlab_convention"/>
     </extensions>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Gradle project path support -->
+        <completion.contributor
+                language="Groovy"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectCompletionContributor"/>
+        <completion.contributor
+                language="kotlin"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectCompletionContributor"/>
+        <annotator
+                language="Groovy"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectAnnotator"/>
+        <annotator
+                language="kotlin"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectAnnotator"/>
+        <psi.referenceContributor
+                language="Groovy"
+                implementation="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectReferenceContributor"/>
+        <psi.referenceContributor
+                language="kotlin"
+                implementation="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectReferenceContributor"/>
+        <intentionAction>
+            <className>com.bandlab.intellij.plugin.dependencies.autocomplete.RefreshProjectPathsIntentionAction
+            </className>
+            <category>Gradle</category>
+        </intentionAction>
+    </extensions>
+
     <actions>
         <action id="ActivityTemplateCreateAction"
                 class="com.bandlab.intellij.plugin.template.ActivityTemplateCreateAction" text="Activity Template">
