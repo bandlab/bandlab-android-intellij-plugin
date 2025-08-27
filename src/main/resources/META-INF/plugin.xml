@@ -20,6 +20,33 @@
                 id="bandlab_convention"/>
     </extensions>
 
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Gradle project path support -->
+        <completion.contributor
+                language="Groovy"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectCompletionContributor"/>
+        <completion.contributor
+                language="kotlin"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectCompletionContributor"/>
+        <annotator
+                language="Groovy"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectAnnotator"/>
+        <annotator
+                language="kotlin"
+                implementationClass="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectAnnotator"/>
+        <psi.referenceContributor
+                language="Groovy"
+                implementation="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectReferenceContributor"/>
+        <psi.referenceContributor
+                language="kotlin"
+                implementation="com.bandlab.intellij.plugin.dependencies.autocomplete.GradleProjectReferenceContributor"/>
+        <intentionAction>
+            <className>com.bandlab.intellij.plugin.dependencies.autocomplete.RefreshProjectPathsIntentionAction
+            </className>
+            <category>Gradle</category>
+        </intentionAction>
+    </extensions>
+
     <actions>
         <action id="ActivityTemplateCreateAction"
                 class="com.bandlab.intellij.plugin.template.ActivityTemplateCreateAction" text="Activity Template">
@@ -38,13 +65,13 @@
         </action>
 
         <action id="SortDependenciesAction"
-                class="com.bandlab.intellij.plugin.sortDependencies.SortDependenciesAction" text="Sort Dependencies">
+                class="com.bandlab.intellij.plugin.dependencies.sort.SortDependenciesAction" text="Sort Dependencies">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="first"/>
             <add-to-group group-id="EditorPopupMenu1" anchor="first"/>
         </action>
 
         <action id="ApplyTestFixturesPluginAction"
-                class="com.bandlab.intellij.plugin.testFixtures.ApplyTestFixturesPluginAction" text="Test Fixtures">
+                class="com.bandlab.intellij.plugin.test.fixtures.ApplyTestFixturesPluginAction" text="Test Fixtures">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after"
                           relative-to-action="SortDependenciesAction"/>
             <add-to-group group-id="EditorPopupMenu1" anchor="after" relative-to-action="SortDependenciesAction"/>

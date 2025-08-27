@@ -26,9 +26,17 @@ Create Robot, Semantics and Verifier templates to align with our automation test
 ![Automation Template](https://i.imgur.com/upwfk3R.png)
 
 ## Actions for build.gradle files
-![Automation Template](https://i.imgur.com/wMOB46s.png)
+
+### Auto Complete project path
+![auto-complete project path](https://i.imgur.com/ED5Lslh.png)
+
+We do not use Gradle type-safe accessors due to the reason [here](https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/), so we implemented the auto-complete for project path.
+Project paths will also be validated, if you see your dependency has a red underline, it means it's invalid path.
+
 
 ### Sort dependencies
+![build.gradle actions](https://i.imgur.com/wMOB46s.png)
+
 Sort plugins and dependencies alphabetically, the option is only available when right-clicking on build.gradle.
 
 ### Apply Test Fixtures plugin

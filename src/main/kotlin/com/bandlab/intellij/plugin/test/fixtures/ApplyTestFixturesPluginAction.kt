@@ -1,8 +1,8 @@
-package com.bandlab.intellij.plugin.testFixtures
+package com.bandlab.intellij.plugin.test.fixtures
 
 import com.bandlab.intellij.plugin.BandLabIcons
+import com.bandlab.intellij.plugin.dependencies.sort.SortDependenciesAction
 import com.bandlab.intellij.plugin.module.ModuleInfo
-import com.bandlab.intellij.plugin.sortDependencies.SortDependenciesAction
 import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
