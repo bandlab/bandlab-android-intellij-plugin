@@ -3,6 +3,9 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Added
+- Support project path auto-complete in build.gradle (#115)
+
 ### Changed
 - Show error when the module root contains :api, :impl, :screen or :ui
 - Check submodules existence eagerly
