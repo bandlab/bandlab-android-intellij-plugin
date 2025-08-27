@@ -38,13 +38,13 @@
         </action>
 
         <action id="SortDependenciesAction"
-                class="com.bandlab.intellij.plugin.sortDependencies.SortDependenciesAction" text="Sort Dependencies">
+                class="com.bandlab.intellij.plugin.dependencies.sort.SortDependenciesAction" text="Sort Dependencies">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="first"/>
             <add-to-group group-id="EditorPopupMenu1" anchor="first"/>
         </action>
 
         <action id="ApplyTestFixturesPluginAction"
-                class="com.bandlab.intellij.plugin.testFixtures.ApplyTestFixturesPluginAction" text="Test Fixtures">
+                class="com.bandlab.intellij.plugin.test.fixtures.ApplyTestFixturesPluginAction" text="Test Fixtures">
             <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="after"
                           relative-to-action="SortDependenciesAction"/>
             <add-to-group group-id="EditorPopupMenu1" anchor="after" relative-to-action="SortDependenciesAction"/>

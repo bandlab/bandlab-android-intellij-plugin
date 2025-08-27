@@ -1,12 +1,7 @@
-package com.bandlab.intellij.plugin.sortDependencies
+package com.bandlab.intellij.plugin.dependencies.sort
 
 import com.bandlab.intellij.plugin.BandLabIcons
-import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
-import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
-import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_START
-import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
-import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
-import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
+import com.bandlab.intellij.plugin.utils.Const
 import com.bandlab.intellij.plugin.utils.editFile
 import com.bandlab.intellij.plugin.utils.psiFileOrNull
 import com.intellij.openapi.actionSystem.ActionUpdateThread
@@ -35,7 +30,7 @@ class SortDependenciesAction : DumbAwareAction(
      *  Make the action available only when the menu is shown for the build.gradle.kts
      */
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible = e.psiFileOrNull()?.name == BUILD_GRADLE
+        e.presentation.isEnabledAndVisible = e.psiFileOrNull()?.name == Const.BUILD_GRADLE
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -55,16 +50,16 @@ class SortDependenciesAction : DumbAwareAction(
     private fun Project.sortDependencies(fileAbsolutePath: String) {
         editFile(filePath = fileAbsolutePath, isAbsolute = true) {
             // Sort plugins
-            val pluginsStartIndex = indexOf(PLUGINS_START)
+            val pluginsStartIndex = indexOf(Const.PLUGINS_START)
             if (pluginsStartIndex == -1) {
-                throw RuntimeException("Can't find $PLUGINS_START in $fileAbsolutePath.")
+                throw RuntimeException("Can't find ${Const.PLUGINS_START} in $fileAbsolutePath.")
             }
 
-            val pluginsToSortStartIndex = indexOf(NEW_LINE, pluginsStartIndex) + 1
-            val pluginsToSortEndIndex = indexOf(PLUGINS_END, pluginsToSortStartIndex) - 1
+            val pluginsToSortStartIndex = indexOf(Const.NEW_LINE, pluginsStartIndex) + 1
+            val pluginsToSortEndIndex = indexOf(Const.PLUGINS_END, pluginsToSortStartIndex) - 1
 
             val sortedPlugins = substring(pluginsToSortStartIndex, pluginsToSortEndIndex)
-                .split(NEW_LINE)
+                .split(Const.NEW_LINE)
                 .filter { it.isNotBlank() }
                 .distinct()
                 .sorted()
@@ -72,25 +67,25 @@ class SortDependenciesAction : DumbAwareAction(
             val moduleTypePlugin = sortedPlugins.first { plugin ->
                 moduleTypePluginIds.any { id -> id in plugin }
             }
-            val plugins = (listOf(moduleTypePlugin) + (sortedPlugins - moduleTypePlugin)).joinToString(NEW_LINE)
+            val plugins = (listOf(moduleTypePlugin) + (sortedPlugins - moduleTypePlugin)).joinToString(Const.NEW_LINE)
 
             replace(pluginsToSortStartIndex, pluginsToSortEndIndex, plugins)
 
             // Sort dependencies
-            val dependenciesStartIndex = indexOf(DEPENDENCIES_START)
+            val dependenciesStartIndex = indexOf(Const.DEPENDENCIES_START)
             if (dependenciesStartIndex == -1) {
-                throw RuntimeException("Can't find $DEPENDENCIES_START in $fileAbsolutePath.")
+                throw RuntimeException("Can't find ${Const.DEPENDENCIES_START} in $fileAbsolutePath.")
             }
 
-            val dependenciesToSortStartIndex = indexOf(NEW_LINE, dependenciesStartIndex) + 1
-            val dependenciesToSortEndIndex = indexOf(DEPENDENCIES_END, dependenciesToSortStartIndex) - 1
+            val dependenciesToSortStartIndex = indexOf(Const.NEW_LINE, dependenciesStartIndex) + 1
+            val dependenciesToSortEndIndex = indexOf(Const.DEPENDENCIES_END, dependenciesToSortStartIndex) - 1
 
             val sortedDependencies = substring(dependenciesToSortStartIndex, dependenciesToSortEndIndex)
-                .split(NEW_LINE)
+                .split(Const.NEW_LINE)
                 .filter { it.isNotBlank() }
                 .distinct()
                 .sorted()
-                .joinToString(NEW_LINE)
+                .joinToString(Const.NEW_LINE)
 
             replace(dependenciesToSortStartIndex, dependenciesToSortEndIndex, sortedDependencies)
         }
