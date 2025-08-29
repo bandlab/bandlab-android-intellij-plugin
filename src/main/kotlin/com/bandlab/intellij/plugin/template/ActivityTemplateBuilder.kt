@@ -16,20 +16,23 @@ class ActivityTemplateBuilder(
         import com.bandlab.common.android.di.ContributesComponent
         import com.bandlab.common.android.di.HasServiceProvider
         import com.bandlab.navigation.android.activityIntent
+        import com.bandlab.navigation.android.getObject
+        import com.bandlab.navigation.android.putObject
         import com.bandlab.uikit.compose.activity.WindowInsetsType
         import com.bandlab.uikit.compose.activity.setContent
         import dev.zacsweers.metro.Inject
         import dev.zacsweers.metro.createGraphFactory
+        import kotlinx.serialization.Serializable
         
         @ContributesComponent(appDependencies = ${name}Activity.ServiceProvider::class)
-        class ${name}Activity : CommonActivity<Unit>(), HasServiceProvider {
+        class ${name}Activity : CommonActivity<Params>(), HasServiceProvider {
             
             @Inject override lateinit var dependencies: CommonActivityDependencies
             @Inject private lateinit var viewModel: ${name}ViewModel
             
             private val graph by graphCreator(createGraphFactory<${name}ActivityGraph.Factory>())
             
-            override fun parseRequiredParams(bundle: Bundle) = Unit
+            override fun parseRequiredParams(bundle: Bundle): Params = bundle.getObject(Params.serializer())
             
             override fun onCreate() {
                 setContent(windowInsets = WindowInsetsType.Scrolling) {
@@ -43,9 +46,14 @@ class ActivityTemplateBuilder(
                 
             }
             
+            @Serializable
+            data class Params(TODO("add param or remove it"))
+            
             companion object {
                 fun buildIntent(context: Context): Intent {
-                    return activityIntent<${name}Activity>(context)
+                    return activityIntent<${name}Activity>(context) {
+                        putObject(Params(), Params.serializer())
+                    }
                 }
             }
         }

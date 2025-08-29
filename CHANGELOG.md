@@ -5,6 +5,8 @@
 ## Unreleased
 ### Added
 - Support project path auto-complete in build.gradle (#115)
+- Added Params to activity template (#118)
+- Rename vm -> viewModel in page template (#118)
 
 ### Changed
 - Show error when the module root contains :api, :impl, :screen or :ui

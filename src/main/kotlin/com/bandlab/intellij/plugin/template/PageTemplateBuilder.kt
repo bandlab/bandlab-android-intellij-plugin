@@ -22,7 +22,7 @@ class PageTemplateBuilder(
             override val graphCreator = graphCreator(context, createGraphFactory<${name}PageGraph.Factory>())
 
             @Composable
-            override fun Content(vm: ${name}ViewModel) {
+            override fun Content(viewModel: ${name}ViewModel) {
                 
             }
 
@@ -47,7 +47,7 @@ class PageTemplateBuilder(
         class ${name}Page @Inject constructor() : Page<${name}ViewModel> {
         
             @Composable
-            override fun Content(vm: ${name}ViewModel) {
+            override fun Content(viewModel: ${name}ViewModel) {
                 
             }
         }
