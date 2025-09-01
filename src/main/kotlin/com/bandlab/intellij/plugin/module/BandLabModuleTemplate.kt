@@ -265,7 +265,7 @@ class BandLabModuleTemplate(
         val newModuleStatement: (ModuleInfo) -> String
 
         class SettingsGradle(isUsingKts: Boolean) : ModuleListSpecification {
-            override val filePath: String = if (isUsingKts) "settings.gradle.kts" else "settings.gradle"
+            override val filePath: String = if (isUsingKts) "/settings.gradle.kts" else "/settings.gradle"
             override val sectionIdentifier: String = "//"
             override val newModuleStatement: (ModuleInfo) -> String = {
                 "include(\"${it.reference}\")\n"
