@@ -3,10 +3,10 @@ package com.bandlab.intellij.plugin.test.fixtures
 import com.bandlab.intellij.plugin.BandLabIcons
 import com.bandlab.intellij.plugin.dependencies.sort.SortDependenciesAction
 import com.bandlab.intellij.plugin.module.ModuleInfo
-import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
 import com.bandlab.intellij.plugin.utils.editFile
+import com.bandlab.intellij.plugin.utils.isBuildScriptFile
 import com.bandlab.intellij.plugin.utils.psiFileOrNull
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -29,7 +29,7 @@ class ApplyTestFixturesPluginAction : DumbAwareAction(
      *  Make the action available only when the menu is shown for the build.gradle.kts
      */
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible = e.psiFileOrNull()?.name == BUILD_GRADLE
+        e.presentation.isEnabledAndVisible = isBuildScriptFile(e.psiFileOrNull()?.name)
     }
 
     override fun actionPerformed(e: AnActionEvent) {

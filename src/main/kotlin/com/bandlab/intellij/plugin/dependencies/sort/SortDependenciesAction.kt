@@ -3,6 +3,7 @@ package com.bandlab.intellij.plugin.dependencies.sort
 import com.bandlab.intellij.plugin.BandLabIcons
 import com.bandlab.intellij.plugin.utils.Const
 import com.bandlab.intellij.plugin.utils.editFile
+import com.bandlab.intellij.plugin.utils.isBuildScriptFile
 import com.bandlab.intellij.plugin.utils.psiFileOrNull
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -30,7 +31,7 @@ class SortDependenciesAction : DumbAwareAction(
      *  Make the action available only when the menu is shown for the build.gradle.kts
      */
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible = e.psiFileOrNull()?.name == Const.BUILD_GRADLE
+        e.presentation.isEnabledAndVisible = isBuildScriptFile(e.psiFileOrNull()?.name)
     }
 
     override fun actionPerformed(e: AnActionEvent) {

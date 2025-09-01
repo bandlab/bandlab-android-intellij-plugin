@@ -3,13 +3,14 @@ package com.bandlab.intellij.plugin.module
 import com.bandlab.intellij.plugin.template.ActivityTemplateBuilder
 import com.bandlab.intellij.plugin.template.PageTemplateBuilder
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
-import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_START
 import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
+import com.bandlab.intellij.plugin.utils.buildScriptName
 import com.bandlab.intellij.plugin.utils.editFile
+import com.bandlab.intellij.plugin.utils.isUsingKts
 import com.bandlab.intellij.plugin.utils.requireVirtualFile
 import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.project.Project
@@ -29,19 +30,20 @@ class BandLabModuleTemplate(
 
     private val psiDirectorFactory = PsiDirectoryFactory.getInstance(project)
     private val psiFileFactory = PsiFileFactory.getInstance(project)
+    private val buildScriptName = project.buildScriptName()
 
     fun create() {
         // Create the src folder
         File(project.basePath + moduleInfo.filesPath).mkdirs()
 
-        // Create build.gradle.kts
+        // Create build.gradle[.kts]
         fun StringBuilder.appendPlugin(pluginId: String) {
             appendLine("    alias(bandlab.plugins.$pluginId)")
         }
 
         val plugins = config.selectedPlugins
         psiFileFactory.createFileFromText(
-            BUILD_GRADLE,
+            buildScriptName,
             KotlinFileType.INSTANCE,
             buildString {
                 appendLine(PLUGINS_START)
@@ -85,7 +87,7 @@ class BandLabModuleTemplate(
             }
         ).addToPath(moduleInfo.path)
 
-        // Modify module declaration list file (all-projects.txt or settings.gradle.kts)
+        // Modify module declaration list file (all-projects.txt or settings.gradle[.kts])
         modifyModulesListFile(moduleInfo)
 
         // Expose the module to top-level module
@@ -127,7 +129,7 @@ class BandLabModuleTemplate(
      *  Insert the new module in module declaration file, and sort the modules alphabetically.
      *
      *  If project is using spotlight, the declaration is in /gradle/all-projects.txt
-     *  otherwise, it will use /settings.gradle.kts
+     *  otherwise, it will use /settings.gradle[.kts]
      */
     private fun modifyModulesListFile(moduleInfo: ModuleInfo) {
         val spec = ModuleListSpecification.from(project)
@@ -173,10 +175,10 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         destinationModule: String,
     ) {
-        project.editFile(filePath = "$destinationModule/$BUILD_GRADLE", isAbsolute = false) {
+        project.editFile(filePath = "$destinationModule/$buildScriptName", isAbsolute = false) {
             val dependenciesIndex = indexOf(DEPENDENCIES_START)
             if (dependenciesIndex == -1) {
-                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/$BUILD_GRADLE.")
+                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/$buildScriptName.")
             }
 
             // Sort modules in /app/build.gradle.kts alphabetically
@@ -262,8 +264,8 @@ class BandLabModuleTemplate(
         val sectionIdentifier: String
         val newModuleStatement: (ModuleInfo) -> String
 
-        class SettingsGradle : ModuleListSpecification {
-            override val filePath: String = "/settings.gradle.kts"
+        class SettingsGradle(isUsingKts: Boolean) : ModuleListSpecification {
+            override val filePath: String = if (isUsingKts) "/settings.gradle.kts" else "/settings.gradle"
             override val sectionIdentifier: String = "//"
             override val newModuleStatement: (ModuleInfo) -> String = {
                 "include(\"${it.reference}\")\n"
@@ -279,7 +281,7 @@ class BandLabModuleTemplate(
         companion object {
             fun from(project: Project): ModuleListSpecification {
                 val useSpotlight = project.basePath?.let { File(it, ALL_PROJECTS_PATH) }?.exists == true
-                return if (useSpotlight) SpotlightAllProject() else SettingsGradle()
+                return if (useSpotlight) SpotlightAllProject() else SettingsGradle(project.isUsingKts())
             }
         }
     }

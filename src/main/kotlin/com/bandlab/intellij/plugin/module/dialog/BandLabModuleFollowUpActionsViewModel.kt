@@ -4,8 +4,8 @@ import androidx.compose.runtime.Immutable
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.bandlab.intellij.plugin.module.ModuleInfo
 import com.bandlab.intellij.plugin.module.ui.WizardState
-import com.bandlab.intellij.plugin.utils.Const.BUILD_GRADLE
 import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
+import com.bandlab.intellij.plugin.utils.buildScriptName
 import com.bandlab.intellij.plugin.utils.editFile
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.fileEditor.FileEditorManager
@@ -25,34 +25,35 @@ internal class BandLabModuleFollowUpActionsViewModel(
     private val state: WizardState,
     private val projectSyncInvoker: ProjectSyncInvoker,
 ) {
+    private val buildScriptName = project.buildScriptName()
 
     val actions: Set<FollowUpActionState> = buildSet {
         // Edit build.gradle
         if (state.apiConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :api $BUILD_GRADLE",
-                onClick = { editFile("$modulePath/api/$BUILD_GRADLE") }
+                text = "Edit :api $buildScriptName",
+                onClick = { editFile("$modulePath/api/$buildScriptName") }
             ).also(::add)
         }
 
         if (state.uiConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :ui $BUILD_GRADLE",
-                onClick = { editFile("$modulePath/ui/$BUILD_GRADLE") }
+                text = "Edit :ui $buildScriptName",
+                onClick = { editFile("$modulePath/ui/$buildScriptName") }
             ).also(::add)
         }
 
         if (state.implConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :impl $BUILD_GRADLE",
-                onClick = { editFile("$modulePath/impl/$BUILD_GRADLE") }
+                text = "Edit :impl $buildScriptName",
+                onClick = { editFile("$modulePath/impl/$buildScriptName") }
             ).also(::add)
         }
 
         if (state.screenConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :screen $BUILD_GRADLE",
-                onClick = { editFile("$modulePath/screen/$BUILD_GRADLE") }
+                text = "Edit :screen $buildScriptName",
+                onClick = { editFile("$modulePath/screen/$buildScriptName") }
             ).also(::add)
         }
 
