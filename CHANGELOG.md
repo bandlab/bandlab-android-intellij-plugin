@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+## [2.1.1] - 2025-09-01
+### Changed
+- Support for Groovy build scripts (#119)
+
 ## [2.1.0] - 2025-09-01
 ### Added
 - Support project path auto-complete in build.gradle (#115)
