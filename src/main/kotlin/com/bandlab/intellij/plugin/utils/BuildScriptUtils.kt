@@ -7,7 +7,7 @@ private const val BUILD_GRADLE = "build.gradle"
 private const val BUILD_GRADLE_KTS = "build.gradle.kts"
 
 /**
- * @returns `true` if the project is using Kotlin DSL. Default to 'false`
+ * @returns `true` if the project is using Kotlin DSL. Default to 'false'
  * As of now this is only determined by checking if the root setting file is `settings.gradle.kts`.
  */
 internal fun Project.isUsingKts(): Boolean {
