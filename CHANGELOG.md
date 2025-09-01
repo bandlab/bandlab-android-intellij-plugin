@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.1.0] - 2025-09-01
 ### Added
 - Support project path auto-complete in build.gradle (#115)
 - Added Params to activity template (#118)
