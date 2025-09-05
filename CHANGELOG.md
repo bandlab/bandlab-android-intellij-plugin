@@ -4,6 +4,9 @@
 
 ## Unreleased
 
+### Changed
+- Fix submodules existence check to show error on dialog open (#122)
+
 ## [2.1.1] - 2025-09-01
 ### Changed
 - Support for Groovy build scripts (#119)
