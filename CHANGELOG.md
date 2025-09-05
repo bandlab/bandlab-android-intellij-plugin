@@ -4,6 +4,7 @@
 
 ## Unreleased
 
+## [2.1.2] - 2025-09-05
 ### Changed
 - Fix submodules existence check to show error on dialog open (#122)
 - Disable GradleProjectAnnotator if the project isn't using spotlight (#123)
