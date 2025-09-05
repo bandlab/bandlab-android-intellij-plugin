@@ -18,6 +18,7 @@
 // https://github.com/slackhq/foundry/blob/main/platforms/intellij/skate/src/main/kotlin/foundry/intellij/skate/gradle/GradleProjectAnnotator.kt
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
+import com.bandlab.intellij.plugin.utils.hasAllProjectsFile
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -33,6 +34,11 @@ internal val PROJECT_CALL_PATTERN = Pattern.compile("""project\s*\(\s*["']([^"']
 class GradleProjectAnnotator : Annotator {
 
     override fun annotate(element: PsiElement, holder: AnnotationHolder) {
+        // Check if the Project is using spotlight
+        if (!element.project.hasAllProjectsFile()) {
+            return
+        }
+
         // Only process elements in Gradle build files
         val file = element.containingFile
         if (file?.name?.endsWith(".gradle") != true && file?.name?.endsWith(".gradle.kts") != true) {
