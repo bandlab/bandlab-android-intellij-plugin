@@ -84,8 +84,6 @@ internal class BandLabModuleWizardViewModel(
             }
         }
     }
-        // Skip the initial result when the wizard is just opened.
-        .drop(1)
         .stateIn(wizardScope, SharingStarted.WhileSubscribed(), emptySet())
 
     val canCreate = BoolValueProperty(false)
