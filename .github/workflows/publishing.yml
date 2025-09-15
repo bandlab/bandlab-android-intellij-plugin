@@ -27,7 +27,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          cache-cleanup: always
+          cache-disabled: true
       - name: Export Properties
         id: properties
         shell: bash
