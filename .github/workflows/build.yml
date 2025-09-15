@@ -50,18 +50,9 @@ jobs:
       # Setup Gradle
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-
-      # https://github.com/orgs/community/discussions/26351#discussioncomment-3251595
-      - name: Free Disk Space
-        run: |
-          sudo swapoff -a
-          sudo rm -f /swapfile
-          sudo apt clean
-          images=$(docker images -q)
-          if [[ -n "$images" ]]; then
-          docker rmi $images
-          fi
-          df -h
+        with:
+          cache-read-only: false
+          cache-cleanup: on-success
 
       # Set environment variables
       - name: Export Properties
