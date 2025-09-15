@@ -2,7 +2,7 @@
 # libraries
 junit = "4.13.2"
 # Google Truth - https://github.com/google/truth/releases
-truth = "1.4.4"
+truth = "1.4.5"
 
 # plugins
 changelog = "2.4.0"
