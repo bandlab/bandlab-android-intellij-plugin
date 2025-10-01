@@ -41,7 +41,7 @@ class TwoLevelInjectionTemplateCreateAction : CreateFileAction(
         val contentPanel = NewItemSimplePopupPanel()
         val nameField = contentPanel.textField
         val popup = NewItemPopupUtil.createNewItemPopup(
-            "Feature Name (Ex: InvertedViewModel)",
+            "Interface Name (Ex: InvertedViewModel)",
             contentPanel,
             nameField
         )
@@ -66,7 +66,7 @@ class TwoLevelInjectionTemplateCreateAction : CreateFileAction(
             filePackage = directory.filePackage
         )
         return arrayOf(
-            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.create())
+            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.build())
         )
     }
 

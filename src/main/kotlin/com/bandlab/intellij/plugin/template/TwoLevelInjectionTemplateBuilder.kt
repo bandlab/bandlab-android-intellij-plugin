@@ -4,7 +4,7 @@ class TwoLevelInjectionTemplateBuilder(
     private val name: String,
     private val filePackage: String,
 ) {
-    fun create(): String = """
+    fun build(): String = """
         package $filePackage
         
         import dev.zacsweers.metro.AppScope
