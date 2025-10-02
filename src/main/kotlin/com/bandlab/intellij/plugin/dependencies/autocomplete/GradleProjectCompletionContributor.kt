@@ -19,6 +19,7 @@
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
 import com.bandlab.intellij.plugin.utils.GradleProjectUtils
+import com.bandlab.intellij.plugin.utils.resolvePath
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.icons.AllIcons
@@ -58,6 +59,11 @@ class GradleProjectCompletionContributor : CompletionContributor() {
             context: ProcessingContext,
             result: CompletionResultSet,
         ) {
+            // Exclude gradle dir from auto-complete, those projects are not declared in all-projects.txt
+            if (parameters.originalFile.resolvePath()?.contains("/gradle/") == true) {
+                return
+            }
+
             val project = parameters.position.project
             val projectPathService = project.getService(ProjectPathService::class.java)
 
