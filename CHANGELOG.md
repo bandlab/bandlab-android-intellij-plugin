@@ -3,8 +3,13 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.1.3] - 2025-10-02
 ### Added
 - Introduce 2-level Injection Template (#130)
+
+### Changed
+- Exclude gradle dir from project autocomplete (#131)
 
 ## [2.1.2] - 2025-09-05
 ### Changed
