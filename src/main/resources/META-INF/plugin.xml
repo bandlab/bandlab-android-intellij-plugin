@@ -58,10 +58,17 @@
             <add-to-group group-id="NewGroup" anchor="after" relative-to-action="ActivityTemplateCreateAction"/>
         </action>
 
+        <action id="TwoLevelInjectionTemplateCreateAction"
+                class="com.bandlab.intellij.plugin.template.TwoLevelInjectionTemplateCreateAction"
+                text="2-level Injection Template">
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="PageTemplateCreateAction"/>
+        </action>
+
         <action id="AutomationTemplateCreateAction"
                 class="com.bandlab.intellij.plugin.automation.AutomationTemplateCreateAction"
                 text="Automation Template">
-            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="PageTemplateCreateAction"/>
+            <add-to-group group-id="NewGroup" anchor="after"
+                          relative-to-action="TwoLevelInjectionTemplateCreateAction"/>
         </action>
 
         <action id="SortDependenciesAction"

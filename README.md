@@ -18,7 +18,9 @@
 
 ![Screen Template](https://i.imgur.com/Va9QFkb.png)
 
-![Page Template](https://i.imgur.com/7LmvABk.png)
+## Create 2-level Injection template
+Provide a template for 2-level injection. See more details here:
+https://bandlab.atlassian.net/wiki/spaces/Android/pages/3294724236/Dependency+Injection#Two-level-Injection
 
 ## Create Automation file templates
 Create Robot, Semantics and Verifier templates to align with our automation test convention.

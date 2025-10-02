@@ -51,11 +51,17 @@ class PageTemplateCreateAction : CreateFileAction(
 
         val contributesComponent = JBRadioButton("ContributesComponent", /* selected = */ true)
         val contributesComponentLabel = JLabel("Recommended, making a Page a standalone graph.")
-            .apply { font = labelFont }
+            .apply {
+                font = labelFont
+                border = JBUI.Borders.emptyLeft(20)
+            }
 
         val contributesInjector = JBRadioButton("ContributesInjector")
         val contributesInjectorLabel = JLabel("Use it if you have an activity as a graph to \"host\" the page.")
-            .apply { font = labelFont }
+            .apply {
+                font = labelFont
+                border = JBUI.Borders.emptyLeft(20)
+            }
 
         // Group the radio buttons to make them mutually exclusive
         val buttonGroup = ButtonGroup()

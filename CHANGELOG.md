@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Added
+- Introduce 2-level Injection Template (#130)
 
 ## [2.1.2] - 2025-09-05
 ### Changed
