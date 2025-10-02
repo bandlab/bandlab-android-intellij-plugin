@@ -66,7 +66,8 @@ class TwoLevelInjectionTemplateCreateAction : CreateFileAction(
             filePackage = directory.filePackage
         )
         return arrayOf(
-            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.build())
+            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.buildInterface()),
+            directory.writeFile(fileName = "${newName}Impl.kt", content = templateBuilder.buildImpl())
         )
     }
 

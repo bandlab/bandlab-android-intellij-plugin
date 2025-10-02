@@ -4,14 +4,9 @@ class TwoLevelInjectionTemplateBuilder(
     private val name: String,
     private val filePackage: String,
 ) {
-    fun build(): String = """
+    fun buildInterface(): String = """
         package $filePackage
         
-        import dev.zacsweers.metro.AppScope
-        import dev.zacsweers.metro.Assisted
-        import dev.zacsweers.metro.AssistedFactory
-        import dev.zacsweers.metro.AssistedInject
-        import dev.zacsweers.metro.ContributesBinding
         import dev.zacsweers.metro.Inject
         import kotlinx.coroutines.CoroutineScope
 
@@ -38,6 +33,18 @@ class TwoLevelInjectionTemplateBuilder(
                 ): $name
             }
         }
+        
+    """.trimIndent()
+
+    fun buildImpl(): String = """
+        package $filePackage
+        
+        import dev.zacsweers.metro.AppScope
+        import dev.zacsweers.metro.Assisted
+        import dev.zacsweers.metro.AssistedFactory
+        import dev.zacsweers.metro.AssistedInject
+        import dev.zacsweers.metro.ContributesBinding
+        import kotlinx.coroutines.CoroutineScope
 
         //TODO: Put this in the :impl, and remember to wire your impl to :app
         class ${name}Impl @AssistedInject constructor(
