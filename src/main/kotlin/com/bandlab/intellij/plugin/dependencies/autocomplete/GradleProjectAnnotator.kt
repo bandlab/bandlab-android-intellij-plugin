@@ -19,6 +19,7 @@
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
 import com.bandlab.intellij.plugin.utils.hasAllProjectsFile
+import com.bandlab.intellij.plugin.utils.resolvePath
 import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
@@ -42,6 +43,11 @@ class GradleProjectAnnotator : Annotator {
         // Only process elements in Gradle build files
         val file = element.containingFile
         if (file?.name?.endsWith(".gradle") != true && file?.name?.endsWith(".gradle.kts") != true) {
+            return
+        }
+
+        // Exclude gradle dir from the annotator, those projects are not declared in all-projects.txt
+        if (file.resolvePath()?.contains("/gradle/") == true) {
             return
         }
 
