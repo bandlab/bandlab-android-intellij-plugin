@@ -78,7 +78,7 @@ class ActivityTemplateCreateAction : CreateFileAction(
     private fun PsiDirectory.requireMainDir(): PsiDirectory {
         var parentDir = parentDirectory
         while (parentDir != null) {
-            if (parentDir.resolvePath()?.endsWith("main") == true) {
+            if (parentDir.resolvePath()?.endsWith("src/main") == true) {
                 return parentDir
             } else {
                 parentDir = parentDir.parentDirectory
