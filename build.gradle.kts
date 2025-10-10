@@ -130,7 +130,7 @@ tasks {
     uploadPlugin.configure {
         val signPluginTask = project.tasks.named<SignPluginTask>("signPlugin")
         dependsOn(signPluginTask)
-        url.set("https://artifactory.bandlab.io/artifactory/intellij-idea-plugins/")
+        url.set("https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/")
         pluginName.set("Bandlab Android Intellij Plugin")
         file.set(signPluginTask.flatMap { it.outputArchiveFile })
         pluginId.set(project.group.toString())
