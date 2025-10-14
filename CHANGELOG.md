@@ -3,6 +3,9 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Fix manifest path resolution (#133)
+- Migrate away from type-safe project accessors (#135)
 
 ## [2.1.3] - 2025-10-02
 ### Added

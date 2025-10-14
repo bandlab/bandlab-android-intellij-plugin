@@ -71,7 +71,7 @@ class BandLabModuleWizardStep(
                     }
                     val dependsOn = buildList {
                         if (config is BandLabModuleConfig.Screen) {
-                            add(Dependency("projects.common.android.screen"))
+                            add(Dependency("project(\":common:android:screen\")"))
                             if (state.uiConfig.value.isSelected) {
                                 // Depends on the ui module where the composables located
                                 add(Dependency(uiModuleInfo.projectAccessorReference))
