@@ -1,7 +1,5 @@
 package com.bandlab.intellij.plugin.module
 
-private val snakeRegex = "-[a-zA-Z]".toRegex()
-
 data class ModuleInfo(
     // Ex: /user/profile/edit-screen
     val path: String,
@@ -11,11 +9,9 @@ data class ModuleInfo(
     val reference: String
         get() = path.replace('/', ':')
 
-    // Ex: projects.user.profile.editScreen
+    // Ex: project(":user:profile:edit-screen")
     val projectAccessorReference: String
-        get() = "projects" + snakeRegex.replace(path.replace('/', '.')) {
-            it.value.replace("-", "").uppercase()
-        }
+        get() = "project(\"$reference\")"
 
     // Ex: com/bandlab/user/profile/edit/screen
     private val srcPackage: String
