@@ -65,7 +65,8 @@ class ActivityTemplateBuilder(
         
         import dev.zacsweers.metro.Inject
         
-        internal class ${name}ViewModel @Inject constructor(
+        @Inject
+        internal class ${name}ViewModel(
             
         ) {
             
