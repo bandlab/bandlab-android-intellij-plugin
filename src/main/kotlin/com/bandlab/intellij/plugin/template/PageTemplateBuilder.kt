@@ -17,7 +17,8 @@ class PageTemplateBuilder(
         import dev.zacsweers.metro.createGraphFactory       
 
         @ContributesComponent(appDependencies = ${name}Page.ServiceProvider::class)
-        class ${name}Page @Inject constructor(context: Context) : Page<${name}ViewModel>, HasPageServiceProvider {
+        @Inject
+        class ${name}Page(context: Context) : Page<${name}ViewModel>, HasPageServiceProvider {
 
             override val graphCreator = graphCreator(context, createGraphFactory<${name}PageGraph.Factory>())
 
@@ -44,7 +45,8 @@ class PageTemplateBuilder(
         import dev.zacsweers.metro.Inject
         
         @ContributesInjector(FeatureScope::class)
-        class ${name}Page @Inject constructor() : Page<${name}ViewModel> {
+        @Inject
+        class ${name}Page : Page<${name}ViewModel> {
         
             @Composable
             override fun Content(viewModel: ${name}ViewModel) {
@@ -59,7 +61,8 @@ class PageTemplateBuilder(
         
         import dev.zacsweers.metro.Inject
         
-        class ${name}ViewModel @Inject constructor(
+        @Inject
+        class ${name}ViewModel(
             
         ) {
             

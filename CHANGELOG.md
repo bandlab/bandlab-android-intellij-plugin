@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Lift up @Inject and @AssistedInject annotation (#141)
 
 ## [2.1.4] - 2025-10-14
 ### Changed

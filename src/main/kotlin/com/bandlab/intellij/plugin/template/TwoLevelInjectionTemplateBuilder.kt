@@ -47,7 +47,8 @@ class TwoLevelInjectionTemplateBuilder(
         import kotlinx.coroutines.CoroutineScope
 
         //TODO: Put this in the :impl, and remember to wire your impl to :app
-        class ${name}Impl @AssistedInject constructor(
+        @AssistedInject
+        class ${name}Impl(
             @Assisted private val coroutineScope: CoroutineScope,
         ) : $name {
 
