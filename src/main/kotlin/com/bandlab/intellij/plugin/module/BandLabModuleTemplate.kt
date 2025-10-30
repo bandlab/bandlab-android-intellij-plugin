@@ -55,9 +55,11 @@ class BandLabModuleTemplate(
                 if (ModulePlugin.Compose in plugins) appendPlugin("compose")
                 if (ModulePlugin.Database in plugins) appendPlugin("database")
                 if (ModulePlugin.Metro in plugins) appendPlugin("metro")
+                if (ModulePlugin.PageScreen in plugins) appendPlugin("page.screen")
                 if (ModulePlugin.PreferenceConfig in plugins) appendPlugin("preferenceConfig")
                 if (ModulePlugin.RemoteConfig in plugins) appendPlugin("remoteConfig")
                 if (ModulePlugin.RestApi in plugins) appendPlugin("restApi")
+                if (ModulePlugin.Screen in plugins) appendPlugin("screen")
                 if (ModulePlugin.TestFixtures in plugins) {
                     appendPlugin("testFixtures")
                     // Create an empty folder for testFixtures
