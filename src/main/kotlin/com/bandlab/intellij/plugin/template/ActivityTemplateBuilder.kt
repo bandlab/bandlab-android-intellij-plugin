@@ -12,14 +12,14 @@ class ActivityTemplateBuilder(
         import android.os.Bundle
         import com.bandlab.android.common.activity.CommonActivity
         import com.bandlab.android.common.activity.CommonActivityDependencies
-        import com.bandlab.android.common.activity.componentCreator
+        import com.bandlab.android.common.activity.graphCreator
+        import com.bandlab.android.common.ui.WindowInsetsType
+        import com.bandlab.android.common.ui.setContent
         import com.bandlab.common.android.di.ContributesComponent
         import com.bandlab.common.android.di.HasServiceProvider
         import com.bandlab.navigation.android.activityIntent
         import com.bandlab.navigation.android.getObject
         import com.bandlab.navigation.android.putObject
-        import com.bandlab.uikit.compose.activity.WindowInsetsType
-        import com.bandlab.uikit.compose.activity.setContent
         import dev.zacsweers.metro.Inject
         import dev.zacsweers.metro.createGraphFactory
         import kotlinx.serialization.Serializable
