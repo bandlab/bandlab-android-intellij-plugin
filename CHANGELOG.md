@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.1.5] - 2025-10-30
 ### Changed
 - Module Creation: Support screen and page.screen plugins (#145)
 - Fix imports in activity template (#145)
