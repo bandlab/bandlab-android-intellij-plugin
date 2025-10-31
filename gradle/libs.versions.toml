@@ -7,7 +7,7 @@ truth = "1.4.5"
 # plugins
 changelog = "2.4.0"
 compose = "1.9.1"
-intellij-platform = "2.10.2"
+intellij-platform = "2.10.3"
 kotlin = "2.2.21"
 kover = "0.9.3"
 plugin-uploader = "1.3.5"
