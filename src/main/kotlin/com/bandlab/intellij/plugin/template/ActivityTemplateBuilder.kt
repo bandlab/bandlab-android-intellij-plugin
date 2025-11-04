@@ -20,6 +20,7 @@ class ActivityTemplateBuilder(
         import com.bandlab.navigation.android.activityIntent
         import com.bandlab.navigation.android.getObject
         import com.bandlab.navigation.android.putObject
+        import $filePackage.${name}Activity.Params
         import dev.zacsweers.metro.Inject
         import dev.zacsweers.metro.createGraphFactory
         import kotlinx.serialization.Serializable

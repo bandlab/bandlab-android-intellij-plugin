@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Fix missing activity param import (#147)
 
 ## [2.1.5] - 2025-10-30
 ### Changed
