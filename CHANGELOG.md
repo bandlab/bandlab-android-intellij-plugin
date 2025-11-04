@@ -5,6 +5,7 @@
 ## Unreleased
 ### Changed
 - Fix missing activity param import (#147)
+- Remove page.screen plugin (#150)
 
 ## [2.1.5] - 2025-10-30
 ### Changed
