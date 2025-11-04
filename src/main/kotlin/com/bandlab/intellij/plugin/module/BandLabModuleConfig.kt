@@ -4,7 +4,7 @@ import androidx.compose.runtime.Immutable
 import com.bandlab.intellij.plugin.module.ModulePlugin.*
 
 enum class ModulePlugin {
-    Compose, Database, Metro, Screen, PageScreen, PreferenceConfig, RemoteConfig, RestApi, TestFixtures
+    Compose, Database, Metro, Screen, PreferenceConfig, RemoteConfig, RestApi, TestFixtures
 }
 
 enum class BandLabModuleType {
@@ -54,7 +54,7 @@ sealed interface BandLabModuleConfig {
         override val exposure: ModuleExposure = ModuleExposure.AppGraph,
     ) : BandLabModuleConfig {
         override val availablePlugins: Set<ModulePlugin>
-            get() = ModulePlugin.entries.toSet() - Compose - Screen - PageScreen
+            get() = ModulePlugin.entries.toSet() - Compose - Screen
     }
 
     data class Ui(
