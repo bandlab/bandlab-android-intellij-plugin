@@ -34,28 +34,6 @@ class PageTemplateBuilder(
         
     """.trimIndent()
 
-
-    fun createPageWithContributesInjector(): String = """
-        package $filePackage
-        
-        import androidx.compose.runtime.Composable
-        import com.bandlab.common.android.di.ContributesInjector
-        import com.bandlab.common.di.FeatureScope
-        import com.bandlab.uikit.api.page.Page
-        import dev.zacsweers.metro.Inject
-        
-        @ContributesInjector(FeatureScope::class)
-        @Inject
-        class ${name}Page : Page<${name}ViewModel> {
-        
-            @Composable
-            override fun Content(viewModel: ${name}ViewModel) {
-                
-            }
-        }
-        
-    """.trimIndent()
-
     fun createViewModel(): String = """
         package $filePackage
         
