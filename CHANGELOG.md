@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.1.6] - 2026-02-06
 ### Changed
 - Fix missing activity param import (#147)
 - Remove page.screen plugin (#150)
