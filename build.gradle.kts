@@ -28,6 +28,7 @@ kotlin {
 repositories {
     maven("https://packages.jetbrains.team/maven/p/kpm/public/")
     mavenCentral()
+    google()
 
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
@@ -39,10 +40,7 @@ repositories {
 dependencies {
     // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
-        create(
-            type = providers.gradleProperty("platformType"),
-            version = providers.gradleProperty("platformVersion")
-        )
+        intellijIdea(providers.gradleProperty("targetPlatformVersion"))
 
         // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
         bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
@@ -152,8 +150,8 @@ tasks {
             "Basic " + String(
                 Base64.getEncoder().encode(
                     "${
-                        providers.environmentVariable("PUBLISH_USER").get()
-                    }:${providers.environmentVariable("PUBLISH_PASSWORD").get()}".encodeToByteArray()
+                        providers.environmentVariable("PUBLISH_USER").getOrElse("")
+                    }:${providers.environmentVariable("PUBLISH_PASSWORD").getOrElse("")}".encodeToByteArray()
                 )
             )
         )
