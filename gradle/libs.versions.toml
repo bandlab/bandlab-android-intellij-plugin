@@ -6,7 +6,7 @@ truth = "1.4.5"
 
 # plugins
 changelog = "2.5.0"
-compose = "1.10.0"
+compose = "1.10.1"
 intellij-platform = "2.11.0"
 kotlin = "2.3.10"
 kover = "0.9.6"
