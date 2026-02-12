@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Update Activity template to support PSA
 
 ## [2.1.6] - 2026-02-06
 ### Changed
