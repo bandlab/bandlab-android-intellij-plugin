@@ -19,6 +19,7 @@ class ActivityTemplateCreateAction : CreateSimpleFileAction(
         )
         return arrayOf(
             directory.writeFile("${newName}Activity.kt", activityBuilder.createActivity()),
+            directory.writeFile("${newName}Page.kt", activityBuilder.createPage()),
             directory.writeFile("${newName}ViewModel.kt", activityBuilder.createViewModel()),
             // Known issue, if AndroidManifest exist already, the plugin cannot create a new instance, you'll see
             // the error and will need to add the declaration manually. I don't think we need to support this case,
