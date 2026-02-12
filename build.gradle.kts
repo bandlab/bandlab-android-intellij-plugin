@@ -1,6 +1,7 @@
 import dev.bmac.gradle.intellij.PluginUploader
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
+import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.SignPluginTask
 import java.util.*
@@ -118,7 +119,10 @@ intellijPlatform {
         freeArgs = listOf("-mute", "TemplateWordInPluginId,TemplateWordInPluginName")
 
         ides {
-            recommended()
+            select {
+                sinceBuild = providers.gradleProperty("pluginSinceBuild")
+                types = listOf(IntelliJPlatformType.IntellijIdea, IntelliJPlatformType.AndroidStudio)
+            }
         }
     }
 }

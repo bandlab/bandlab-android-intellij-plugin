@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Verify plugins on IJ and AS platform
 
 ## [2.1.7] - 2026-02-12
 ### Changed
