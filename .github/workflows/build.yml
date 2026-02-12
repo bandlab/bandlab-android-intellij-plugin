@@ -189,4 +189,4 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: pluginVerifier-failure
-          path: /home/runner/work/_temp/.gradle-actions/build-results/
+          path: ${{ github.workspace }}/build/reports/problems
