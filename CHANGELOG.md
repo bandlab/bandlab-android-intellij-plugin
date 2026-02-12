@@ -4,7 +4,7 @@
 
 ## Unreleased
 ### Changed
-- Update Activity template to support PSA
+- Update Activity template to support PFA
 
 ## [2.1.6] - 2026-02-06
 ### Changed
