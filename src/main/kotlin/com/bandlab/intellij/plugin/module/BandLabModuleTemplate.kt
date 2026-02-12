@@ -217,6 +217,13 @@ class BandLabModuleTemplate(
             activityTemplateBuilder.createActivity()
         ).addToPath(moduleInfo.filesPath)
 
+        // Create the Page template
+        psiFileFactory.createFileFromText(
+            "${name}Page.kt",
+            KotlinFileType.INSTANCE,
+            activityTemplateBuilder.createPage()
+        ).addToPath(moduleInfo.filesPath)
+
         // Create the ViewModel template
         psiFileFactory.createFileFromText(
             "${name}ViewModel.kt",
