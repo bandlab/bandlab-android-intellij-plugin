@@ -182,3 +182,11 @@ jobs:
         with:
           name: pluginVerifier-result
           path: ${{ github.workspace }}/build/reports/pluginVerifier
+
+      # Collect Build Result if verification failed
+      - name: Collect Verification Failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: pluginVerifier-failure
+          path: /home/runner/work/_temp/.gradle-actions/build-results/
