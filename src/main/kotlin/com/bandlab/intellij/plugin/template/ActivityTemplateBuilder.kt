@@ -45,9 +45,7 @@ class ActivityTemplateBuilder(
 
             override fun <T> resolve(): T = HasServiceProvider.resolveFrom(graph)
 
-            interface ServiceProvider {
-                
-            }
+            interface ServiceProvider
 
             companion object {
                 fun buildIntent(
