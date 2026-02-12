@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.1.7] - 2026-02-12
 ### Changed
 - Update Activity template to support PFA
 
