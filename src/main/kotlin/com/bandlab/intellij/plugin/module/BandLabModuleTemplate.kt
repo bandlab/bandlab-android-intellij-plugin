@@ -263,7 +263,12 @@ class BandLabModuleTemplate(
 
     private fun PsiFile.addToPath(path: String) {
         val moduleVirtualPath = project.requireVirtualFile(path, isAbsolute = false)
-        psiDirectorFactory.createDirectory(moduleVirtualPath).add(this)
+        val directory = psiDirectorFactory.createDirectory(moduleVirtualPath)
+        if (directory.findFile(this.name) == null) {
+            directory.add(this)
+        } else {
+            println("File ${this.name} already exists in $path, skipping...")
+        }
     }
 
     private sealed interface ModuleListSpecification {
