@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Fix a crash when attempting to write a file that exists
 
 ## [2.1.7] - 2026-02-12
 ### Changed
