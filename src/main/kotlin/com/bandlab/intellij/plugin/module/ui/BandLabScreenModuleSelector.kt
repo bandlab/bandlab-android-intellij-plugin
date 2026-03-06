@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.bandlab.intellij.plugin.module.BandLabModuleConfig
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.jewel.ui.component.RadioButtonRow
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.component.TextField
@@ -50,4 +51,15 @@ internal fun BandLabScreenModuleSelector(
             }
         }
     }
+}
+
+@Preview
+@Composable
+private fun PreviewBandLabScreenModuleSelector() {
+    BandLabScreenModuleSelector(
+        state = BandLabModuleConfig.Screen(),
+        onGenerateActivityClick = {},
+        onGeneratePageClick = {},
+        featureName = TextFieldState()
+    )
 }

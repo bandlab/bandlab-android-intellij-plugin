@@ -32,6 +32,7 @@ class BandLabModuleWizardStep(
     private val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
 
     override fun getComponent(): JComponent {
+        @Suppress("UnstableApiUsage")
         @OptIn(ExperimentalJewelApi::class)
         enableNewSwingCompositing()
 

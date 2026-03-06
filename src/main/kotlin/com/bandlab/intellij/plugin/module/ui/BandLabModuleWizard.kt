@@ -18,7 +18,9 @@ import androidx.compose.ui.unit.sp
 import com.bandlab.intellij.plugin.module.*
 import com.bandlab.intellij.plugin.module.ModuleValidationError.Companion.errorMessageOrNull
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.jetbrains.jewel.ui.Outline
 import org.jetbrains.jewel.ui.component.Icon
 import org.jetbrains.jewel.ui.component.Text
@@ -149,3 +151,26 @@ internal fun BandLabModuleWizard(state: WizardState) {
 
 private const val MODULE_STRUCTURE_CONVENTION_URL =
     "https://bandlab.atlassian.net/wiki/spaces/Android/pages/3319365634/Module+structure+convention"
+
+@Preview
+@Composable
+private fun BandLabModuleWizard_Preview() {
+    BandLabModuleWizard(
+        state = WizardState(
+            moduleRoot = TextFieldState(":example:module"),
+            apiConfig = MutableStateFlow(BandLabModuleConfig.Api(isSelected = true)),
+            implConfig = MutableStateFlow(BandLabModuleConfig.Impl(isSelected = true)),
+            uiConfig = MutableStateFlow(BandLabModuleConfig.Ui(isSelected = true)),
+            screenConfig = MutableStateFlow(BandLabModuleConfig.Screen(isSelected = true)),
+            onConfigClick = {},
+            onModuleTypeClick = { _, _ -> },
+            onPluginClick = { _, _ -> },
+            onExposureClick = { _, _ -> },
+            onGenerateActivityClick = {},
+            onGeneratePageClick = {},
+            featureName = TextFieldState("ExampleFeature"),
+            existingModuleNames = MutableStateFlow(emptySet()),
+            validationErrors = MutableStateFlow(emptySet())
+        )
+    )
+}

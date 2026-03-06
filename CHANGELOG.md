@@ -5,6 +5,7 @@
 ## Unreleased
 ### Changed
 - Fix a crash when attempting to write a file that exists
+- Target IntelliJ Idea 2025.3
 
 ## [2.1.7] - 2026-02-12
 ### Changed

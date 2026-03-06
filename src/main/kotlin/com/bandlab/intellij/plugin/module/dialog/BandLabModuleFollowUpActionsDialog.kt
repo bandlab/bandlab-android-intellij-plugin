@@ -34,6 +34,7 @@ internal class BandLabModuleFollowUpActionsDialog(
     }
 
     override fun createCenterPanel(): JComponent {
+        @Suppress("UnstableApiUsage")
         @OptIn(ExperimentalJewelApi::class)
         enableNewSwingCompositing()
 
