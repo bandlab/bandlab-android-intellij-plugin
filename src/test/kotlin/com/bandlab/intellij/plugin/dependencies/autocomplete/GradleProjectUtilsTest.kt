@@ -109,7 +109,7 @@ class GradleProjectUtilsTest {
     @Test
     fun `getGradleProjectPath returns root path when base path matches directory`() {
         val rootDir = MockVirtualFile(true, "rootDir")
-        val project = MockProject(null, Disposer.newDisposable()).apply { baseDir = rootDir }
+        val project = createProject(rootDir)
 
         val directory = MockVirtualFile(true, "rootDir")
 
@@ -119,7 +119,7 @@ class GradleProjectUtilsTest {
     @Test
     fun `getGradleProjectPath returns correct path for nested directory`() {
         val rootDir = MockVirtualFile(true, "rootDir")
-        val project = MockProject(null, Disposer.newDisposable()).apply { baseDir = rootDir }
+        val project = createProject(rootDir)
 
         val nestedDir = MockVirtualFile(true, "nested")
         val projectDir = MockVirtualFile(true, "project")
@@ -133,7 +133,7 @@ class GradleProjectUtilsTest {
     @Test
     fun `getGradleProjectPath returns null for directory outside project base path`() {
         val rootDir = MockVirtualFile(true, "rootDir")
-        val project = MockProject(null, Disposer.newDisposable()).apply { baseDir = rootDir }
+        val project = createProject(rootDir)
 
         val externalDirectory = MockVirtualFile(true, "externalDirectory")
 
@@ -143,7 +143,7 @@ class GradleProjectUtilsTest {
     @Test
     fun `getGradleProjectAccessorPath returns camelCase accessor for hyphenated module`() {
         val rootDir = MockVirtualFile(true, "rootDir")
-        val project = MockProject(null, Disposer.newDisposable()).apply { baseDir = rootDir }
+        val project = createProject(rootDir)
 
         // create a sample mock gradle project: libraries/sample-result/test
         val librariesDir = MockVirtualFile(true, "libraries")
@@ -158,5 +158,12 @@ class GradleProjectUtilsTest {
         val result = GradleProjectUtils.getGradleProjectAccessorPath(project, testDir)
 
         assertThat(result).isEqualTo("projects.libraries.sampleResult.test")
+    }
+
+    @Suppress("UnstableApiUsage")
+    private fun createProject(baseDir: MockVirtualFile): MockProject {
+        return object : MockProject(null, Disposer.newDisposable()) {
+            override fun getBasePath(): String = baseDir.path
+        }
     }
 }
