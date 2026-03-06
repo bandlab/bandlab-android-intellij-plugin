@@ -1,10 +1,10 @@
 package com.bandlab.intellij.plugin.test.fixtures
 
 import com.bandlab.intellij.plugin.BandLabIcons
-import com.bandlab.intellij.plugin.dependencies.sort.SortDependenciesAction
 import com.bandlab.intellij.plugin.module.ModuleInfo
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
+import com.bandlab.intellij.plugin.utils.GradleProjectUtils.sortDependencies
 import com.bandlab.intellij.plugin.utils.editFile
 import com.bandlab.intellij.plugin.utils.isBuildScriptFile
 import com.bandlab.intellij.plugin.utils.psiFileOrNull
@@ -43,8 +43,7 @@ class ApplyTestFixturesPluginAction : DumbAwareAction(
             /* runnable = */ {
                 project.addTestFixturesPlugin(buildGradle.path)
                 project.createTestFixturesFolder(buildGradle)
-                // Make dependencies sorting a side effect of this action
-                SortDependenciesAction().actionPerformed(e)
+                project.sortDependencies(buildGradle.path)
             }
         )
     }

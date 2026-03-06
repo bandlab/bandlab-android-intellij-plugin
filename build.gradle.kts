@@ -52,6 +52,13 @@ dependencies {
 
         @Suppress("UnstableApiUsage")
         composeUI()
+
+        // Bundled modules for Jewel/Compose support
+        bundledModule("intellij.platform.jewel.foundation")
+        bundledModule("intellij.platform.jewel.ui")
+        bundledModule("intellij.platform.jewel.ideLafBridge")
+        bundledModule("intellij.libraries.compose.foundation.desktop")
+        bundledModule("intellij.libraries.skiko")
     }
 
     testImplementation(libs.junit)
@@ -111,9 +118,14 @@ intellijPlatform {
     }
 
     pluginVerification {
+        ignoredProblemsFile = file("ignored-problems.txt")
+
         // Our plugin id is "com.bandlab.intellij.plugin", lately jetbrains added a check that
         // plugin id and name don't contain the word intellij and treats it as error.
-        freeArgs = listOf("-mute", "TemplateWordInPluginId,TemplateWordInPluginName")
+        freeArgs = listOf(
+            "-mute",
+            "TemplateWordInPluginId,TemplateWordInPluginName,ExperimentalApiUsage"
+        )
 
         ides {
             recommended()
