@@ -19,7 +19,7 @@ class BuildScriptUtilsTest {
 
         val project = createProject(projectDir.absolutePath)
 
-        assertThat(project.isAndroidModule()).isTrue()
+        assertThat(project.isAndroidModule(projectDir.absolutePath)).isTrue()
     }
 
     @Test
@@ -30,7 +30,7 @@ class BuildScriptUtilsTest {
 
         val project = createProject(projectDir.absolutePath)
 
-        assertThat(project.isAndroidModule()).isTrue()
+        assertThat(project.isAndroidModule(projectDir.absolutePath)).isTrue()
     }
 
     @Test
@@ -39,7 +39,7 @@ class BuildScriptUtilsTest {
 
         val project = createProject(projectDir.absolutePath)
 
-        assertThat(project.isAndroidModule()).isFalse()
+        assertThat(project.isAndroidModule(projectDir.absolutePath)).isFalse()
     }
 
     @Test
@@ -49,7 +49,7 @@ class BuildScriptUtilsTest {
 
         val project = createProject(projectDir.absolutePath)
 
-        assertThat(project.isAndroidModule()).isFalse()
+        assertThat(project.isAndroidModule(projectDir.absolutePath)).isFalse()
     }
 
     @Suppress("UnstableApiUsage")

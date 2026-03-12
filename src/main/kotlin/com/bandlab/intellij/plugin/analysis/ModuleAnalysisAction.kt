@@ -29,14 +29,16 @@ class ModuleAnalysisAction : DumbAwareAction(
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
+        val selectedFolder = e.getData(CommonDataKeys.VIRTUAL_FILE)
         val module = e.getData(LangDataKeys.MODULE) ?: return
         val contentRoot = ModuleRootManager.getInstance(module).contentRoots.firstOrNull() ?: return
-        val gradlePath = GradleProjectUtils.getGradleProjectPath(project, contentRoot) ?: return
+        val gradleProjectFolder = selectedFolder?.takeIf(GradleProjectUtils::isGradleProject) ?: contentRoot
+        val gradlePath = GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) ?: return
         val basePath = project.basePath ?: return
 
         val terminalView = TerminalToolWindowManager.getInstance(project)
         val widget = terminalView.createShellWidget(basePath, "Module Analyzer", true, false)
-        if (project.isAndroidModule()) {
+        if (project.isAndroidModule(gradleProjectFolder.path)) {
             widget.sendCommandToExecute("./gradlew $gradlePath:analyzeModule")
         } else {
             widget.sendCommandToExecute("./gradlew $gradlePath:projectHealth")

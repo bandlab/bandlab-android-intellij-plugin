@@ -22,12 +22,6 @@ internal fun Project.buildScriptName(): String {
     return if (isUsingKts()) BUILD_GRADLE_KTS else BUILD_GRADLE
 }
 
-internal fun Project.isAndroidModule(): Boolean {
-    val buildScript = File(basePath, buildScriptName())
-    if (!buildScript.exists()) return false
-    return buildScript.readText().contains(ANDROID_LIBRARY_PLUGIN_ID)
-}
-
 internal fun isBuildScriptFile(fileName: String?): Boolean {
     if (fileName == null) return false
     return fileName == BUILD_GRADLE || fileName == BUILD_GRADLE_KTS
@@ -36,4 +30,23 @@ internal fun isBuildScriptFile(fileName: String?): Boolean {
 internal fun Project.hasAllProjectsFile(): Boolean {
     val basePath = basePath ?: return false
     return VirtualFileManager.getInstance().findFileByUrl("file://$basePath$ALL_PROJECTS_PATH") != null
+}
+
+/**
+ * @returns `true` if the project is an Android module, `false` otherwise.
+ * This is determined by checking if the build script contains the Android library plugin id.
+ */
+internal fun Project.isAndroidModule(projectFolderPath: String): Boolean {
+    val projectFolder = resolveProjectFolder(projectFolderPath)
+    val buildScript = File(projectFolder, buildScriptName())
+    if (!buildScript.exists()) return false
+    return buildScript.readText().contains(ANDROID_LIBRARY_PLUGIN_ID)
+}
+
+private fun Project.resolveProjectFolder(projectFolderPath: String): File {
+    val requestedFolder = File(projectFolderPath)
+    if (requestedFolder.isAbsolute) return requestedFolder
+
+    val basePath = basePath ?: return requestedFolder
+    return File(basePath, projectFolderPath)
 }
