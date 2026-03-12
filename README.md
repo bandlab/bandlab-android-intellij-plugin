@@ -27,6 +27,16 @@ Create Robot, Semantics and Verifier templates to align with our automation test
 
 ![Automation Template](https://i.imgur.com/upwfk3R.png)
 
+## Module Analyzer
+![module analyzer](https://i.imgur.com/kuYqEDV.png)
+
+Available upon right-clicking on a module. The action executes tasks from [DAGP](https://github.com/autonomousapps/dependency-analysis-gradle-plugin), 
+and our internal plugin to score an Android module for how likely it can be converted to a JVM module.
+
+The action starts a terminal window, and execute the following tasks based on the module type:
+- Android module: `./gradlew :module:analyzeModule`
+- Non-android module: `./gradlew module:projectHealth`
+
 ## Actions for build.gradle files
 
 ### Auto Complete project path
