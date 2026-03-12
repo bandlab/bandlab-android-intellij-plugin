@@ -10,11 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import com.bandlab.intellij.plugin.utils.ComposePanelWithSwingBridgeTheme
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
-import org.jetbrains.jewel.bridge.JewelComposePanel
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import org.jetbrains.jewel.foundation.theme.JewelTheme
 import org.jetbrains.jewel.ui.component.Text
 import org.jetbrains.jewel.ui.theme.linkStyle
@@ -34,11 +32,7 @@ internal class BandLabModuleFollowUpActionsDialog(
     }
 
     override fun createCenterPanel(): JComponent {
-        @Suppress("UnstableApiUsage")
-        @OptIn(ExperimentalJewelApi::class)
-        enableNewSwingCompositing()
-
-        return JewelComposePanel {
+        return ComposePanelWithSwingBridgeTheme {
             Column(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
