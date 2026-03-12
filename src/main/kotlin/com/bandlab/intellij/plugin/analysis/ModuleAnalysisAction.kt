@@ -3,13 +3,17 @@ package com.bandlab.intellij.plugin.analysis
 import com.bandlab.intellij.plugin.BandLabIcons
 import com.bandlab.intellij.plugin.utils.GradleProjectUtils
 import com.bandlab.intellij.plugin.utils.isAndroidModule
+import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.LangDataKeys
+import com.intellij.openapi.externalSystem.model.ProjectSystemId
+import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings
+import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
+import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.roots.ModuleRootManager
-import org.jetbrains.plugins.terminal.TerminalToolWindowManager
 
 class ModuleAnalysisAction : DumbAwareAction(
     /* text = */ "Analyze Module",
@@ -34,14 +38,27 @@ class ModuleAnalysisAction : DumbAwareAction(
         val contentRoot = ModuleRootManager.getInstance(module).contentRoots.firstOrNull() ?: return
         val gradleProjectFolder = selectedFolder?.takeIf(GradleProjectUtils::isGradleProject) ?: contentRoot
         val gradlePath = GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) ?: return
-        val basePath = project.basePath ?: return
 
-        val terminalView = TerminalToolWindowManager.getInstance(project)
-        val widget = terminalView.createShellWidget(basePath, "Module Analyzer", true, false)
-        if (project.isAndroidModule(gradleProjectFolder.path)) {
-            widget.sendCommandToExecute("./gradlew $gradlePath:analyzeModule")
-        } else {
-            widget.sendCommandToExecute("./gradlew $gradlePath:projectHealth")
+        val systemId = ProjectSystemId("GRADLE")
+        val settings = ExternalSystemTaskExecutionSettings().apply {
+            executionName = "Module Analysis ($gradlePath)"
+            externalSystemIdString = systemId.id
+            externalProjectPath = project.basePath
+            taskNames = if (project.isAndroidModule(gradleProjectFolder.path)) {
+                listOf("$gradlePath:analyzeModule")
+            } else {
+                listOf("$gradlePath:projectHealth")
+            }
         }
+
+        ExternalSystemUtil.runTask(
+            /* taskSettings = */ settings,
+            /* executorId = */ DefaultRunExecutor.EXECUTOR_ID,
+            /* project = */ project,
+            /* externalSystemId = */ systemId,
+            /* callback = */ null,
+            /* progressExecutionMode = */ ProgressExecutionMode.IN_BACKGROUND_ASYNC,
+            /* activateToolWindowBeforeRun = */ true
+        )
     }
 }
