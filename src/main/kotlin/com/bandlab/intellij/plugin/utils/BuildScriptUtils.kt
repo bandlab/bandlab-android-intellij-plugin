@@ -3,10 +3,11 @@ package com.bandlab.intellij.plugin.utils
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFileManager
-import org.jetbrains.kotlin.konan.file.File
+import java.io.File
 
 private const val BUILD_GRADLE = "build.gradle"
 private const val BUILD_GRADLE_KTS = "build.gradle.kts"
+private const val ANDROID_LIBRARY_PLUGIN_ID = "bandlab.plugins.library.android"
 
 /**
  * @returns `true` if the project is using Kotlin DSL. Default to 'false'
@@ -14,7 +15,7 @@ private const val BUILD_GRADLE_KTS = "build.gradle.kts"
  */
 internal fun Project.isUsingKts(): Boolean {
     val basePath = basePath ?: return false
-    return File(basePath, "settings.gradle.kts").exists
+    return File(basePath, "settings.gradle.kts").exists()
 }
 
 internal fun Project.buildScriptName(): String {
@@ -29,4 +30,23 @@ internal fun isBuildScriptFile(fileName: String?): Boolean {
 internal fun Project.hasAllProjectsFile(): Boolean {
     val basePath = basePath ?: return false
     return VirtualFileManager.getInstance().findFileByUrl("file://$basePath$ALL_PROJECTS_PATH") != null
+}
+
+/**
+ * @returns `true` if the project is an Android module, `false` otherwise.
+ * This is determined by checking if the build script contains the Android library plugin id.
+ */
+internal fun Project.isAndroidModule(projectFolderPath: String): Boolean {
+    val projectFolder = resolveProjectFolder(projectFolderPath)
+    val buildScript = File(projectFolder, buildScriptName())
+    if (!buildScript.exists()) return false
+    return buildScript.readText().contains(ANDROID_LIBRARY_PLUGIN_ID)
+}
+
+private fun Project.resolveProjectFolder(projectFolderPath: String): File {
+    val requestedFolder = File(projectFolderPath)
+    if (requestedFolder.isAbsolute) return requestedFolder
+
+    val basePath = basePath ?: return requestedFolder
+    return File(basePath, projectFolderPath)
 }

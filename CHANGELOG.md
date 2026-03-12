@@ -3,6 +3,9 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Added
+- Implement a Module Analyzer action
+
 ### Changed
 - Fix a crash when attempting to write a file that exists
 - Target IntelliJ Idea 2025.3
