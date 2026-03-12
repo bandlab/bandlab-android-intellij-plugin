@@ -90,13 +90,19 @@ internal fun BandLabModuleConfigSelector(
                 val typeSelection = state.typeSelection
                 if (typeSelection is ModuleTypeSelection.RequireSelection) {
                     SettingsGroup("Module Type") {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             BandLabModuleType.entries.forEach { type ->
                                 RadioButtonRow(
                                     text = type.name,
                                     selected = type == typeSelection.type,
                                     onClick = { onModuleTypeClick(state, type) }
                                 )
+                            }
+                            if (typeSelection.type == null) {
+                                ErrorText("Module type is required")
                             }
                         }
                     }
