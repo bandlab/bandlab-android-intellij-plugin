@@ -6,6 +6,7 @@
 ### Changed
 - Fix a crash when attempting to write a file that exists
 - Target IntelliJ Idea 2025.3
+- Add an error hint when the module type isn't selected
 
 ## [2.1.7] - 2026-02-12
 ### Changed
