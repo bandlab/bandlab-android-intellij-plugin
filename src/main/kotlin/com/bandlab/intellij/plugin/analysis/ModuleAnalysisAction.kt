@@ -39,9 +39,10 @@ class ModuleAnalysisAction : DumbAwareAction(
         val gradleProjectFolder = selectedFolder?.takeIf(GradleProjectUtils::isGradleProject) ?: contentRoot
         val gradlePath = GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) ?: return
 
+        val systemId = ProjectSystemId("GRADLE")
         val settings = ExternalSystemTaskExecutionSettings().apply {
             executionName = "Module Analysis ($gradlePath)"
-            externalSystemIdString = "GRADLE"
+            externalSystemIdString = systemId.id
             externalProjectPath = project.basePath
             taskNames = if (project.isAndroidModule(gradleProjectFolder.path)) {
                 listOf("$gradlePath:analyzeModule")
@@ -54,7 +55,7 @@ class ModuleAnalysisAction : DumbAwareAction(
             /* taskSettings = */ settings,
             /* executorId = */ DefaultRunExecutor.EXECUTOR_ID,
             /* project = */ project,
-            /* externalSystemId = */ ProjectSystemId.findById("GRADLE") ?: ProjectSystemId.IDE,
+            /* externalSystemId = */ systemId,
             /* callback = */ null,
             /* progressExecutionMode = */ ProgressExecutionMode.IN_BACKGROUND_ASYNC,
             /* activateToolWindowBeforeRun = */ true
