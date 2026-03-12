@@ -83,5 +83,10 @@
                           relative-to-action="SortDependenciesAction"/>
             <add-to-group group-id="EditorPopupMenu1" anchor="after" relative-to-action="SortDependenciesAction"/>
         </action>
+
+        <action id="ModuleAnalysisAction"
+                class="com.bandlab.intellij.plugin.analysis.ModuleAnalysisAction" text="Analyze Module">
+            <add-to-group group-id="ProjectViewPopupMenuModifyGroup"/>
+        </action>
     </actions>
 </idea-plugin>
