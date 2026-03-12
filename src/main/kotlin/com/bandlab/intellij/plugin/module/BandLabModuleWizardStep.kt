@@ -7,15 +7,13 @@ import com.android.tools.idea.wizard.model.WizardModel
 import com.bandlab.intellij.plugin.module.dialog.BandLabModuleFollowUpActionsDialog
 import com.bandlab.intellij.plugin.module.dialog.BandLabModuleFollowUpActionsViewModel
 import com.bandlab.intellij.plugin.module.ui.BandLabModuleWizard
+import com.bandlab.intellij.plugin.utils.ComposePanelWithSwingBridgeTheme
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import org.jetbrains.jewel.bridge.JewelComposePanel
-import org.jetbrains.jewel.foundation.ExperimentalJewelApi
-import org.jetbrains.jewel.foundation.enableNewSwingCompositing
 import javax.swing.JComponent
 
 class EmptyModel : WizardModel() {
@@ -32,11 +30,7 @@ class BandLabModuleWizardStep(
     private val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
 
     override fun getComponent(): JComponent {
-        @Suppress("UnstableApiUsage")
-        @OptIn(ExperimentalJewelApi::class)
-        enableNewSwingCompositing()
-
-        return JewelComposePanel {
+        return ComposePanelWithSwingBridgeTheme {
             BandLabModuleWizard(viewModel.state)
         }
     }
