@@ -86,7 +86,8 @@
 
         <action id="ModuleAnalysisAction"
                 class="com.bandlab.intellij.plugin.analysis.ModuleAnalysisAction" text="Analyze Module">
-            <add-to-group group-id="ProjectViewPopupMenuModifyGroup"/>
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="before"
+                          relative-to-action="AnalyzeMenu"/>
         </action>
     </actions>
 </idea-plugin>
