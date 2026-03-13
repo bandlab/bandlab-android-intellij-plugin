@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.2.0] - 2026-03-13
 ### Added
 - Implement a Module Analyzer action
 
