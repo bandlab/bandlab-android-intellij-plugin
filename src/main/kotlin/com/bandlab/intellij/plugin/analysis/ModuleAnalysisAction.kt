@@ -44,7 +44,11 @@ class ModuleAnalysisAction : DumbAwareAction(
             executionName = "Module Analysis ($gradlePath)"
             externalSystemIdString = systemId.id
             externalProjectPath = project.basePath
-            taskNames = if (project.isAndroidModule(gradleProjectFolder.path)) {
+            taskNames = if (project.isAndroidModule(gradleProjectFolder.path) &&
+                // :ui and :screen must be Android modules, so we skip JVM conversion scoring for them.
+                !gradlePath.endsWith(":ui") &&
+                !gradlePath.endsWith(":screen")
+            ) {
                 listOf("$gradlePath:analyzeModule")
             } else {
                 listOf("$gradlePath:projectHealth")
