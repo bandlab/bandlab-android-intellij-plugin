@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
+import kotlin.coroutines.CoroutineContext
 
 class EmptyModel : WizardModel() {
     override fun handleFinished() = Unit
@@ -26,10 +27,16 @@ class BandLabModuleWizardStep(
     moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
     private val wizardScope: CoroutineScope = CoroutineScope(Dispatchers.Main),
+    private val ioDispatcher: CoroutineContext = Dispatchers.IO
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
     @VisibleForTesting
-    internal val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
+    internal val viewModel = BandLabModuleWizardViewModel(
+        wizardScope = wizardScope,
+        ioDispatcher = ioDispatcher,
+        project = project,
+        moduleParent = moduleParent
+    )
 
     override fun getComponent(): JComponent {
         return ComposePanelWithSwingBridgeTheme {

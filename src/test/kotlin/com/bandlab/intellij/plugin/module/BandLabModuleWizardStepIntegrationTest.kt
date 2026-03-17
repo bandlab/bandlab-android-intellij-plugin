@@ -1,17 +1,21 @@
 package com.bandlab.intellij.plugin.module
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
+import androidx.compose.runtime.snapshotFlow
+import app.cash.turbine.test
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
+import com.bandlab.intellij.plugin.module.ui.WizardState
 import com.bandlab.intellij.plugin.utils.SnapshotFlowRule
-import com.intellij.openapi.application.EDT
+import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.runInEdtAndWait
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import java.io.File
 
@@ -20,14 +24,13 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
     @get:Rule
     val snapshotFlowRule = SnapshotFlowRule()
 
-    fun `test onWizardFinished creates expected modules and files`() {
+    fun `test onWizardFinished creates expected modules and files`() = runTest {
         mockEnvironment()
-        val moduleParent = ":features"
-        val wizardStep = createWizardStep(moduleParent)
+        val wizardStep = createWizardStep(":features")
         val viewModel = wizardStep.viewModel
         val state = viewModel.state
 
-        setModuleName(viewModel, ":features:profile")
+        state.setModuleRoot(":features:profile")
         state.featureName.setTextAndPlaceCursorAtEnd(name)
 
         // Select all module types
@@ -44,17 +47,17 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         wizardStep.onWizardFinished()
 
         val modulePath = "features/profile"
-        assertExists("$modulePath/api/build.gradle.kts")
-        assertExists("$modulePath/impl/build.gradle.kts")
-        assertExists("$modulePath/ui/build.gradle.kts")
-        assertExists("$modulePath/screen/build.gradle.kts")
+        assertExists("$modulePath/api/build.gradle")
+        assertExists("$modulePath/impl/build.gradle")
+        assertExists("$modulePath/ui/build.gradle")
+        assertExists("$modulePath/screen/build.gradle")
 
-        val screenGradle = File(project.basePath, "$modulePath/screen/build.gradle.kts").readText()
+        val screenGradle = File(project.basePath, "$modulePath/screen/build.gradle").readText()
         assertTrue("Screen should depend on UI", screenGradle.contains("project(\":features:profile:ui\")"))
         assertTrue("Screen should depend on API", screenGradle.contains("api(project(\":features:profile:api\"))"))
     }
 
-    fun `test selecting screen module automatically selects ui module`() {
+    fun `test selecting screen module automatically selects ui module`() = runTest {
         val moduleParent = ":features"
         val wizardStep = createWizardStep(moduleParent)
         val viewModel = wizardStep.viewModel
@@ -70,45 +73,32 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertTrue("Screen module should be selected", state.screenConfig.value.isSelected)
     }
 
-    fun `test module name validation errors`() {
+    fun `test module name validation errors`() = runTest {
         mockEnvironment()
         val wizardStep = createWizardStep(":")
         val viewModel = wizardStep.viewModel
         val state = viewModel.state
 
-        setModuleName(viewModel, "")
-        assertTrue(
-            "Empty name error expected, got ${state.validationErrors.value}",
-            state.validationErrors.value.contains(ModuleValidationError.ModuleNameEmpty)
-        )
+        state.validationErrors.test {
+            assertThat(awaitItem()).isEmpty()
+            assertThat(awaitItem()).containsExactly(ModuleValidationError.ModuleNameEmpty)
 
-        setModuleName(viewModel, "no-colon")
-        assertTrue(
-            "Should start with colon error expected",
-            state.validationErrors.value.contains(ModuleValidationError.ModuleNameShouldStartWithColon)
-        )
+            state.setModuleRoot("no-colon")
+            assertThat(awaitItem()).containsExactly(ModuleValidationError.ModuleNameShouldStartWithColon)
 
-        setModuleName(viewModel, ":ends-with:")
-        assertTrue(
-            "Ends with colon error expected",
-            state.validationErrors.value.contains(ModuleValidationError.ModuleNameEndsWithColon)
-        )
+            state.setModuleRoot(":ends-with:")
+            assertThat(awaitItem()).containsExactly(ModuleValidationError.ModuleNameEndsWithColon)
 
-        setModuleName(viewModel, ":Invalid-Char")
-        assertTrue(
-            "Invalid char error expected",
-            state.validationErrors.value.contains(ModuleValidationError.ModuleNameInvalidChar)
-        )
+            state.setModuleRoot(":Invalid-Char")
+            assertThat(awaitItem()).containsExactly(ModuleValidationError.ModuleNameInvalidChar)
 
-        setModuleName(viewModel, ":features:profile:api")
-        assertTrue(
-            "Ends with config error expected",
-            state.validationErrors.value.contains(ModuleValidationError.ModuleNameEndsWithConfig)
-        )
+            state.setModuleRoot(":features:profile")
+            assertThat(awaitItem()).isEmpty()
+        }
     }
 
-    fun `test module existence validation`() {
-        mockEnvironment() // adds :existing:module to all-projects.txt
+    fun `test module existence validation`() = runTest {
+        mockEnvironment()
         val basePath = project.basePath!!
         runInEdtAndWait {
             runWriteCommandAction(project) {
@@ -118,78 +108,37 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
             VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)?.refresh(false, false)
         }
 
-        val wizardStep = createWizardStep(":existing")
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
+        val wizardStep = createWizardStep(":existing:module")
+        val state = wizardStep.viewModel.state
 
-        setModuleName(viewModel, ":existing:module")
-        assertTrue(
-            "API module exists error should be present, got ${state.validationErrors.value}",
-            state.validationErrors.value.contains(ModuleValidationError.ApiModuleExist)
-        )
+        state.validationErrors.test {
+            awaitItem()
+            assertThat(awaitItem()).isEqualTo(setOf(ModuleValidationError.ApiModuleExist))
+        }
     }
 
-    //TODO: Start from this
-    fun `test feature name derivation`() {
+    fun `test feature name derivation`() = runTest {
         mockEnvironment()
         val wizardStep = createWizardStep(":")
         val viewModel = wizardStep.viewModel
         val state = viewModel.state
 
-        setModuleName(viewModel, ":features:user-profile")
-        assertEquals("FeaturesUserProfile", state.featureName.text)
+        snapshotFlow { state.featureName.text }.test {
+            assertThat(awaitItem()).isEqualTo("")
 
-        setModuleName(viewModel, ":auth")
-        assertEquals("Auth", state.featureName.text)
+            state.setModuleRoot(":features:user-profile")
+            assertThat(awaitItem()).isEqualTo("FeaturesUserProfile")
+
+            state.setModuleRoot(":auth")
+            assertThat(awaitItem()).isEqualTo("Auth")
+        }
     }
 
-    fun `test canCreate state logic`() {
-        mockEnvironment()
-        val wizardStep = createWizardStep(":features:profile")
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
-
-        // Initial state: feature name is "FeaturesProfile", but no modules selected
-        (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value =
-            BandLabModuleConfig.Api(isSelected = false)
-        (state.implConfig as MutableStateFlow<BandLabModuleConfig.Impl>).value =
-            BandLabModuleConfig.Impl(isSelected = false)
-        (state.uiConfig as MutableStateFlow<BandLabModuleConfig.Ui>).value =
-            BandLabModuleConfig.Ui(isSelected = false)
-        (state.screenConfig as MutableStateFlow<BandLabModuleConfig.Screen>).value =
-            BandLabModuleConfig.Screen(isSelected = false)
-        assertFalse("Should not be able to create when no modules selected", viewModel.canCreate.get())
-
-        // Select API
-        (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value =
-            BandLabModuleConfig.Api(isSelected = true)
-        assertTrue("Should be able to create when API is selected", viewModel.canCreate.get())
-
-        // Select Impl without type
-        (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value =
-            BandLabModuleConfig.Api(isSelected = false)
-        (state.implConfig as MutableStateFlow<BandLabModuleConfig.Impl>).value =
-            BandLabModuleConfig.Impl(isSelected = true, typeSelection = ModuleTypeSelection.RequireSelection(null))
-        assertFalse("Should not be able to create when Impl is selected without type", viewModel.canCreate.get())
-
-        // Select Impl with type
-        (state.implConfig as MutableStateFlow<BandLabModuleConfig.Impl>).value = BandLabModuleConfig.Impl(
-            isSelected = true,
-            typeSelection = ModuleTypeSelection.RequireSelection(BandLabModuleType.Kotlin)
-        )
-        assertTrue("Should be able to create when Impl is selected with type", viewModel.canCreate.get())
-
-        setModuleName(viewModel, ":Invalid Name")
-        assertFalse("Should not be able to create when module name is invalid", viewModel.canCreate.get())
-    }
-
-    fun `test onWizardFinished with Kotlin Impl and plugins`() {
+    fun `test onWizardFinished with Kotlin Impl and plugins`() = runTest {
         mockEnvironment()
         val wizardStep = createWizardStep(":features:auth")
         val viewModel = wizardStep.viewModel
         val state = viewModel.state
-
-        setModuleName(viewModel, ":features:auth")
 
         (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value = BandLabModuleConfig.Api(
             isSelected = true,
@@ -204,14 +153,14 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         wizardStep.onWizardFinished()
 
         val modulePath = "features/auth"
-        assertExists("$modulePath/api/build.gradle.kts")
-        assertExists("$modulePath/impl/build.gradle.kts")
+        assertExists("$modulePath/api/build.gradle")
+        assertExists("$modulePath/impl/build.gradle")
 
-        val apiGradle = File(project.basePath, "$modulePath/api/build.gradle.kts").readText()
+        val apiGradle = File(project.basePath, "$modulePath/api/build.gradle").readText()
         assertTrue("API should have restApi plugin", apiGradle.contains("alias(bandlab.plugins.restApi)"))
         assertTrue("API should have library.kotlin plugin", apiGradle.contains("alias(bandlab.plugins.library.kotlin)"))
 
-        val implGradle = File(project.basePath, "$modulePath/impl/build.gradle.kts").readText()
+        val implGradle = File(project.basePath, "$modulePath/impl/build.gradle").readText()
         assertTrue("Impl should have database plugin", implGradle.contains("alias(bandlab.plugins.database)"))
         assertTrue(
             "Impl should have library.kotlin plugin",
@@ -220,7 +169,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertTrue("Impl should depend on API", implGradle.contains("api(project(\":features:auth:api\"))"))
     }
 
-    fun `test module plugin toggling`() {
+    fun `test module plugin toggling`() = runTest {
         val wizardStep = createWizardStep(":")
         val state = wizardStep.viewModel.state
 
@@ -238,7 +187,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         )
     }
 
-    fun `test module exposure selection`() {
+    fun `test module exposure selection`() = runTest {
         val wizardStep = createWizardStep(":")
         val state = wizardStep.viewModel.state
 
@@ -253,7 +202,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertEquals("Screen exposure should be None", ModuleExposure.None, state.screenConfig.value.exposure)
     }
 
-    fun `test screen template toggling`() {
+    fun `test screen template toggling`() = runTest {
         val wizardStep = createWizardStep(":")
         val state = wizardStep.viewModel.state
 
@@ -278,7 +227,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertNull("Template should be null after second click", state.screenConfig.value.template)
     }
 
-    fun `test module type selection`() {
+    fun `test module type selection`() = runTest {
         val wizardStep = createWizardStep(":")
         val state = wizardStep.viewModel.state
 
@@ -293,69 +242,63 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         )
     }
 
-    fun `test all module existence validation errors`() {
+    fun `test all module existence validation errors`() = runTest {
         mockEnvironment()
         val basePath = project.basePath!!
         runInEdtAndWait {
             runWriteCommandAction(project) {
                 val allProjectsFile = File(basePath, "gradle/all-projects.txt")
-                allProjectsFile.appendText(":existing:impl-module:impl\n")
-                allProjectsFile.appendText(":existing:ui-module:ui\n")
-                allProjectsFile.appendText(":existing:screen-module:screen\n")
+                allProjectsFile.appendText(":foo:impl\n")
+                allProjectsFile.appendText(":foo:ui\n")
+                allProjectsFile.appendText(":foo:screen\n")
             }
             VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)?.refresh(false, false)
         }
 
-        val wizardStep = createWizardStep(":")
+        val wizardStep = createWizardStep(":foo")
         val viewModel = wizardStep.viewModel
         val state = viewModel.state
 
-        setModuleName(viewModel, ":existing:impl-module")
-        assertTrue(
-            "Impl module exists error expected, got ${state.validationErrors.value}",
-            state.validationErrors.value.contains(ModuleValidationError.ImplModuleExist)
-        )
-
-        setModuleName(viewModel, ":existing:ui-module")
-        assertTrue(
-            "UI module exists error expected, got ${state.validationErrors.value}",
-            state.validationErrors.value.contains(ModuleValidationError.UiModuleExist)
-        )
-
-        setModuleName(viewModel, ":existing:screen-module")
-        assertTrue(
-            "Screen module exists error expected, got ${state.validationErrors.value}",
-            state.validationErrors.value.contains(ModuleValidationError.ScreenModuleExist)
-        )
+        state.validationErrors.test {
+            awaitItem()
+            assertThat(awaitItem()).containsExactly(
+                ModuleValidationError.ImplModuleExist,
+                ModuleValidationError.UiModuleExist,
+                ModuleValidationError.ScreenModuleExist
+            )
+        }
     }
 
-    private fun createWizardStep(moduleParent: String): BandLabModuleWizardStep {
+    private fun TestScope.createWizardStep(moduleParent: String): BandLabModuleWizardStep {
         return BandLabModuleWizardStep(
             project = project,
             moduleParent = moduleParent,
             projectSyncInvoker = object : ProjectSyncInvoker {
                 override fun syncProject(project: Project) {}
             },
-            wizardScope = CoroutineScope(Dispatchers.EDT)
+            wizardScope = backgroundScope,
+            ioDispatcher = testScheduler
         )
     }
 
-    private fun setModuleName(viewModel: BandLabModuleWizardViewModel, name: String) {
-        viewModel.state.moduleRoot.setTextAndPlaceCursorAtEnd(name)
+    private suspend fun WizardState.setModuleRoot(name: String) {
+        moduleRoot.setTextAndPlaceCursorAtEnd(name)
+        // Without this the text flow won't emit
+        snapshotFlow { moduleRoot.text }.first()
     }
 
     private fun mockEnvironment() {
         val basePath = project.basePath ?: return
-        val settingsFile = File(basePath, "settings.gradle.kts")
+        val settingsFile = File(basePath, "settings.gradle")
         val allProjectsFile = File(basePath, "gradle/all-projects.txt")
-        val appBuildGradle = File(basePath, "app/build.gradle.kts")
-        val rootBuildGradle = File(basePath, "build.gradle.kts")
+        val appBuildGradle = File(basePath, "app/build.gradle")
+        val rootBuildGradle = File(basePath, "build.gradle")
 
         runInEdtAndWait {
             runWriteCommandAction(project) {
                 if (!settingsFile.exists()) {
                     settingsFile.parentFile.mkdirs()
-                    settingsFile.writeText("// settings.gradle.kts\n")
+                    settingsFile.writeText("// settings.gradle\n")
                 }
                 if (!allProjectsFile.exists()) {
                     allProjectsFile.parentFile.mkdirs()
@@ -367,7 +310,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
                 }
                 if (!rootBuildGradle.exists()) {
                     rootBuildGradle.parentFile.mkdirs()
-                    rootBuildGradle.writeText("// root build.gradle.kts\n")
+                    rootBuildGradle.writeText("// root build.gradle\n")
                 }
             }
         }

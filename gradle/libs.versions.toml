@@ -3,6 +3,9 @@
 junit = "4.13.2"
 # Google Truth - https://github.com/google/truth/releases
 truth = "1.4.5"
+# Turbine - https://github.com/cashapp/turbine/releases
+turbine = "1.2.1"
+coroutines = "1.10.2"
 
 # plugins
 changelog = "2.5.0"
@@ -15,6 +18,8 @@ plugin-uploader = "1.3.5"
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
+coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
