@@ -27,7 +27,7 @@ class AutomationTemplateCreateAction : CreateFileAction(
         if (!super.isAvailable(dataContext)) return false
 
         val targetPath = dataContext.psiElement?.resolvePath() ?: return false
-        return targetPath.contains("androidTest/")
+        return targetPath.contains("/src/androidTest/")
     }
 
     // There is no way to override the "New File" text from the file creation popup,

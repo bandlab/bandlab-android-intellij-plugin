@@ -46,7 +46,8 @@ fun Project.editFile(
 ) {
     val filePsi = requireNotNull(file.toPsiFile(this))
 
-    val document = requireNotNull(PsiDocumentManager.getInstance(this).getDocument(filePsi))
+    val documentManager = PsiDocumentManager.getInstance(this)
+    val document = requireNotNull(documentManager.getDocument(filePsi))
     val currentText = document.text
 
     val newText = buildString {
@@ -56,9 +57,7 @@ fun Project.editFile(
 
     // Replace with the new text, follow up with an empty line at the end.
     document.replaceString(0, document.textLength, newText.trim() + NEW_LINE)
-
-    // Refresh the VirtualFile to reflect the changes
-    file.refresh(false, false)
+    documentManager.commitDocument(document)
 }
 
 /**
