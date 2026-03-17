@@ -702,8 +702,9 @@ class BandLabModuleWizardStepIntegrationTest {
 
     @Suppress("UnstableApiUsage")
     private fun createMockProject(projectDir: File): MockProject {
+        val basePath = projectDir.absolutePath
         return object : MockProject(null, Disposer.newDisposable()) {
-            override fun getBasePath(): String = projectDir.absolutePath
+            override fun getBasePath(): String = basePath
         }
     }
 
