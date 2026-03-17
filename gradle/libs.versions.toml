@@ -8,7 +8,7 @@ truth = "1.4.5"
 changelog = "2.5.0"
 compose = "1.10.2"
 intellij-platform = "2.13.1"
-kotlin = "2.3.10"
+kotlin = "2.3.20"
 kover = "0.9.7"
 plugin-uploader = "1.3.5"
 
