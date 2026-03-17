@@ -22,6 +22,15 @@ class BandLabModuleWizardStepIntegrationTest {
     val tmpFolder = TemporaryFolder()
 
     @Test
+    fun `MockProject basePath override works correctly`() {
+        val projectDir = tmpFolder.newFolder("mock-test")
+        val project = createMockProject(projectDir)
+
+        assertThat(project.basePath).isNotNull()
+        assertThat(project.basePath).isEqualTo(projectDir.absolutePath)
+    }
+
+    @Test
     fun `creates single API module with correct structure`() {
         val projectDir = setupTestProject()
         val project = createMockProject(projectDir)
@@ -704,7 +713,7 @@ class BandLabModuleWizardStepIntegrationTest {
     private fun createMockProject(projectDir: File): MockProject {
         val basePath = projectDir.absolutePath
         return object : MockProject(null, Disposer.newDisposable()) {
-            override fun getBasePath(): String = basePath
+            override fun getBasePath(): String? = basePath
         }
     }
 
