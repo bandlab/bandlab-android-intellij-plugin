@@ -700,14 +700,11 @@ class BandLabModuleWizardStepIntegrationTest {
         return projectDir
     }
 
+    @Suppress("UnstableApiUsage")
     private fun createMockProject(projectDir: File): MockProject {
-        val project = MockProject(null, Disposer.newDisposable())
-        // Set base path using reflection to make MockProject work with our code
-        val basePathField = MockProject::class.java.getDeclaredField("myBaseDir")
-        basePathField.isAccessible = true
-        basePathField.set(project, projectDir.absolutePath)
-
-        return project
+        return object : MockProject(null, Disposer.newDisposable()) {
+            override fun getBasePath(): String = projectDir.absolutePath
+        }
     }
 
     private fun validateModuleName(name: String): Set<ModuleValidationError> {
