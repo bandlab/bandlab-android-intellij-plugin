@@ -1,22 +1,12 @@
 package com.bandlab.intellij.plugin.automation
 
+import com.bandlab.intellij.plugin.template.CreateTemplateActionTest
 import com.bandlab.intellij.plugin.utils.readFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.ide.IdeView
-import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.actionSystem.DataContext
-import com.intellij.openapi.actionSystem.LangDataKeys
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.vfs.LocalFileSystem
-import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiManager
-import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import java.io.File
 
-class AutomationTemplateCreateActionTest : BasePlatformTestCase() {
-
-    override fun getTestDataPath(): String = File(".").absolutePath
+class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
 
     fun testIsAvailableOnlyForAndroidTestDirectories() {
         val action = AutomationTemplateCreateAction()
@@ -54,24 +44,6 @@ class AutomationTemplateCreateActionTest : BasePlatformTestCase() {
             .isEqualTo(expectedVerifierFile().withTrailingNewline())
     }
 
-    private fun createDataContext(directory: PsiDirectory): DataContext {
-        return com.intellij.openapi.actionSystem.impl.SimpleDataContext.builder()
-            .add(CommonDataKeys.PROJECT, project)
-            .add(CommonDataKeys.PSI_ELEMENT, directory)
-            .add(CommonDataKeys.VIRTUAL_FILE, directory.virtualFile)
-            .add(LangDataKeys.IDE_VIEW, TestIdeView(directory))
-            .build()
-    }
-
-    private fun createProjectDirectory(relativePath: String): PsiDirectory {
-        val ioDirectory = File(requireNotNull(project.basePath), relativePath)
-        ioDirectory.mkdirs()
-
-        val virtualDirectory = requireNotNull(
-            LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioDirectory)
-        )
-        return requireNotNull(PsiManager.getInstance(project).findDirectory(virtualDirectory))
-    }
 
     private fun expectedRobotFile(): String =
         """
@@ -118,39 +90,6 @@ class AutomationTemplateCreateActionTest : BasePlatformTestCase() {
         }
         """.trimIndent()
 
-    private class TestIdeView(
-        private val directory: PsiDirectory
-    ) : IdeView {
-
-        override fun getDirectories(): Array<PsiDirectory> = arrayOf(directory)
-
-        override fun getOrChooseDirectory(): PsiDirectory = directory
-
-        override fun selectElement(element: PsiElement) = Unit
-    }
-
-    private fun AutomationTemplateCreateAction.invokeIsAvailable(dataContext: DataContext): Boolean {
-        val method = AutomationTemplateCreateAction::class.java.getDeclaredMethod(
-            "isAvailable",
-            DataContext::class.java,
-        )
-        method.isAccessible = true
-        return method.invoke(this, dataContext) as Boolean
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun AutomationTemplateCreateAction.invokeCreate(
-        newName: String,
-        directory: PsiDirectory,
-    ): Array<PsiElement> {
-        val method = AutomationTemplateCreateAction::class.java.getDeclaredMethod(
-            "create",
-            String::class.java,
-            PsiDirectory::class.java,
-        )
-        method.isAccessible = true
-        return method.invoke(this, newName, directory) as Array<PsiElement>
-    }
 
     private fun String.withTrailingNewline(): String = "$this\n"
 }
