@@ -27,13 +27,11 @@ abstract class CreateSimpleFileAction(
      * Make the action only available for main source set.
      */
     override fun isAvailable(dataContext: DataContext): Boolean {
-        if (!super.isAvailable(dataContext)) return false
-
         return when (availability) {
             Availability.Always -> true
             Availability.MainOnly -> {
                 val targetPath = dataContext.psiElement?.resolvePath() ?: return false
-                targetPath.contains("main/")
+                targetPath.contains("/src/main/")
             }
         }
     }
