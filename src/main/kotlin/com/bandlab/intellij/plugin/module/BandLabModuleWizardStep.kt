@@ -14,6 +14,7 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
 
 class EmptyModel : WizardModel() {
@@ -24,10 +25,11 @@ class BandLabModuleWizardStep(
     private val project: Project,
     moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
+    private val wizardScope: CoroutineScope = CoroutineScope(Dispatchers.Main),
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
-    private val wizardScope = CoroutineScope(Dispatchers.Main)
-    private val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
+    @VisibleForTesting
+    internal val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
 
     override fun getComponent(): JComponent {
         return ComposePanelWithSwingBridgeTheme {
@@ -95,16 +97,18 @@ class BandLabModuleWizardStep(
                 }
         }
 
-        ApplicationManager.getApplication().invokeLater {
-            BandLabModuleFollowUpActionsDialog(
-                project = project,
-                viewModel = BandLabModuleFollowUpActionsViewModel(
+        if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
+            ApplicationManager.getApplication().invokeLater {
+                BandLabModuleFollowUpActionsDialog(
                     project = project,
-                    modulePath = modulePath,
-                    state = state,
-                    projectSyncInvoker = projectSyncInvoker
-                )
-            ).show()
+                    viewModel = BandLabModuleFollowUpActionsViewModel(
+                        project = project,
+                        modulePath = modulePath,
+                        state = state,
+                        projectSyncInvoker = projectSyncInvoker
+                    )
+                ).show()
+            }
         }
 
         wizardScope.cancel("Wizard step is finished")

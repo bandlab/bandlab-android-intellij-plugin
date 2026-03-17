@@ -30,9 +30,9 @@ internal class BandLabModuleWizardViewModel(
     private val uiConfig = MutableStateFlow(BandLabModuleConfig.Ui())
     private val screenConfig = MutableStateFlow(BandLabModuleConfig.Screen())
 
-    private val moduleNameTextFlow = snapshotFlow { moduleName.text.toString() }
+    val moduleNameTextFlow = snapshotFlow { moduleName.text.toString() }
 
-    private val existingModuleNames = ::retrieveExistingModules
+    val existingModuleNames = ::retrieveExistingModules
         .asFlow()
         .shareIn(wizardScope, SharingStarted.WhileSubscribed(), replay = 1)
 
