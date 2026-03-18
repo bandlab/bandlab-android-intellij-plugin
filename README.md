@@ -64,7 +64,7 @@ Right-click `build.gradle` to apply the Test Fixtures plugin and automatically c
 
 Since we avoid Gradle [type-safe accessors](https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/), this plugin provides autocomplete and validation for project paths. Invalid paths are highlighted with a red underline.
 
-_Disclaimer: This feature is copied from [Slack foundry](https://github.com/slackhq/foundry/pull/1440)._
+_Acknowledgments: The feature was adapted from [Slack foundry](https://github.com/slackhq/foundry/pull/1440)._
 
 <!-- Plugin description end -->
 
@@ -77,11 +77,6 @@ and search for "BandLab", you'll see our shiny plugin!
 ```
 https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/updatePlugins.xml
 ```
-
-Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[template]: https://github.com/JetBrains/intellij-platform-plugin-template
-[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
 
 ---
 
@@ -101,3 +96,8 @@ License
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
+
+Plugin based on the [IntelliJ Platform Plugin Template][template].
+
+[template]: https://github.com/JetBrains/intellij-platform-plugin-template
+[docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation
