@@ -1,58 +1,61 @@
-# bandlab-android-intellij-plugin
+# BandLab Android IntelliJ Plugin
 
 <!-- Plugin description -->
-## Create modules with BandLab Android convention
-- Allow only api, impl, ui, screen name for modules
-- Support creating multiple modules at once
-- Contextual Module path pre-fill and autocomplete
-- You can optionally expose impl and screen to AppGraph or MixEditorGraph, AppGraph is selected by default
-- Activity and Page template options
-- Module existence check per submodules, ex. check :foo:api and :foo:impl existence separately
-- Support adding to spotlight after module creation
+
+This plugin offers a suite of features to help developers work more efficiently with the BandLab Android project.
+
+Please note that this plugin is not available for external use; we've open-sourced it solely to demonstrate our approach to improving develop experience through IDE integration.
+
+## Module Creation
+- Create modules following BandLab Android conventions (:api, :impl, :ui, :screen).
+- Support for batch creation of multiple modules.
+- Contextual module path pre-filling and autocomplete.
+- Optional `:impl` and `:screen` exposure to `AppGraph` (default) or `MixEditorGraph`.
+- Templates for Activities and Pages.
+- Support adding to spotlight after creating modules.
 
 ![Module Creation Wizard](https://i.imgur.com/nD1wqPw.png)
 
-## Create Screen templates
-- Create an Activity, ViewModel and Manifest according to the latest screen building convention.
-- Create a Page, ViewModel with preferred injection strategy.
+## Templates
+![Templates](https://i.imgur.com/CGQc12d.png)
 
-![Screen Template](https://i.imgur.com/Va9QFkb.png)
+### Activity Template
+Generates Activity, ViewModel, and Manifest per latest conventions.
 
-## Create 2-level Injection template
-Provide a template for 2-level injection. See more details here:
-https://bandlab.atlassian.net/wiki/spaces/Android/pages/3294724236/Dependency+Injection#Two-level-Injection
+### Page Template
+Generates Page and ViewModel.
 
-## Create Automation file templates
-Create Robot, Semantics and Verifier templates to align with our automation test convention.
+### Two-level Injection template
+Generates an interface and an impl for 2-level injection. Learn more about two-level injection [here](https://bandlab.atlassian.net/wiki/spaces/Android/pages/3294724236/Dependency+Injection#Two-level-Injection).
 
-![Automation Template](https://i.imgur.com/upwfk3R.png)
+### Automation Templates
+![Automation Templates](https://i.imgur.com/Vr0Gkrl.png)
+Generate Robot, Semantics, and Verifier templates following our automation conventions. Available only under the `androidTest` source set.
 
 ## Module Analyzer
 ![module analyzer](https://i.imgur.com/kuYqEDV.png)
 
-Available upon right-clicking on a module. The action executes tasks from [DAGP](https://github.com/autonomousapps/dependency-analysis-gradle-plugin), 
-and our internal plugin to score an Android module for how likely it can be converted to a JVM module.
+Right-click a module to analyze it using [DAGP](https://github.com/autonomousapps/dependency-analysis-gradle-plugin) and our internal scoring plugin (predicts JVM module compatibility).
 
-The action starts a terminal window, and execute the following tasks based on the module type:
-- Android module: `./gradlew :module:analyzeModule`
-- Non-android module: `./gradlew module:projectHealth`
+The plugin helps invoke these tasks in your IDE's Run tab:
+- **Android modules:** `./gradlew :module:analyzeModule`
+- **Non-Android modules:** `./gradlew :module:projectHealth`
 
-## Actions for build.gradle files
+## build.gradle Actions
+![build.gradle actions](https://i.imgur.com/MW2zART.png)
 
-### Auto Complete project path
-![auto-complete project path](https://i.imgur.com/ED5Lslh.png)
+### Dependency Sorting
+Right-click `build.gradle` to sort plugins and dependencies alphabetically.
 
-We do not use Gradle type-safe accessors due to the reason [here](https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/), so we implemented the auto-complete for project path.
-Project paths will also be validated, if you see your dependency has a red underline, it means it's invalid path.
+### Test Fixtures Plugin
+Right-click `build.gradle` to apply the Test Fixtures plugin and automatically create the required folders.
 
+### Project Path Autocomplete
+![auto-complete project path](https://i.imgur.com/IcXx7Rm.png)
 
-### Sort dependencies
-![build.gradle actions](https://i.imgur.com/wMOB46s.png)
+Since we avoid Gradle [type-safe accessors](https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/), this plugin provides autocomplete and validation for project paths. Invalid paths are highlighted with a red underline.
 
-Sort plugins and dependencies alphabetically, the option is only available when right-clicking on build.gradle.
-
-### Apply Test Fixtures plugin
-Apply the test fixtures plugin and create the required folder, the option is only available when right-clicking on build.gradle.
+_Disclaimer: This feature is copied from [Slack foundry](https://github.com/slackhq/foundry/pull/1440)._
 
 <!-- Plugin description end -->
 
