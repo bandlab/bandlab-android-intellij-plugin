@@ -3,5 +3,6 @@
 .intellijPlatform
 .kotlin
 .qodana
+.DS_Store
 build
 /local.properties
