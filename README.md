@@ -29,8 +29,47 @@ Generates Activity, ViewModel, and Manifest per latest conventions.
 ### Page Template
 Generates Page and ViewModel.
 
+_Notes: Page is our internal framework to render a Composable with a given injected ViewModel type._
+
+```kotlin
+interface Page<ViewModel : Any> {
+
+    @Composable
+    fun Content(viewModel: ViewModel)
+}
+```
+
 ### Two-level Injection template
-Generates an interface and an impl for 2-level injection. Learn more about two-level injection [here](https://bandlab.atlassian.net/wiki/spaces/Android/pages/3294724236/Dependency+Injection#Two-level-Injection).
+Generates an interface and an impl for two-level injection.
+
+_Notes: Two-level injection is useful when you have both app-level and screen-level dependencies for a class whose dependencies you want to invert.
+In such cases, you can avoid manually passing screen-level dependencies. 
+There are two factories: a screen-level factory and an app-level factory, like this:_
+```kotlin
+interface FeatureViewModel {
+    val state: FeatureState
+    
+    @Inject
+    class Factory(
+        private val coroutineScope: CoroutineScope,
+        private val appLevelFactory: AppLevelFactory,
+    ) {
+        fun create(
+            params: FeatureParams,
+        ): FeatureViewModel = appLevelFactory.create(
+            params = params,
+            coroutineScope = coroutineScope
+        )
+    }
+    
+    interface AppLevelFactory {
+        fun create(
+            params: FeatureParams,
+            coroutineScope: CoroutineScope,
+        ): FeatureViewModel
+    }
+}
+```
 
 ### Automation Templates
 ![Automation Templates](https://i.imgur.com/Vr0Gkrl.png)
