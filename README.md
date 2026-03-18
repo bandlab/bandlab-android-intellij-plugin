@@ -1,60 +1,74 @@
-# bandlab-android-intellij-plugin
+# BandLab Android IntelliJ Plugin
 
 <!-- Plugin description -->
-## Create modules with BandLab Android convention
-- Allow only api, impl, ui, screen name for modules
-- Support creating multiple modules at once
-- Contextual Module path pre-fill and autocomplete
-- You can optionally expose impl and screen to AppGraph or MixEditorGraph, AppGraph is selected by default
-- Activity and Page template options
-- Module existence check per submodules, ex. check :foo:api and :foo:impl existence separately
-- Support adding to spotlight after module creation
 
-![Module Creation Wizard](https://i.imgur.com/nD1wqPw.png)
+This plugin offers a suite of features to help developers work more efficiently with the BandLab Android project.
 
-## Create Screen templates
-- Create an Activity, ViewModel and Manifest according to the latest screen building convention.
-- Create a Page, ViewModel with preferred injection strategy.
+Please note that this plugin is not available for external use; we've open-sourced it solely to demonstrate our approach to improving develop experience through IDE integration.
 
-![Screen Template](https://i.imgur.com/Va9QFkb.png)
+## Module Creation
+![Module Creation Wizard](https://i.imgur.com/2an7NI7.png)
 
-## Create 2-level Injection template
-Provide a template for 2-level injection. See more details here:
-https://bandlab.atlassian.net/wiki/spaces/Android/pages/3294724236/Dependency+Injection#Two-level-Injection
+**The UI is implemented using [Jewel](https://github.com/JetBrains/intellij-community/tree/master/platform/jewel) (Compose Desktop)!** 🔮
 
-## Create Automation file templates
-Create Robot, Semantics and Verifier templates to align with our automation test convention.
+- Create modules following BandLab Android conventions (:api, :impl, :ui, :screen).
+- Support for batch creation of multiple modules.
+- Contextual module path pre-filling and autocomplete.
+- Optional `:impl` and `:screen` exposure to `AppGraph` (default) or `MixEditorGraph`.
+- Templates for Activities and Pages.
+- Support adding to spotlight after creating modules.
 
-![Automation Template](https://i.imgur.com/upwfk3R.png)
+---
+
+## Templates
+![Templates](https://i.imgur.com/CGQc12d.png)
+
+### Activity Template
+Generates Activity, ViewModel, and Manifest per latest conventions.
+
+### Page Template
+Generates Page and ViewModel.
+
+### Two-level Injection template
+Generates an interface and an impl for 2-level injection. Learn more about two-level injection [here](https://bandlab.atlassian.net/wiki/spaces/Android/pages/3294724236/Dependency+Injection#Two-level-Injection).
+
+### Automation Templates
+![Automation Templates](https://i.imgur.com/Vr0Gkrl.png)
+
+Generate Robot, Semantics, and Verifier templates following our automation conventions. Available only under the `androidTest` source set.
+
+---
 
 ## Module Analyzer
 ![module analyzer](https://i.imgur.com/kuYqEDV.png)
 
-Available upon right-clicking on a module. The action executes tasks from [DAGP](https://github.com/autonomousapps/dependency-analysis-gradle-plugin), 
-and our internal plugin to score an Android module for how likely it can be converted to a JVM module.
+Right-click a module to analyze it using [DAGP](https://github.com/autonomousapps/dependency-analysis-gradle-plugin) and our internal scoring plugin (predicts JVM module compatibility).
 
-The action starts a terminal window, and execute the following tasks based on the module type:
-- Android module: `./gradlew :module:analyzeModule`
-- Non-android module: `./gradlew module:projectHealth`
+The plugin helps invoke these tasks in your IDE's Run tab:
+- **Android modules:** `./gradlew :module:analyzeModule`
+- **Non-Android modules:** `./gradlew :module:projectHealth`
 
-## Actions for build.gradle files
+---
 
-### Auto Complete project path
-![auto-complete project path](https://i.imgur.com/ED5Lslh.png)
+## build.gradle Actions
+![build.gradle actions](https://i.imgur.com/MW2zART.png)
 
-We do not use Gradle type-safe accessors due to the reason [here](https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/), so we implemented the auto-complete for project path.
-Project paths will also be validated, if you see your dependency has a red underline, it means it's invalid path.
+### Dependency Sorting
+Right-click `build.gradle` to sort plugins and dependencies alphabetically.
 
+### Test Fixtures Plugin
+Right-click `build.gradle` to apply the Test Fixtures plugin and automatically create the required folders.
 
-### Sort dependencies
-![build.gradle actions](https://i.imgur.com/wMOB46s.png)
+### Project Path Autocomplete
+![auto-complete project path](https://i.imgur.com/IcXx7Rm.png)
 
-Sort plugins and dependencies alphabetically, the option is only available when right-clicking on build.gradle.
+Since we avoid Gradle [type-safe accessors](https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/), this plugin provides autocomplete and validation for project paths. Invalid paths are highlighted with a red underline.
 
-### Apply Test Fixtures plugin
-Apply the test fixtures plugin and create the required folder, the option is only available when right-clicking on build.gradle.
+_Acknowledgments: The feature was adapted from [Slack foundry](https://github.com/slackhq/foundry/pull/1440)._
 
 <!-- Plugin description end -->
+
+---
 
 ## Installation
 
@@ -65,6 +79,24 @@ https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/updatePlugin
 ```
 
 ---
+
+License
+-------
+
+    Copyright 2026 BandLab Singapore Pte Ltd
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    
+    http://www.apache.org/licenses/LICENSE-2.0
+    
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
 Plugin based on the [IntelliJ Platform Plugin Template][template].
 
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
