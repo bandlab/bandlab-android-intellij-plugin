@@ -11,18 +11,19 @@ import com.bandlab.intellij.plugin.utils.readFile
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 internal class BandLabModuleWizardViewModel(
     wizardScope: CoroutineScope,
+    private val ioDispatcher: CoroutineContext,
     private val project: Project,
     moduleParent: String,
 ) {
     private val moduleNameRegex = "^(:[a-z-]+)+$".toRegex()
 
-    private val moduleName = TextFieldState(moduleParent)
+    private val moduleRoot = TextFieldState(moduleParent)
     private val featureName = TextFieldState()
 
     private val apiConfig = MutableStateFlow(BandLabModuleConfig.Api())
@@ -30,9 +31,9 @@ internal class BandLabModuleWizardViewModel(
     private val uiConfig = MutableStateFlow(BandLabModuleConfig.Ui())
     private val screenConfig = MutableStateFlow(BandLabModuleConfig.Screen())
 
-    private val moduleNameTextFlow = snapshotFlow { moduleName.text.toString() }
+    val moduleNameTextFlow = snapshotFlow { moduleRoot.text.toString() }
 
-    private val existingModuleNames = ::retrieveExistingModules
+    val existingModuleNames = ::retrieveExistingModules
         .asFlow()
         .shareIn(wizardScope, SharingStarted.WhileSubscribed(), replay = 1)
 
@@ -89,7 +90,7 @@ internal class BandLabModuleWizardViewModel(
     val canCreate = BoolValueProperty(false)
 
     val state = WizardState(
-        moduleRoot = moduleName,
+        moduleRoot = moduleRoot,
         apiConfig = apiConfig,
         implConfig = implConfig,
         uiConfig = uiConfig,
@@ -204,7 +205,7 @@ internal class BandLabModuleWizardViewModel(
         }
     }
 
-    private suspend fun retrieveExistingModules(): Set<String> = withContext(Dispatchers.IO) {
+    private suspend fun retrieveExistingModules(): Set<String> = withContext(ioDispatcher) {
         readAction {
             project.readFile(
                 filePath = ALL_PROJECTS_PATH,

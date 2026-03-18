@@ -14,7 +14,9 @@ import com.intellij.openapi.project.Project
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import org.jetbrains.annotations.VisibleForTesting
 import javax.swing.JComponent
+import kotlin.coroutines.CoroutineContext
 
 class EmptyModel : WizardModel() {
     override fun handleFinished() = Unit
@@ -24,10 +26,19 @@ class BandLabModuleWizardStep(
     private val project: Project,
     moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
+    private val wizardScope: CoroutineScope = CoroutineScope(Dispatchers.Main),
+    private val ioDispatcher: CoroutineContext = Dispatchers.IO
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
-    private val wizardScope = CoroutineScope(Dispatchers.Main)
-    private val viewModel = BandLabModuleWizardViewModel(wizardScope, project, moduleParent)
+    private val viewModel = BandLabModuleWizardViewModel(
+        wizardScope = wizardScope,
+        ioDispatcher = ioDispatcher,
+        project = project,
+        moduleParent = moduleParent
+    )
+
+    @VisibleForTesting
+    internal val state = viewModel.state
 
     override fun getComponent(): JComponent {
         return ComposePanelWithSwingBridgeTheme {
@@ -95,16 +106,18 @@ class BandLabModuleWizardStep(
                 }
         }
 
-        ApplicationManager.getApplication().invokeLater {
-            BandLabModuleFollowUpActionsDialog(
-                project = project,
-                viewModel = BandLabModuleFollowUpActionsViewModel(
+        if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
+            ApplicationManager.getApplication().invokeLater {
+                BandLabModuleFollowUpActionsDialog(
                     project = project,
-                    modulePath = modulePath,
-                    state = state,
-                    projectSyncInvoker = projectSyncInvoker
-                )
-            ).show()
+                    viewModel = BandLabModuleFollowUpActionsViewModel(
+                        project = project,
+                        modulePath = modulePath,
+                        state = state,
+                        projectSyncInvoker = projectSyncInvoker
+                    )
+                ).show()
+            }
         }
 
         wizardScope.cancel("Wizard step is finished")
