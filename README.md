@@ -70,16 +70,6 @@ _Acknowledgments: The feature was adapted from [Slack foundry](https://github.co
 
 ---
 
-## Installation
-
-Add the following URL to [your plugin configuration](https://www.jetbrains.com/help/idea/managing-plugins.html#add_plugin_repos) 
-and search for "BandLab", you'll see our shiny plugin!
-```
-https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/updatePlugins.xml
-```
-
----
-
 License
 -------
 
