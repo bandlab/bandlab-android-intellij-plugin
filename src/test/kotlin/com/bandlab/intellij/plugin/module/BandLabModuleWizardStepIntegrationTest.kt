@@ -5,7 +5,6 @@ import androidx.compose.runtime.snapshotFlow
 import app.cash.turbine.test
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.bandlab.intellij.plugin.module.ui.WizardState
-import com.bandlab.intellij.plugin.utils.SnapshotFlowRule
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.Project
@@ -16,19 +15,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import org.junit.Rule
 import java.io.File
 
 class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
-    @get:Rule
-    val snapshotFlowRule = SnapshotFlowRule()
-
     fun `test onWizardFinished creates expected modules and files`() = runTest {
         mockEnvironment()
         val wizardStep = createWizardStep(":features")
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
+        val state = wizardStep.state
 
         state.setModuleRoot(":features:profile")
         state.featureName.setTextAndPlaceCursorAtEnd(name)
@@ -60,8 +54,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
     fun `test selecting screen module automatically selects ui module`() = runTest {
         val moduleParent = ":features"
         val wizardStep = createWizardStep(moduleParent)
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
+        val state = wizardStep.state
 
         (state.uiConfig as MutableStateFlow<BandLabModuleConfig.Ui>).value = BandLabModuleConfig.Ui(isSelected = false)
         (state.screenConfig as MutableStateFlow<BandLabModuleConfig.Screen>).value =
@@ -76,8 +69,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
     fun `test module name validation errors`() = runTest {
         mockEnvironment()
         val wizardStep = createWizardStep(":")
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
+        val state = wizardStep.state
 
         state.validationErrors.test {
             assertThat(awaitItem()).isEmpty()
@@ -109,7 +101,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         }
 
         val wizardStep = createWizardStep(":existing:module")
-        val state = wizardStep.viewModel.state
+        val state = wizardStep.state
 
         state.validationErrors.test {
             awaitItem()
@@ -120,8 +112,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
     fun `test feature name derivation`() = runTest {
         mockEnvironment()
         val wizardStep = createWizardStep(":")
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
+        val state = wizardStep.state
 
         snapshotFlow { state.featureName.text }.test {
             assertThat(awaitItem()).isEqualTo("")
@@ -137,8 +128,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
     fun `test onWizardFinished with Kotlin Impl and plugins`() = runTest {
         mockEnvironment()
         val wizardStep = createWizardStep(":features:auth")
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
+        val state = wizardStep.state
 
         (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value = BandLabModuleConfig.Api(
             isSelected = true,
@@ -171,7 +161,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
     fun `test module plugin toggling`() = runTest {
         val wizardStep = createWizardStep(":")
-        val state = wizardStep.viewModel.state
+        val state = wizardStep.state
 
         state.onConfigClick(BandLabModuleConfig.Api(isSelected = false))
         state.onPluginClick(state.apiConfig.value, ModulePlugin.RestApi)
@@ -189,7 +179,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
     fun `test module exposure selection`() = runTest {
         val wizardStep = createWizardStep(":")
-        val state = wizardStep.viewModel.state
+        val state = wizardStep.state
 
         state.onExposureClick(state.implConfig.value, ModuleExposure.MixEditorGraph)
         assertEquals(
@@ -204,7 +194,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
     fun `test screen template toggling`() = runTest {
         val wizardStep = createWizardStep(":")
-        val state = wizardStep.viewModel.state
+        val state = wizardStep.state
 
         state.onGenerateActivityClick()
         assertEquals(
@@ -229,7 +219,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
     fun `test module type selection`() = runTest {
         val wizardStep = createWizardStep(":")
-        val state = wizardStep.viewModel.state
+        val state = wizardStep.state
 
         state.onModuleTypeClick(state.implConfig.value, BandLabModuleType.Kotlin)
         assertEquals("Impl type should be Kotlin", BandLabModuleType.Kotlin, state.implConfig.value.typeSelection.type)
@@ -256,8 +246,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         }
 
         val wizardStep = createWizardStep(":foo")
-        val viewModel = wizardStep.viewModel
-        val state = viewModel.state
+        val state = wizardStep.state
 
         state.validationErrors.test {
             awaitItem()

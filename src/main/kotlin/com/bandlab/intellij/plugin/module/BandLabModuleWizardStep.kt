@@ -30,13 +30,15 @@ class BandLabModuleWizardStep(
     private val ioDispatcher: CoroutineContext = Dispatchers.IO
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
-    @VisibleForTesting
-    internal val viewModel = BandLabModuleWizardViewModel(
+    private val viewModel = BandLabModuleWizardViewModel(
         wizardScope = wizardScope,
         ioDispatcher = ioDispatcher,
         project = project,
         moduleParent = moduleParent
     )
+
+    @VisibleForTesting
+    internal val state = viewModel.state
 
     override fun getComponent(): JComponent {
         return ComposePanelWithSwingBridgeTheme {

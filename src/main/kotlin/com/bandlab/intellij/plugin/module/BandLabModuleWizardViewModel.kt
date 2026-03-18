@@ -41,7 +41,7 @@ internal class BandLabModuleWizardViewModel(
         moduleNameTextFlow,
         existingModuleNames
     ) { name, existingModuleNames ->
-        val set = buildSet {
+        buildSet {
             if (name.isBlank() || name == ":") {
                 add(ModuleValidationError.ModuleNameEmpty)
                 return@buildSet
@@ -84,7 +84,6 @@ internal class BandLabModuleWizardViewModel(
                 add(ModuleValidationError.ScreenModuleExist)
             }
         }
-        set
     }
         .stateIn(wizardScope, SharingStarted.WhileSubscribed(), emptySet())
 
