@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Exclude root project for Module Analysis and Update Strings actions
 
 ## [2.3.0] - 2026-04-07
 ### Added
