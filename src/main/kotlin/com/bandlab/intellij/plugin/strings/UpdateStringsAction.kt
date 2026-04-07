@@ -44,7 +44,10 @@ class UpdateStringsAction : DumbAwareAction(
         }
 
         val gradleProjectFolder = GradleProjectUtils.findNearestGradleProject(projectDir, selectedFile)
-        if (gradleProjectFolder != null) {
+        if (
+            gradleProjectFolder != null &&
+            GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) != ":"
+        ) {
             val buildGradle = gradleProjectFolder.findChild(project.buildScriptName())
             if (buildGradle != null && !buildGradle.isDirectory) {
                 val buildFileContent = VfsUtilCore.loadText(buildGradle)
