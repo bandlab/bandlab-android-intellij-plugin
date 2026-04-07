@@ -27,8 +27,11 @@ class ModuleAnalysisAction : DumbAwareAction(
      *  Make the action available only when the menu is shown for the module root.
      */
     override fun update(e: AnActionEvent) {
-        val selectedFile = e.getData(CommonDataKeys.VIRTUAL_FILE)
-        e.presentation.isEnabledAndVisible = selectedFile?.let(GradleProjectUtils::isGradleProject) == true
+        val selectedFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
+        val project = e.project ?: return
+        val isGradleProject = GradleProjectUtils.isGradleProject(selectedFile)
+        e.presentation.isEnabledAndVisible = isGradleProject &&
+            GradleProjectUtils.getGradleProjectPath(project, selectedFile) != ":"
     }
 
     override fun actionPerformed(e: AnActionEvent) {
