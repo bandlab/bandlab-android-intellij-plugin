@@ -89,5 +89,11 @@
             <add-to-group group-id="ProjectViewPopupMenu" anchor="before"
                           relative-to-action="AnalyzeMenu"/>
         </action>
+
+        <action id="UpdateStringsAction"
+                class="com.bandlab.intellij.plugin.strings.UpdateStringsAction" text="Update Strings">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="before" relative-to-action="ModuleAnalysisAction"/>
+            <add-to-group group-id="EditorPopupMenu1" anchor="before" relative-to-action="ApplyTestFixturesPluginAction"/>
+        </action>
     </actions>
 </idea-plugin>
