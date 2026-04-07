@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.3.0] - 2026-04-07
 ### Added
 - Implement an Update Strings action
 

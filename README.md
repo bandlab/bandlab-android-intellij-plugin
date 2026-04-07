@@ -89,6 +89,17 @@ The plugin helps invoke these tasks in your IDE's Run tab:
 
 ---
 
+## Update Localized Strings
+![update strings](https://i.imgur.com/l7BLO2N.png)
+
+Update all localized strings for a given module from Tolgee. There are multiple entry points:
+1. Right-click on a module that contains `libs.plugins.localizer` plugin.
+2. Right-click (or Shift+Cmd+A) on a strings.xml, or strings-plurals.xml file.
+
+The plugin helps invoke `./gradlew :module:updateStrings` in your IDE's Run tab.
+
+---
+
 ## build.gradle Actions
 ![build.gradle actions](https://i.imgur.com/MW2zART.png)
 
