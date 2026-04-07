@@ -145,6 +145,34 @@ kover {
 }
 
 tasks {
+    register("patchReadme") {
+        description = "Updates the IntelliJ IDEA badge in README.md to match targetPlatformVersion in gradle.properties"
+        group = "documentation"
+
+        val targetVersion = providers.gradleProperty("targetPlatformVersion")
+        val readmeFile = layout.projectDirectory.file("README.md").asFile
+
+        inputs.property("targetVersion", targetVersion)
+        inputs.file(readmeFile)
+        outputs.file(readmeFile)
+
+        doLast {
+            val content = readmeFile.readText()
+            val version = targetVersion.get()
+            val updatedContent = content.replace(
+                Regex("""badge/IntelliJ%20IDEA%20Target-[A-Za-z0-9\.\-]+-red\.svg"""),
+                "badge/IntelliJ%20IDEA%20Target-$version-red.svg"
+            )
+            if (content != updatedContent) {
+                readmeFile.writeText(updatedContent)
+            }
+        }
+    }
+
+    named("prepareSandbox") {
+        dependsOn("patchReadme")
+    }
+
     publishPlugin {
         dependsOn(patchChangelog)
     }
