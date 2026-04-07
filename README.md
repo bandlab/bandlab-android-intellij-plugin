@@ -1,6 +1,7 @@
 # BandLab Android IntelliJ Plugin
 
 [![Build](https://github.com/bandlab/bandlab-android-intellij-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/bandlab/bandlab-android-intellij-plugin/actions/workflows/build.yml)
+![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA%20Target-2025.3.3-red.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 <!-- Plugin description -->
