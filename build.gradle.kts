@@ -55,6 +55,9 @@ dependencies {
     }
 
     testImplementation(libs.junit)
+    // Used in com.intellij.util.lang.UrlClassLoader
+    // see: https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/2127
+    testImplementation(libs.opentest4j)
     testImplementation(libs.truth)
     testImplementation(kotlin("stdlib"))
     testImplementation(libs.turbine) {
