@@ -7,18 +7,24 @@ truth = "1.4.5"
 turbine = "1.2.1"
 # Coroutines - https://github.com/Kotlin/kotlinx.coroutines/releases
 coroutines = "1.10.2"
+# https://github.com/ota4j-team/opentest4j/releases
+opentest4j = "1.3.0"
 
 # plugins
 changelog = "2.5.0"
+# https://github.com/JetBrains/compose-multiplatform/releases
 compose = "1.10.3"
+# https://github.com/JetBrains/intellij-platform-gradle-plugin/releases
 intellij-platform = "2.14.0"
 kotlin = "2.3.20"
 kover = "0.9.8"
+# https://github.com/brian-mcnamara/plugin_uploader/releases
 plugin-uploader = "1.3.5"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
+opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 
