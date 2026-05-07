@@ -196,16 +196,6 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         val wizardStep = createWizardStep(":")
         val state = wizardStep.state
 
-        state.onGenerateActivityClick()
-        assertEquals(
-            "Template should be Activity",
-            BandLabModuleConfig.Screen.Template.Activity,
-            state.screenConfig.value.template
-        )
-
-        state.onGenerateActivityClick()
-        assertNull("Template should be null after second click", state.screenConfig.value.template)
-
         state.onGeneratePageClick()
         assertEquals(
             "Template should be Page",

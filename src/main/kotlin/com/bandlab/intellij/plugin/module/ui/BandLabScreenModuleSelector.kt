@@ -14,18 +14,11 @@ import org.jetbrains.jewel.ui.component.TextField
 @Composable
 internal fun BandLabScreenModuleSelector(
     state: BandLabModuleConfig.Screen,
-    onGenerateActivityClick: () -> Unit,
     onGeneratePageClick: () -> Unit,
     featureName: TextFieldState,
 ) {
     SettingsGroup("Grab a screen template to go?") {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            RadioButtonRow(
-                text = "Generate Activity Template",
-                selected = state.template == BandLabModuleConfig.Screen.Template.Activity,
-                onClick = { onGenerateActivityClick() }
-            )
-
             RadioButtonRow(
                 text = "Generate Page Template",
                 selected = state.template == BandLabModuleConfig.Screen.Template.Page,
@@ -58,7 +51,6 @@ internal fun BandLabScreenModuleSelector(
 private fun PreviewBandLabScreenModuleSelector() {
     BandLabScreenModuleSelector(
         state = BandLabModuleConfig.Screen(),
-        onGenerateActivityClick = {},
         onGeneratePageClick = {},
         featureName = TextFieldState()
     )

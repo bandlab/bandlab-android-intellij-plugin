@@ -99,7 +99,6 @@ internal class BandLabModuleWizardViewModel(
         onModuleTypeClick = ::onModuleTypeClick,
         onPluginClick = ::onPluginClick,
         onExposureClick = ::onExposureClick,
-        onGenerateActivityClick = ::onGenerateActivityClick,
         onGeneratePageClick = ::onGeneratePageClick,
         featureName = featureName,
         existingModuleNames = existingModuleNames,
@@ -182,16 +181,6 @@ internal class BandLabModuleWizardViewModel(
             is BandLabModuleConfig.Impl -> implConfig.update { it.copy(exposure = exposure) }
             is BandLabModuleConfig.Screen -> screenConfig.update { it.copy(exposure = exposure) }
             is BandLabModuleConfig.Api, is BandLabModuleConfig.Ui -> error("Api and Ui module can't be exposed")
-        }
-    }
-
-    private fun onGenerateActivityClick() {
-        screenConfig.update {
-            if (it.template == BandLabModuleConfig.Screen.Template.Activity) {
-                it.copy(template = null)
-            } else {
-                it.copy(template = BandLabModuleConfig.Screen.Template.Activity)
-            }
         }
     }
 

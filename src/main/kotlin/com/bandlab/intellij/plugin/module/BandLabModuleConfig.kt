@@ -79,8 +79,11 @@ sealed interface BandLabModuleConfig {
         override val availablePlugins: Set<ModulePlugin>
             get() = ModulePlugin.entries.toSet() - Database
 
+        /**
+         * Enum is expected to grow as more templates are added.
+         */
         enum class Template {
-            Activity, Page
+            Page
         }
     }
 }

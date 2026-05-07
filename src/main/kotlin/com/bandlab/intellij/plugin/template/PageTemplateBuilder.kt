@@ -46,4 +46,33 @@ class PageTemplateBuilder(
             
         }
     """.trimIndent()
+
+    fun createNavKey(): String = """
+        package $filePackage
+        
+        import com.bandlab.models.navigation.GlobalPageNavKey
+        import kotlinx.serialization.Serializable
+
+        @Serializable
+        data class ${name}NavKey(
+            val id: String // TODO: Your params
+        ) : GlobalPageNavKey()
+    """.trimIndent()
+
+    fun createNavEntry(): String = """
+        package $filePackage
+        
+        import androidx.activity.ComponentActivity
+        import com.bandlab.navigation.ui.GlobalPageNavEntry
+        import com.bandlab.uikit.api.page.Page
+        import dev.zacsweers.metro.AppScope
+        import dev.zacsweers.metro.ContributesTo
+        import dev.zacsweers.metro.Inject
+
+        @ContributesTo(AppScope::class)
+        class ${name}NavEntry @Inject constructor() : GlobalPageNavEntry<${name}NavKey> {
+            override val keyInfo = GlobalPageNavEntry.KeyInfo(${name}NavKey::class, ${name}NavKey.serializer())
+            override fun getPage(key: ${name}NavKey, activity: ComponentActivity): Page<*> = ${name}Page(activity)
+        }
+    """.trimIndent()
 }

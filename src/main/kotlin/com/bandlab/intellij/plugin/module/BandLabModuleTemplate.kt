@@ -1,6 +1,5 @@
 package com.bandlab.intellij.plugin.module
 
-import com.bandlab.intellij.plugin.template.ActivityTemplateBuilder
 import com.bandlab.intellij.plugin.template.PageTemplateBuilder
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
@@ -106,22 +105,11 @@ class BandLabModuleTemplate(
 
         // Create the screen template
         if (config is BandLabModuleConfig.Screen) {
-            when (config.template) {
-                BandLabModuleConfig.Screen.Template.Activity -> {
-                    generateActivityTemplate(
-                        moduleInfo = moduleInfo,
-                        name = featureName,
-                    )
-                }
-
-                BandLabModuleConfig.Screen.Template.Page -> {
-                    generatePageTemplate(
-                        moduleInfo = moduleInfo,
-                        name = featureName,
-                    )
-                }
-
-                null -> Unit
+            if (config.template == BandLabModuleConfig.Screen.Template.Page) {
+                generatePageTemplate(
+                    moduleInfo = moduleInfo,
+                    name = featureName,
+                )
             }
         }
     }
@@ -196,47 +184,6 @@ class BandLabModuleTemplate(
 
             replace(modulesToSortStartIndex, modulesToSortEndIndex, sortedModules)
         }
-    }
-
-    /**
-     *  Generate an Activity that extends CommonActivity, as well as the ViewModel and Manifest.
-     */
-    private fun generateActivityTemplate(
-        moduleInfo: ModuleInfo,
-        name: String,
-    ) {
-        val activityTemplateBuilder = ActivityTemplateBuilder(
-            name = name,
-            filePackage = moduleInfo.packageToImport
-        )
-
-        // Create the Activity template
-        psiFileFactory.createFileFromText(
-            "${name}Activity.kt",
-            KotlinFileType.INSTANCE,
-            activityTemplateBuilder.createActivity()
-        ).addToPath(moduleInfo.filesPath)
-
-        // Create the Page template
-        psiFileFactory.createFileFromText(
-            "${name}Page.kt",
-            KotlinFileType.INSTANCE,
-            activityTemplateBuilder.createPage()
-        ).addToPath(moduleInfo.filesPath)
-
-        // Create the ViewModel template
-        psiFileFactory.createFileFromText(
-            "${name}ViewModel.kt",
-            KotlinFileType.INSTANCE,
-            activityTemplateBuilder.createViewModel()
-        ).addToPath(moduleInfo.filesPath)
-
-        // Create the manifest file
-        psiFileFactory.createFileFromText(
-            "AndroidManifest.xml",
-            XmlFileType.INSTANCE,
-            activityTemplateBuilder.createManifest()
-        ).addToPath("${moduleInfo.path}/src/main")
     }
 
     private fun generatePageTemplate(

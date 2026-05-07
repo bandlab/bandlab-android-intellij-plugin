@@ -37,7 +37,6 @@ internal data class WizardState(
     val onModuleTypeClick: (BandLabModuleConfig, BandLabModuleType) -> Unit,
     val onPluginClick: (BandLabModuleConfig, ModulePlugin) -> Unit,
     val onExposureClick: (BandLabModuleConfig, ModuleExposure) -> Unit,
-    val onGenerateActivityClick: () -> Unit,
     val onGeneratePageClick: () -> Unit,
     val featureName: TextFieldState,
     val existingModuleNames: Flow<Set<String>>,
@@ -135,7 +134,6 @@ internal fun BandLabModuleWizard(state: WizardState) {
                         {
                             BandLabScreenModuleSelector(
                                 state = config,
-                                onGenerateActivityClick = state.onGenerateActivityClick,
                                 onGeneratePageClick = state.onGeneratePageClick,
                                 featureName = state.featureName
                             )
@@ -166,7 +164,6 @@ private fun BandLabModuleWizard_Preview() {
             onModuleTypeClick = { _, _ -> },
             onPluginClick = { _, _ -> },
             onExposureClick = { _, _ -> },
-            onGenerateActivityClick = {},
             onGeneratePageClick = {},
             featureName = TextFieldState("ExampleFeature"),
             existingModuleNames = MutableStateFlow(emptySet()),

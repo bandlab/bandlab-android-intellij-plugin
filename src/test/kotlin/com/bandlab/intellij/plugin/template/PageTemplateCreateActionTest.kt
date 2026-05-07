@@ -3,6 +3,7 @@ package com.bandlab.intellij.plugin.template
 import com.bandlab.intellij.plugin.utils.readFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 
 class PageTemplateCreateActionTest : CreateTemplateActionTest() {
@@ -43,4 +44,35 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             .isEqualTo(builder.createViewModel())
     }
 
+    fun testCreateGeneratesNavKeyAndEntryFiles() {
+        val action = PageTemplateCreateAction()
+        val targetDirectory = createProjectDirectory("src/main/kotlin/com/bandlab/page")
+
+        lateinit var createdElements: Array<PsiElement>
+        WriteCommandAction.runWriteCommandAction(project) {
+            createdElements = action.invokeCreateWithNav("UserLibraryWithNav", targetDirectory)
+        }
+
+        assertThat(createdElements.map { it.containingFile.name })
+            .containsExactly(
+                "UserLibraryWithNavPage.kt",
+                "UserLibraryWithNavViewModel.kt",
+                "UserLibraryWithNavNavKey.kt",
+                "UserLibraryWithNavNavEntry.kt",
+            )
+            .inOrder()
+
+        val builder = PageTemplateBuilder("UserLibraryWithNav", "com.bandlab.page")
+
+        targetDirectory.virtualFile.refresh(false, true)
+        assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryWithNavNavKey.kt")!!.path, isAbsolute = true))
+            .isEqualTo(builder.createNavKey())
+        assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryWithNavNavEntry.kt")!!.path, isAbsolute = true))
+            .isEqualTo(builder.createNavEntry())
+    }
+
+    private fun PageTemplateCreateAction.invokeCreateWithNav(newName: String, directory: PsiDirectory): Array<PsiElement> {
+        return create(newName, directory, includeNav = true)
+    }
 }
+
