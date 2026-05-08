@@ -3,7 +3,13 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.4.0] - 2026-05-08
+### Added
+- Support for Page with Nav Key template in Module Creation
+
 ### Changed
+- Page Template selection now have nav key option
 - Exclude root project for Module Analysis and Update Strings actions
 
 ## [2.3.0] - 2026-04-07
