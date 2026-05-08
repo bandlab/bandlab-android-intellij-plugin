@@ -1,12 +1,19 @@
 package com.bandlab.intellij.plugin.template
 
+import com.bandlab.intellij.plugin.BandLabIcons
 import com.bandlab.intellij.plugin.utils.filePackage
 import com.bandlab.intellij.plugin.utils.writeFile
 import com.intellij.ide.ui.newItemPopup.NewItemSimplePopupPanel
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
+import com.intellij.ui.components.JBList
 import com.intellij.util.ui.JBUI
-import javax.swing.JCheckBox
+import java.awt.Component
+import java.awt.event.KeyAdapter
+import java.awt.event.KeyEvent
+import javax.swing.DefaultListCellRenderer
+import javax.swing.JLabel
+import javax.swing.JList
 
 class PageTemplateCreateAction : CreateSimpleFileAction(
     text = "Page Template",
@@ -14,14 +21,51 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
     inputHint = "Feature Name (Ex: UserLibrary)",
     availability = Availability.MainOnly
 ) {
-    private var includeNavValue: Boolean = false
+    private var selectedTemplateIndex: Int = 0
+    private val isIncludeNavKey: Boolean get() = selectedTemplateIndex == 1
 
     override fun onContentPanelCreated(panel: NewItemSimplePopupPanel) {
-        val includeNavCheckBox = JCheckBox("Generate nav key", includeNavValue).apply {
-            border = JBUI.Borders.empty(0, 8)
+        val options = listOf("Page", "Page + NavKey")
+        val list = JBList(options).apply {
+            isFocusable = false
             isOpaque = false
+            border = JBUI.Borders.empty(4, 0)
+            selectedIndex = selectedTemplateIndex
+            cellRenderer = object : DefaultListCellRenderer() {
+                override fun getListCellRendererComponent(
+                    list: JList<*>?,
+                    value: Any?,
+                    index: Int,
+                    isSelected: Boolean,
+                    cellHasFocus: Boolean
+                ): Component {
+                    val label =
+                        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JLabel
+                    label.icon = BandLabIcons.logo
+                    label.border = JBUI.Borders.empty(4, 8)
+                    label.isOpaque = false
+                    return label
+                }
+            }
+            addListSelectionListener {
+                if (selectedIndex != -1) {
+                    selectedTemplateIndex = selectedIndex
+                }
+            }
         }
-        panel.add(includeNavCheckBox)
+        panel.add(list)
+
+        panel.textField.addKeyListener(object : KeyAdapter() {
+            override fun keyPressed(e: KeyEvent) {
+                if (e.keyCode == KeyEvent.VK_DOWN) {
+                    list.selectedIndex = (list.selectedIndex + 1) % options.size
+                    e.consume()
+                } else if (e.keyCode == KeyEvent.VK_UP) {
+                    list.selectedIndex = (list.selectedIndex - 1 + options.size) % options.size
+                    e.consume()
+                }
+            }
+        })
     }
 
     internal fun create(newName: String, directory: PsiDirectory, includeNav: Boolean): Array<PsiElement> {
@@ -43,12 +87,8 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
         return files.toTypedArray()
     }
 
-    /**
-     * Satisfies the base class contract and is used in tests via [invokeCreate].
-     * In production UI flow, [invokeDialog] captures the state into [includeNavValue].
-     */
     override fun create(newName: String, directory: PsiDirectory): Array<PsiElement> {
-        return create(newName, directory, includeNavValue)
+        return create(newName, directory, isIncludeNavKey)
     }
 
     override fun hashCode(): Int = 9433

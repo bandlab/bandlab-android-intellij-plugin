@@ -57,7 +57,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             .containsExactly(
                 "UserLibraryWithNavPage.kt",
                 "UserLibraryWithNavViewModel.kt",
-                "UserLibraryWithNavNavKey.kt",
+                "UserLibraryWithNavKey.kt",
                 "UserLibraryWithNavNavEntry.kt",
             )
             .inOrder()
@@ -65,7 +65,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
         val builder = PageTemplateBuilder("UserLibraryWithNav", "com.bandlab.page")
 
         targetDirectory.virtualFile.refresh(false, true)
-        assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryWithNavNavKey.kt")!!.path, isAbsolute = true))
+        assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryWithNavKey.kt")!!.path, isAbsolute = true))
             .isEqualTo(builder.createNavKey())
         assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryWithNavNavEntry.kt")!!.path, isAbsolute = true))
             .isEqualTo(builder.createNavEntry())
@@ -75,4 +75,3 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
         return create(newName, directory, includeNav = true)
     }
 }
-

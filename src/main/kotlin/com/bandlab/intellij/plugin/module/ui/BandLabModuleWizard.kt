@@ -134,6 +134,7 @@ internal fun BandLabModuleWizard(state: WizardState) {
                         {
                             BandLabScreenModuleSelector(
                                 state = config,
+                                featureName = state.featureName,
                                 onTemplateSelection = state.onTemplateSelection,
                             )
                         }
