@@ -6,13 +6,11 @@ import com.bandlab.intellij.plugin.utils.writeFile
 import com.intellij.ide.ui.newItemPopup.NewItemSimplePopupPanel
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
+import com.intellij.ui.ColoredListCellRenderer
 import com.intellij.ui.components.JBList
 import com.intellij.util.ui.JBUI
-import java.awt.Component
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import javax.swing.DefaultListCellRenderer
-import javax.swing.JLabel
 import javax.swing.JList
 
 class PageTemplateCreateAction : CreateSimpleFileAction(
@@ -31,20 +29,18 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
             isOpaque = false
             border = JBUI.Borders.empty(4, 0)
             selectedIndex = selectedTemplateIndex
-            cellRenderer = object : DefaultListCellRenderer() {
-                override fun getListCellRendererComponent(
-                    list: JList<*>?,
-                    value: Any?,
+            cellRenderer = object : ColoredListCellRenderer<String>() {
+                override fun customizeCellRenderer(
+                    list: JList<out String>,
+                    value: String?,
                     index: Int,
-                    isSelected: Boolean,
-                    cellHasFocus: Boolean
-                ): Component {
-                    val label =
-                        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus) as JLabel
-                    label.icon = BandLabIcons.logo
-                    label.border = JBUI.Borders.empty(4, 8)
-                    label.isOpaque = false
-                    return label
+                    selected: Boolean,
+                    hasFocus: Boolean
+                ) {
+                    append(value.orEmpty())
+                    icon = BandLabIcons.logo
+                    border = JBUI.Borders.empty(4, 4)
+                    isOpaque = selected
                 }
             }
             addListSelectionListener {
