@@ -208,7 +208,7 @@ class BandLabModuleTemplate(
         psiFileFactory.createFileFromText(
             "${name}ViewModel.kt",
             KotlinFileType.INSTANCE,
-            pageTemplateBuilder.createViewModel()
+            pageTemplateBuilder.createViewModel(includeNavKey = generateNavKey)
         ).addToPath(moduleInfo.filesPath)
 
         if (generateNavKey) {

@@ -78,7 +78,7 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
                 fileName = "${newName}Page.kt",
                 content = pageBuilder.createPageWithContributesComponent(),
             ),
-            directory.writeFile("${newName}ViewModel.kt", pageBuilder.createViewModel()),
+            directory.writeFile("${newName}ViewModel.kt", pageBuilder.createViewModel(includeNavKey = includeNav)),
         )
         if (includeNav) {
             files.add(directory.writeFile("${newName}Key.kt", pageBuilder.createNavKey()))

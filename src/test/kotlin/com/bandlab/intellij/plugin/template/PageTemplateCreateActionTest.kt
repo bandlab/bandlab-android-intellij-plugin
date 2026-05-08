@@ -41,7 +41,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
         assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryPage.kt")!!.path, isAbsolute = true))
             .isEqualTo(builder.createPageWithContributesComponent())
         assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryViewModel.kt")!!.path, isAbsolute = true))
-            .isEqualTo(builder.createViewModel())
+            .isEqualTo(builder.createViewModel(includeNavKey = false))
     }
 
     fun testCreateGeneratesNavKeyAndEntryFiles() {

@@ -34,14 +34,14 @@ class PageTemplateBuilder(
         
     """.trimIndent()
 
-    fun createViewModel(): String = """
+    fun createViewModel(includeNavKey: Boolean): String = """
         package $filePackage
         
         import dev.zacsweers.metro.Inject
         
         @Inject
         class ${name}ViewModel(
-            
+            ${if(includeNavKey) "key: ${name}NavKey" else ""}
         ) {
             
         }
