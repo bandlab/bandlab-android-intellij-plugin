@@ -28,7 +28,7 @@ class NavKeyTemplateBuilder(
         import dev.zacsweers.metro.Inject
 
         @ContributesIntoSet(scope = AppScope::class)
-        internal class ${name}NavEntry @Inject constructor() : GlobalPageNavEntry<${name}Key> {
+        internal class ${name}NavEntry : GlobalPageNavEntry<${name}Key> {
             override val keyInfo = GlobalPageNavEntry.KeyInfo(${name}Key::class, ${name}Key.serializer())
             override fun getPage(key: ${name}Key, activity: ComponentActivity): Page<*> = ${name}Page(activity)
         }

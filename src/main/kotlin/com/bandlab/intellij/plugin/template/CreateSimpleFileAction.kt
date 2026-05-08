@@ -9,7 +9,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import com.intellij.ui.components.JBPanel
 import org.jetbrains.kotlin.idea.refactoring.psiElement
 import java.awt.event.InputEvent
 import java.util.function.Consumer
