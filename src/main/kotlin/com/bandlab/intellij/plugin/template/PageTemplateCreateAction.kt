@@ -71,18 +71,24 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
     internal fun create(newName: String, directory: PsiDirectory, includeNav: Boolean): Array<PsiElement> {
         val pageBuilder = PageTemplateBuilder(
             name = newName,
-            filePackage = directory.filePackage
+            filePackage = directory.filePackage,
+            includeNavKey = includeNav,
         )
         val files = mutableListOf(
             directory.writeFile(
                 fileName = "${newName}Page.kt",
                 content = pageBuilder.createPageWithContributesComponent(),
             ),
-            directory.writeFile("${newName}ViewModel.kt", pageBuilder.createViewModel(includeNavKey = includeNav)),
+            directory.writeFile("${newName}ViewModel.kt", pageBuilder.createViewModel()),
         )
         if (includeNav) {
-            files.add(directory.writeFile("${newName}Key.kt", pageBuilder.createNavKey()))
-            files.add(directory.writeFile("${newName}NavEntry.kt", pageBuilder.createNavEntry()))
+            val navKeyBuilder = NavKeyTemplateBuilder(
+                name = newName,
+                filePackage = directory.filePackage,
+            )
+
+            files.add(directory.writeFile("${newName}Key.kt", navKeyBuilder.createNavKey()))
+            files.add(directory.writeFile("${newName}NavEntry.kt", navKeyBuilder.createNavEntry()))
         }
         return files.toTypedArray()
     }

@@ -3,7 +3,6 @@ package com.bandlab.intellij.plugin.template
 import com.bandlab.intellij.plugin.utils.readFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
-import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 
@@ -36,7 +35,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             )
             .inOrder()
 
-        val builder = PageTemplateBuilder("UserLibrary", "com.bandlab.page")
+        val builder = PageTemplateBuilder("UserLibrary", "com.bandlab.page", includeNavKey = false)
 
         targetDirectory.virtualFile.refresh(false, true)
 
@@ -44,7 +43,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             .isEqualTo(builder.createPageWithContributesComponent())
 
         assertThat(targetDirectory.readFile("UserLibraryViewModel.kt"))
-            .isEqualTo(builder.createViewModel(includeNavKey = false))
+            .isEqualTo(builder.createViewModel())
     }
 
     fun testCreateGeneratesNavKeyAndEntryFiles() {
@@ -65,7 +64,8 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             )
             .inOrder()
 
-        val builder = PageTemplateBuilder("UserLibraryWithNav", "com.bandlab.page")
+        val builder = PageTemplateBuilder("UserLibraryWithNav", "com.bandlab.page", includeNavKey = true)
+        val navKeyBuilder = NavKeyTemplateBuilder("UserLibraryWithNav", "com.bandlab.page")
 
         targetDirectory.virtualFile.refresh(false, true)
 
@@ -73,13 +73,13 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             .isEqualTo(builder.createPageWithContributesComponent())
 
         assertThat(targetDirectory.readFile("UserLibraryWithNavViewModel.kt"))
-            .isEqualTo(builder.createViewModel(includeNavKey = true))
+            .isEqualTo(builder.createViewModel())
 
         assertThat(targetDirectory.readFile("UserLibraryWithNavKey.kt"))
-            .isEqualTo(builder.createNavKey())
+            .isEqualTo(navKeyBuilder.createNavKey())
 
         assertThat(targetDirectory.readFile("UserLibraryWithNavNavEntry.kt"))
-            .isEqualTo(builder.createNavEntry())
+            .isEqualTo(navKeyBuilder.createNavEntry())
     }
 
     private fun PageTemplateCreateAction.invokeCreateWithNav(

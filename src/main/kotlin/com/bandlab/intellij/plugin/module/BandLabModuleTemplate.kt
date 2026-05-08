@@ -1,5 +1,6 @@
 package com.bandlab.intellij.plugin.module
 
+import com.bandlab.intellij.plugin.template.NavKeyTemplateBuilder
 import com.bandlab.intellij.plugin.template.PageTemplateBuilder
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
@@ -15,7 +16,6 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.impl.file.PsiDirectoryFactory
-import com.jetbrains.rd.generator.nova.generateRdModel
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.konan.file.File
 
@@ -196,7 +196,8 @@ class BandLabModuleTemplate(
     ) {
         val pageTemplateBuilder = PageTemplateBuilder(
             name = name,
-            filePackage = moduleInfo.packageToImport
+            filePackage = moduleInfo.packageToImport,
+            includeNavKey = generateNavKey,
         )
 
         psiFileFactory.createFileFromText(
@@ -208,20 +209,25 @@ class BandLabModuleTemplate(
         psiFileFactory.createFileFromText(
             "${name}ViewModel.kt",
             KotlinFileType.INSTANCE,
-            pageTemplateBuilder.createViewModel(includeNavKey = generateNavKey)
+            pageTemplateBuilder.createViewModel()
         ).addToPath(moduleInfo.filesPath)
 
         if (generateNavKey) {
+            val navKeyBuilder = NavKeyTemplateBuilder(
+                name = name,
+                filePackage = moduleInfo.packageToImport,
+            )
+
             psiFileFactory.createFileFromText(
                 "${name}Key.kt",
                 KotlinFileType.INSTANCE,
-                pageTemplateBuilder.createNavKey()
+                navKeyBuilder.createNavKey()
             ).addToPath(moduleInfo.filesPath)
 
             psiFileFactory.createFileFromText(
                 "${name}NavEntry.kt",
                 KotlinFileType.INSTANCE,
-                pageTemplateBuilder.createNavEntry()
+                navKeyBuilder.createNavEntry()
             ).addToPath(moduleInfo.filesPath)
         }
     }
