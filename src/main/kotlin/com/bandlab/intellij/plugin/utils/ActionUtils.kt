@@ -1,14 +1,14 @@
 package com.bandlab.intellij.plugin.utils
 
 import com.intellij.openapi.actionSystem.AnActionEvent
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataKey
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.PsiFile
-import org.jetbrains.kotlin.idea.refactoring.psiElement
 
 fun AnActionEvent.psiFileOrNull(): PsiFile? {
-    val containingFile = dataContext.psiElement?.containingFile
+    val containingFile = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.containingFile
     if (containingFile != null) {
         return containingFile
     }

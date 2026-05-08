@@ -5,12 +5,12 @@ import com.bandlab.intellij.plugin.utils.resolvePath
 import com.intellij.ide.actions.CreateFileAction
 import com.intellij.ide.ui.newItemPopup.NewItemPopupUtil
 import com.intellij.ide.ui.newItemPopup.NewItemSimplePopupPanel
+import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.idea.refactoring.psiElement
 import java.awt.event.InputEvent
 import java.util.function.Consumer
 
@@ -26,7 +26,7 @@ class AutomationTemplateCreateAction : CreateFileAction(
     override fun isAvailable(dataContext: DataContext): Boolean {
         if (!super.isAvailable(dataContext)) return false
 
-        val targetPath = dataContext.psiElement?.resolvePath() ?: return false
+        val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
         return targetPath.contains("/src/androidTest/")
     }
 
