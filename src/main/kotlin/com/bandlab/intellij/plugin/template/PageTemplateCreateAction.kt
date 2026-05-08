@@ -2,15 +2,11 @@ package com.bandlab.intellij.plugin.template
 
 import com.bandlab.intellij.plugin.utils.filePackage
 import com.bandlab.intellij.plugin.utils.writeFile
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.DialogWrapper
+import com.intellij.ide.ui.newItemPopup.NewItemSimplePopupPanel
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import com.intellij.ui.dsl.builder.panel
-import java.util.function.Consumer
+import com.intellij.util.ui.JBUI
 import javax.swing.JCheckBox
-import javax.swing.JComponent
-import javax.swing.JTextField
 
 class PageTemplateCreateAction : CreateSimpleFileAction(
     text = "Page Template",
@@ -18,18 +14,14 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
     inputHint = "Feature Name (Ex: UserLibrary)",
     availability = Availability.MainOnly
 ) {
-    override fun invokeDialog(
-        project: Project,
-        directory: PsiDirectory,
-        elementsConsumer: Consumer<in Array<PsiElement>>
-    ) {
-        val dialog = PageTemplateDialog(project)
-        if (dialog.showAndGet()) {
-            val name = dialog.getName()
-            val includeNav = dialog.includeNav()
-            val elements = create(name, directory, includeNav)
-            elementsConsumer.accept(elements)
+    private var includeNavValue: Boolean = false
+
+    override fun onContentPanelCreated(panel: NewItemSimplePopupPanel) {
+        val includeNavCheckBox = JCheckBox("Generate nav key", includeNavValue).apply {
+            border = JBUI.Borders.empty(0, 8)
+            isOpaque = false
         }
+        panel.add(includeNavCheckBox)
     }
 
     internal fun create(newName: String, directory: PsiDirectory, includeNav: Boolean): Array<PsiElement> {
@@ -45,7 +37,7 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
             directory.writeFile("${newName}ViewModel.kt", pageBuilder.createViewModel()),
         )
         if (includeNav) {
-            files.add(directory.writeFile("${newName}NavKey.kt", pageBuilder.createNavKey()))
+            files.add(directory.writeFile("${newName}Key.kt", pageBuilder.createNavKey()))
             files.add(directory.writeFile("${newName}NavEntry.kt", pageBuilder.createNavEntry()))
         }
         return files.toTypedArray()
@@ -53,45 +45,13 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
 
     /**
      * Satisfies the base class contract and is used in tests via [invokeCreate].
-     * In production UI flow, [invokeDialog] is fully overridden and captures the name from the dialog's own field.
+     * In production UI flow, [invokeDialog] captures the state into [includeNavValue].
      */
     override fun create(newName: String, directory: PsiDirectory): Array<PsiElement> {
-        return create(newName, directory, includeNav = false)
+        return create(newName, directory, includeNavValue)
     }
 
     override fun hashCode(): Int = 9433
 
     override fun equals(other: Any?): Boolean = other is PageTemplateCreateAction
-
-    private class PageTemplateDialog(project: Project) : DialogWrapper(project) {
-        private val nameField = JTextField()
-        private val navCheckBox = JCheckBox("Include GlobalPageNavKey and GlobalPageNavEntry")
-
-        init {
-            title = "Page Template"
-            init()
-        }
-
-        override fun createCenterPanel(): JComponent {
-            return panel {
-                row("Feature Name:") {
-                    cell(nameField)
-                        .focused()
-                        .validationOnApply {
-                            if (it.text.isNullOrBlank()) {
-                                error("Feature name is required")
-                            } else {
-                                null
-                            }
-                        }
-                }
-                row {
-                    cell(navCheckBox)
-                }
-            }
-        }
-
-        fun getName(): String = nameField.text
-        fun includeNav(): Boolean = navCheckBox.isSelected
-    }
 }

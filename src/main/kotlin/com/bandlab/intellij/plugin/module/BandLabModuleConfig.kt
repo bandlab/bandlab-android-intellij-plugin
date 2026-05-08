@@ -83,7 +83,8 @@ sealed interface BandLabModuleConfig {
          * Enum is expected to grow as more templates are added.
          */
         enum class Template {
-            Page
+            Page,
+            PageWithNavKey
         }
     }
 }

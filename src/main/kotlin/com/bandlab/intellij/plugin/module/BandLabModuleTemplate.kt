@@ -11,11 +11,11 @@ import com.bandlab.intellij.plugin.utils.buildScriptName
 import com.bandlab.intellij.plugin.utils.editFile
 import com.bandlab.intellij.plugin.utils.isUsingKts
 import com.bandlab.intellij.plugin.utils.requireVirtualFile
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.impl.file.PsiDirectoryFactory
+import com.jetbrains.rd.generator.nova.generateRdModel
 import org.jetbrains.kotlin.idea.KotlinFileType
 import org.jetbrains.kotlin.konan.file.File
 
@@ -105,10 +105,13 @@ class BandLabModuleTemplate(
 
         // Create the screen template
         if (config is BandLabModuleConfig.Screen) {
-            if (config.template == BandLabModuleConfig.Screen.Template.Page) {
+            val generateTemplate = config.template != null
+            val generateNavKey = config.template == BandLabModuleConfig.Screen.Template.PageWithNavKey
+            if (generateTemplate) {
                 generatePageTemplate(
                     moduleInfo = moduleInfo,
                     name = featureName,
+                    generateNavKey = generateNavKey,
                 )
             }
         }
@@ -189,6 +192,7 @@ class BandLabModuleTemplate(
     private fun generatePageTemplate(
         moduleInfo: ModuleInfo,
         name: String,
+        generateNavKey: Boolean,
     ) {
         val pageTemplateBuilder = PageTemplateBuilder(
             name = name,
@@ -206,6 +210,20 @@ class BandLabModuleTemplate(
             KotlinFileType.INSTANCE,
             pageTemplateBuilder.createViewModel()
         ).addToPath(moduleInfo.filesPath)
+
+        if (generateNavKey) {
+            psiFileFactory.createFileFromText(
+                "${name}Key.kt",
+                KotlinFileType.INSTANCE,
+                pageTemplateBuilder.createNavKey()
+            ).addToPath(moduleInfo.filesPath)
+
+            psiFileFactory.createFileFromText(
+                "${name}NavEntry.kt",
+                KotlinFileType.INSTANCE,
+                pageTemplateBuilder.createNavEntry()
+            ).addToPath(moduleInfo.filesPath)
+        }
     }
 
     private fun PsiFile.addToPath(path: String) {

@@ -9,6 +9,7 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
+import com.intellij.ui.components.JBPanel
 import org.jetbrains.kotlin.idea.refactoring.psiElement
 import java.awt.event.InputEvent
 import java.util.function.Consumer
@@ -16,7 +17,7 @@ import java.util.function.Consumer
 abstract class CreateSimpleFileAction(
     text: String,
     description: String,
-    private val inputHint: String,
+    protected val inputHint: String,
     private val availability: Availability
 ) : CreateFileAction(
     { text },
@@ -48,6 +49,8 @@ abstract class CreateSimpleFileAction(
         val nameField = contentPanel.textField
         val popup = NewItemPopupUtil.createNewItemPopup(inputHint, contentPanel, nameField)
 
+        onContentPanelCreated(contentPanel)
+
         contentPanel.applyAction = com.intellij.util.Consumer { event: InputEvent? ->
             val name = nameField.text
             if (validator.checkInput(name) && validator.canClose(name)) {
@@ -60,6 +63,10 @@ abstract class CreateSimpleFileAction(
         }
 
         popup.showCenteredInCurrentWindow(project)
+    }
+
+    protected open fun onContentPanelCreated(panel: NewItemSimplePopupPanel) {
+        // Noop by default, but can be overridden to add more UI components
     }
 
     enum class Availability {
