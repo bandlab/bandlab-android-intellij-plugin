@@ -99,8 +99,7 @@ internal class BandLabModuleWizardViewModel(
         onModuleTypeClick = ::onModuleTypeClick,
         onPluginClick = ::onPluginClick,
         onExposureClick = ::onExposureClick,
-        onGenerateActivityClick = ::onGenerateActivityClick,
-        onGeneratePageClick = ::onGeneratePageClick,
+        onTemplateSelection = ::onTemplateSelection,
         featureName = featureName,
         existingModuleNames = existingModuleNames,
         validationErrors = validationErrors
@@ -185,23 +184,10 @@ internal class BandLabModuleWizardViewModel(
         }
     }
 
-    private fun onGenerateActivityClick() {
+    private fun onTemplateSelection(template: BandLabModuleConfig.Screen.Template) {
         screenConfig.update {
-            if (it.template == BandLabModuleConfig.Screen.Template.Activity) {
-                it.copy(template = null)
-            } else {
-                it.copy(template = BandLabModuleConfig.Screen.Template.Activity)
-            }
-        }
-    }
-
-    private fun onGeneratePageClick() {
-        screenConfig.update {
-            if (it.template == BandLabModuleConfig.Screen.Template.Page) {
-                it.copy(template = null)
-            } else {
-                it.copy(template = BandLabModuleConfig.Screen.Template.Page)
-            }
+            val newTemplate = if(it.template == template) null else template
+            it.copy(template = newTemplate)
         }
     }
 

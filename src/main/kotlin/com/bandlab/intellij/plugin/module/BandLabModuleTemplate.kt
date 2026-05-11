@@ -1,6 +1,6 @@
 package com.bandlab.intellij.plugin.module
 
-import com.bandlab.intellij.plugin.template.ActivityTemplateBuilder
+import com.bandlab.intellij.plugin.template.NavKeyTemplateBuilder
 import com.bandlab.intellij.plugin.template.PageTemplateBuilder
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.bandlab.intellij.plugin.utils.Const.DEPENDENCIES_END
@@ -12,7 +12,6 @@ import com.bandlab.intellij.plugin.utils.buildScriptName
 import com.bandlab.intellij.plugin.utils.editFile
 import com.bandlab.intellij.plugin.utils.isUsingKts
 import com.bandlab.intellij.plugin.utils.requireVirtualFile
-import com.intellij.ide.highlighter.XmlFileType
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
@@ -106,22 +105,14 @@ class BandLabModuleTemplate(
 
         // Create the screen template
         if (config is BandLabModuleConfig.Screen) {
-            when (config.template) {
-                BandLabModuleConfig.Screen.Template.Activity -> {
-                    generateActivityTemplate(
-                        moduleInfo = moduleInfo,
-                        name = featureName,
-                    )
-                }
-
-                BandLabModuleConfig.Screen.Template.Page -> {
-                    generatePageTemplate(
-                        moduleInfo = moduleInfo,
-                        name = featureName,
-                    )
-                }
-
-                null -> Unit
+            val generateTemplate = config.template != null
+            val generateNavKey = config.template == BandLabModuleConfig.Screen.Template.PageWithNavKey
+            if (generateTemplate) {
+                generatePageTemplate(
+                    moduleInfo = moduleInfo,
+                    name = featureName,
+                    generateNavKey = generateNavKey,
+                )
             }
         }
     }
@@ -198,54 +189,15 @@ class BandLabModuleTemplate(
         }
     }
 
-    /**
-     *  Generate an Activity that extends CommonActivity, as well as the ViewModel and Manifest.
-     */
-    private fun generateActivityTemplate(
-        moduleInfo: ModuleInfo,
-        name: String,
-    ) {
-        val activityTemplateBuilder = ActivityTemplateBuilder(
-            name = name,
-            filePackage = moduleInfo.packageToImport
-        )
-
-        // Create the Activity template
-        psiFileFactory.createFileFromText(
-            "${name}Activity.kt",
-            KotlinFileType.INSTANCE,
-            activityTemplateBuilder.createActivity()
-        ).addToPath(moduleInfo.filesPath)
-
-        // Create the Page template
-        psiFileFactory.createFileFromText(
-            "${name}Page.kt",
-            KotlinFileType.INSTANCE,
-            activityTemplateBuilder.createPage()
-        ).addToPath(moduleInfo.filesPath)
-
-        // Create the ViewModel template
-        psiFileFactory.createFileFromText(
-            "${name}ViewModel.kt",
-            KotlinFileType.INSTANCE,
-            activityTemplateBuilder.createViewModel()
-        ).addToPath(moduleInfo.filesPath)
-
-        // Create the manifest file
-        psiFileFactory.createFileFromText(
-            "AndroidManifest.xml",
-            XmlFileType.INSTANCE,
-            activityTemplateBuilder.createManifest()
-        ).addToPath("${moduleInfo.path}/src/main")
-    }
-
     private fun generatePageTemplate(
         moduleInfo: ModuleInfo,
         name: String,
+        generateNavKey: Boolean,
     ) {
         val pageTemplateBuilder = PageTemplateBuilder(
             name = name,
-            filePackage = moduleInfo.packageToImport
+            filePackage = moduleInfo.packageToImport,
+            includeNavKey = generateNavKey,
         )
 
         psiFileFactory.createFileFromText(
@@ -259,6 +211,25 @@ class BandLabModuleTemplate(
             KotlinFileType.INSTANCE,
             pageTemplateBuilder.createViewModel()
         ).addToPath(moduleInfo.filesPath)
+
+        if (generateNavKey) {
+            val navKeyBuilder = NavKeyTemplateBuilder(
+                name = name,
+                filePackage = moduleInfo.packageToImport,
+            )
+
+            psiFileFactory.createFileFromText(
+                "${name}Key.kt",
+                KotlinFileType.INSTANCE,
+                navKeyBuilder.createNavKey()
+            ).addToPath(moduleInfo.filesPath)
+
+            psiFileFactory.createFileFromText(
+                "${name}NavEntry.kt",
+                KotlinFileType.INSTANCE,
+                navKeyBuilder.createNavEntry()
+            ).addToPath(moduleInfo.filesPath)
+        }
     }
 
     private fun PsiFile.addToPath(path: String) {
