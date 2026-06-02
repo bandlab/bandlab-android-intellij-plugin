@@ -2,24 +2,26 @@ package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.BandLabIcons
 import com.bandlab.intellij.plugin.utils.GradleProjectUtils
-import com.bandlab.intellij.plugin.utils.buildScriptName
-import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.externalSystem.model.ProjectSystemId
-import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings
-import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMode
-import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.guessProjectDir
-import com.intellij.openapi.vfs.VfsUtilCore
+import org.jetbrains.plugins.terminal.ShellTerminalWidget
+import org.jetbrains.plugins.terminal.TerminalToolWindowManager
 
 class UpdateStringsAction : DumbAwareAction(
     /* text = */ "Update Strings",
     /* description = */ "Update localized strings from Tolgee.",
     /* icon = */ BandLabIcons.logo
 ) {
+    private val eligibleModules = setOf(
+        ":audiostretch:common-strings",
+        ":common:android:strings",
+        ":edu:strings"
+    )
+
+    private val updateStringsCommand = "./localizer/bandlab-localizer update-strings"
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
@@ -46,16 +48,10 @@ class UpdateStringsAction : DumbAwareAction(
         val gradleProjectFolder = GradleProjectUtils.findNearestGradleProject(projectDir, selectedFile)
         if (
             gradleProjectFolder != null &&
-            GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) != ":"
+            GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) in eligibleModules
         ) {
-            val buildGradle = gradleProjectFolder.findChild(project.buildScriptName())
-            if (buildGradle != null && !buildGradle.isDirectory) {
-                val buildFileContent = VfsUtilCore.loadText(buildGradle)
-                if (buildFileContent.contains("libs.plugins.localizer")) {
-                    e.presentation.isEnabledAndVisible = true
-                    return
-                }
-            }
+            e.presentation.isEnabledAndVisible = true
+            return
         }
 
         e.presentation.isEnabledAndVisible = false
@@ -63,27 +59,32 @@ class UpdateStringsAction : DumbAwareAction(
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        val projectDir = project.guessProjectDir() ?: return
-        val selectedFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
-        val gradleProjectFolder = GradleProjectUtils.findNearestGradleProject(projectDir, selectedFile) ?: return
-        val gradlePath = GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) ?: return
+        val basePath = project.basePath ?: return
+        val terminalManager = TerminalToolWindowManager.getInstance(project)
 
-        val systemId = ProjectSystemId("GRADLE")
-        val settings = ExternalSystemTaskExecutionSettings().apply {
-            executionName = "Update Strings ($gradlePath)"
-            externalSystemIdString = systemId.id
-            externalProjectPath = project.basePath
-            taskNames = listOf("$gradlePath:updateStrings")
+        // Try to find and reuse existing "Update Strings" tab
+        val toolWindow = terminalManager.toolWindow
+        if (toolWindow != null) {
+            val contentManager = toolWindow.contentManager
+            val existingContent = contentManager.contents.firstOrNull {
+                it.displayName == "Update Strings"
+            }
+            if (existingContent != null) {
+                contentManager.setSelectedContent(existingContent)
+                toolWindow.activate {
+                    val widget = TerminalToolWindowManager.findWidgetByContent(existingContent)
+                    if (widget is ShellTerminalWidget) {
+                        widget.executeCommand(updateStringsCommand)
+                    } else {
+                        widget?.sendCommandToExecute(updateStringsCommand)
+                    }
+                }
+                return
+            }
         }
 
-        ExternalSystemUtil.runTask(
-            /* taskSettings = */ settings,
-            /* executorId = */ DefaultRunExecutor.EXECUTOR_ID,
-            /* project = */ project,
-            /* externalSystemId = */ systemId,
-            /* callback = */ null,
-            /* progressExecutionMode = */ ProgressExecutionMode.IN_BACKGROUND_ASYNC,
-            /* activateToolWindowBeforeRun = */ true
-        )
+        // Create new terminal tab
+        val widget = terminalManager.createShellWidget(basePath, "Update Strings", true, false)
+        widget.sendCommandToExecute(updateStringsCommand)
     }
 }

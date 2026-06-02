@@ -33,24 +33,44 @@ class UpdateStringsActionTest : BasePlatformTestCase() {
         assertThat(event.presentation.isEnabledAndVisible).isTrue()
     }
 
-    fun testUpdateIsVisibleForFileInModuleWithLocalizerPlugin() {
+    fun testUpdateIsVisibleForFileInEligibleModule() {
         val action = UpdateStringsAction()
         
-        createProjectFile("settings.gradle.kts", "")
-        createProjectFile("feature1/build.gradle.kts", "plugins {\n    alias(libs.plugins.localizer)\n}")
-        val someFile = createProjectFile("feature1/src/main/java/com/example/SomeFile.kt", "class SomeFile")
+        createProjectFile("common/android/strings/build.gradle.kts", "")
+        val someFile = createProjectFile("common/android/strings/src/main/res/values/some.xml", "<resources/>")
         
         val event = createEvent(action, someFile)
         action.update(event)
         assertThat(event.presentation.isEnabledAndVisible).isTrue()
     }
 
-    fun testUpdateIsNotVisibleForFileInModuleWithoutLocalizerPlugin() {
+    fun testUpdateIsVisibleForFileInAudiostretchEligibleModule() {
         val action = UpdateStringsAction()
         
-        createProjectFile("settings.gradle.kts", "")
-        createProjectFile("feature2/build.gradle.kts", "plugins {\n    alias(libs.plugins.compose)\n}")
-        val someFile = createProjectFile("feature2/src/main/java/com/example/SomeFile.kt", "class SomeFile")
+        createProjectFile("audiostretch/common-strings/build.gradle.kts", "")
+        val someFile = createProjectFile("audiostretch/common-strings/src/main/res/values/some.xml", "<resources/>")
+        
+        val event = createEvent(action, someFile)
+        action.update(event)
+        assertThat(event.presentation.isEnabledAndVisible).isTrue()
+    }
+
+    fun testUpdateIsVisibleForFileInEduEligibleModule() {
+        val action = UpdateStringsAction()
+        
+        createProjectFile("edu/strings/build.gradle.kts", "")
+        val someFile = createProjectFile("edu/strings/src/main/res/values/some.xml", "<resources/>")
+        
+        val event = createEvent(action, someFile)
+        action.update(event)
+        assertThat(event.presentation.isEnabledAndVisible).isTrue()
+    }
+
+    fun testUpdateIsNotVisibleForFileInNonEligibleModule() {
+        val action = UpdateStringsAction()
+        
+        createProjectFile("feature/build.gradle.kts", "")
+        val someFile = createProjectFile("feature/src/main/java/com/example/SomeFile.kt", "class SomeFile")
         
         val event = createEvent(action, someFile)
         action.update(event)
@@ -80,29 +100,11 @@ class UpdateStringsActionTest : BasePlatformTestCase() {
 
     fun testActionPerformedExitsWhenNoProject() {
         val action = UpdateStringsAction()
-        val event = TestActionEvent.createTestEvent(action)
-        // Should not throw and exit early
-        action.actionPerformed(event)
-    }
-
-    fun testActionPerformedExitsWhenNoVirtualFile() {
-        val action = UpdateStringsAction()
         val event = TestActionEvent.createTestEvent(
             action,
-            SimpleDataContext.builder()
-                .add(CommonDataKeys.PROJECT, project)
-                .build()
+            SimpleDataContext.builder().build()
         )
-        // Should not throw and exit early
-        action.actionPerformed(event)
-    }
-
-    fun testActionPerformedExitsWhenNoGradleProject() {
-        val action = UpdateStringsAction()
-        val regularFile = createProjectFile("README.md", "# Docs")
-        val event = createEvent(action, regularFile)
-        
-        // Should not throw and exit early since there's no build.gradle
+        // Should not throw and exit early when project is null
         action.actionPerformed(event)
     }
 
