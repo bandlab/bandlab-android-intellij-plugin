@@ -40,7 +40,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
         targetDirectory.virtualFile.refresh(false, true)
 
         assertThat(targetDirectory.readFile("UserLibraryPage.kt"))
-            .isEqualTo(builder.createPageWithContributesComponent())
+            .isEqualTo(builder.createPage())
 
         assertThat(targetDirectory.readFile("UserLibraryViewModel.kt"))
             .isEqualTo(builder.createViewModel())
@@ -70,7 +70,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
         targetDirectory.virtualFile.refresh(false, true)
 
         assertThat(targetDirectory.readFile("UserLibraryWithNavPage.kt"))
-            .isEqualTo(builder.createPageWithContributesComponent())
+            .isEqualTo(builder.createPage())
 
         assertThat(targetDirectory.readFile("UserLibraryWithNavViewModel.kt"))
             .isEqualTo(builder.createViewModel())

@@ -73,7 +73,7 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
         val files = mutableListOf(
             directory.writeFile(
                 fileName = "${newName}Page.kt",
-                content = pageBuilder.createPageWithContributesComponent(),
+                content = pageBuilder.createPage(),
             ),
             directory.writeFile("${newName}ViewModel.kt", pageBuilder.createViewModel()),
         )

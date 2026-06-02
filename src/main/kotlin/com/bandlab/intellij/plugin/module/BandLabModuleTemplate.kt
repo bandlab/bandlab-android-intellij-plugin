@@ -203,7 +203,7 @@ class BandLabModuleTemplate(
         psiFileFactory.createFileFromText(
             "${name}Page.kt",
             KotlinFileType.INSTANCE,
-            pageTemplateBuilder.createPageWithContributesComponent()
+            pageTemplateBuilder.createPage()
         ).addToPath(moduleInfo.filesPath)
 
         psiFileFactory.createFileFromText(
