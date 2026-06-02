@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.4.1] - 2026-06-03
 ### Changed
 - Update Strings: Support Localizer 3.0
 - Use @MetroStation instead of @ContributesComponent
