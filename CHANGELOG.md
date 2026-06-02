@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Update Strings: Support Localizer 3.0
 
 ## [2.4.0] - 2026-05-08
 ### Added
