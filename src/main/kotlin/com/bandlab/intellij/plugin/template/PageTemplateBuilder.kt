@@ -20,23 +20,21 @@ class PageTemplateBuilder(
 
     private val vmParam = if (includeNavKey) "key: ${name}Key" else ""
 
-    fun createPageWithContributesComponent(): String = """
+    fun createPage(): String = """
         package $filePackage
         
         import android.content.Context
         import androidx.compose.runtime.Composable
-        import com.bandlab.common.android.di.ContributesComponent
         import com.bandlab.common.android.pager.screen.di.HasPageServiceProvider
         import com.bandlab.common.android.pager.screen.di.graphCreator
+        import com.bandlab.metro.station.MetroStation
         import $pageImport
         import dev.zacsweers.metro.Inject
         import dev.zacsweers.metro.createGraphFactory       
 
-        @ContributesComponent(appDependencies = ${name}Page.ServiceProvider::class)
+        @MetroStation(appDependencies = ${name}Page.ServiceProvider::class)
         @Inject
-        class ${name}Page(context: Context) : $pageType, HasPageServiceProvider {
-
-            override val graphCreator = graphCreator(context, createGraphFactory<${name}PageGraph.Factory>())
+        class ${name}Page(context: Context) : $pageType {
 
             @Composable
             override fun Content(viewModel: ${name}ViewModel) {
