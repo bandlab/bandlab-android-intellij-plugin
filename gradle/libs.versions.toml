@@ -16,7 +16,7 @@ changelog = "2.5.0"
 compose = "1.11.1"
 # https://github.com/JetBrains/intellij-platform-gradle-plugin/releases
 intellij-platform = "2.16.0"
-kotlin = "2.3.21"
+kotlin = "2.4.0"
 kover = "0.9.8"
 # https://github.com/brian-mcnamara/plugin_uploader/releases
 plugin-uploader = "1.3.5"
