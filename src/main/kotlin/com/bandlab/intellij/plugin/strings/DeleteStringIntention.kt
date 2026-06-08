@@ -1,7 +1,6 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
-import com.bandlab.intellij.plugin.localizer.LocalizerRunner
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
@@ -37,13 +36,8 @@ class DeleteStringIntention : IntentionAction {
 
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
         if (editor == null || file == null) return
-        val target = stringKeyAt(file, editor.caretModel.offset) ?: return
-        LocalizerRunner.run(
-            project = project,
-            title = "Delete String",
-            args = listOf("update-strings", "--delete-keys", target),
-            refresh = project.service<LocalizerConfigService>().managedFilePaths(),
-        )
+        val key = stringKeyAt(file, editor.caretModel.offset) ?: return
+        LocalizerOps.deleteKey(project, key)
     }
 }
 

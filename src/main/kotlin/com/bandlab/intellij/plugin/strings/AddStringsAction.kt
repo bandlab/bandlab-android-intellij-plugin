@@ -2,7 +2,6 @@ package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerAction
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
-import com.bandlab.intellij.plugin.localizer.LocalizerRunner
 import com.bandlab.intellij.plugin.localizer.isPopupPlace
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.actionSystem.AnActionEvent
@@ -22,29 +21,10 @@ class AddStringsAction : LocalizerAction(
 ) {
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
-        val service = project.service<LocalizerConfigService>()
-        val targets = service.targets()
-        if (targets.isEmpty()) return
-
+        // When invoked from a string file's popup, pre-select that file's [[file]] group.
         val contextTarget = e.getData(CommonDataKeys.VIRTUAL_FILE)
             ?.takeIf { isPopupPlace(e.place) }
-            ?.let(service::targetFor)
-        val preselected = contextTarget ?: targets.first()
-
-        val dialog = AddStringsDialog(project, targets, preselected)
-        if (!dialog.showAndGet()) return
-
-        val keys = dialog.keys
-        if (keys.isEmpty()) return
-
-        LocalizerRunner.run(
-            project = project,
-            title = "Add Strings",
-            args = listOf(
-                "update-strings", "--add-keys", keys.joinToString(","),
-                "--add-keys-to-file", dialog.selectedTarget.addKeysToFile,
-            ),
-            refresh = service.managedFilePaths(),
-        )
+            ?.let { project.service<LocalizerConfigService>().targetFor(it) }
+        LocalizerOps.add(project, contextTarget)
     }
 }

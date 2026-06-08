@@ -49,6 +49,12 @@
             <className>com.bandlab.intellij.plugin.strings.DeleteStringIntention</className>
             <category>Localizer</category>
         </intentionAction>
+        <intentionAction>
+            <className>com.bandlab.intellij.plugin.strings.AddStringFromReferenceIntention</className>
+            <category>Localizer</category>
+        </intentionAction>
+        <editorNotificationProvider
+                implementation="com.bandlab.intellij.plugin.strings.LocalizerStringFileNotificationProvider"/>
     </extensions>
 
     <actions>
