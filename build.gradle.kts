@@ -30,6 +30,15 @@ repositories {
     mavenCentral()
     google()
 
+    // bandlab-localizer libraries (e.g. :config). TODO: switch to a released version + the
+    // release repo once localizer publishes config stably; this is the SNAPSHOT repo for now.
+    maven("https://artifactory.bandlab.io/artifactory/libs-snapshot-local") {
+        credentials {
+            username = providers.gradleProperty("artifactoryUsername").orNull ?: System.getenv("ARTIFACTORY_USERNAME")
+            password = providers.gradleProperty("artifactoryPassword").orNull ?: System.getenv("ARTIFACTORY_PASSWORD")
+        }
+    }
+
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
         defaultRepositories()
@@ -52,6 +61,14 @@ dependencies {
 
         @Suppress("UnstableApiUsage")
         composeUI()
+    }
+
+    // bandlab-localizer manifest parsing (LocalizerConfigLoader + toFileGroups). Excludes deps that
+    // the IntelliJ platform already provides or that :config doesn't actually use at runtime.
+    implementation("com.bandlab.localizer.config:config:3.2.0-SNAPSHOT") {
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+        exclude(group = "org.slf4j", module = "slf4j-simple")
+        exclude(group = "dev.zacsweers.metro", module = "runtime-jvm")
     }
 
     testImplementation(libs.junit)

@@ -45,6 +45,10 @@
             </className>
             <category>Gradle</category>
         </intentionAction>
+        <intentionAction>
+            <className>com.bandlab.intellij.plugin.strings.DeleteStringIntention</className>
+            <category>Localizer</category>
+        </intentionAction>
     </extensions>
 
     <actions>
@@ -85,10 +89,20 @@
                           relative-to-action="AnalyzeMenu"/>
         </action>
 
-        <action id="UpdateStringsAction"
-                class="com.bandlab.intellij.plugin.strings.UpdateStringsAction" text="Update Strings">
+        <!-- File/dialog-level Localizer commands, grouped under a "Localizer" submenu in the Tools
+             menu, Project View popup, and editor popup. Available whenever the project has a
+             resolved bandlab-localizer-config.toml — no file context or Gradle sync needed. The
+             caret-level "Delete String" is an Alt+Enter intention (see DeleteStringIntention). -->
+        <group id="LocalizerMenu" text="Localizer" popup="true" icon="/drawable/product-bandlab.svg">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="before" relative-to-action="ModuleAnalysisAction"/>
             <add-to-group group-id="EditorPopupMenu1" anchor="before" relative-to-action="ApplyTestFixturesPluginAction"/>
-        </action>
+            <action id="UpdateStringsAction"
+                    class="com.bandlab.intellij.plugin.strings.UpdateStringsAction" text="Update Strings"/>
+            <action id="AddStringsAction"
+                    class="com.bandlab.intellij.plugin.strings.AddStringsAction" text="Add Strings"/>
+            <action id="DeleteStringsAction"
+                    class="com.bandlab.intellij.plugin.strings.DeleteStringsAction" text="Delete Strings"/>
+        </group>
     </actions>
 </idea-plugin>
