@@ -12,9 +12,10 @@ import java.util.function.Function
 import javax.swing.JComponent
 
 /**
- * Banner at the top of any manifest base or translation string file, with one-click links to the
- * Localizer operations. The same shared [LocalizerOps] the menu actions and intentions use, so the
- * three entry points never drift. Shown whenever the file is manifest-managed — no Gradle sync needed.
+ * Warning banner at the top of any manifest base or translation string file: these files are owned
+ * by the localizer and shouldn't be hand-edited, so the banner nudges toward the Localizer actions
+ * (one-click links here, via the shared [LocalizerOps] the menu actions and intentions also use).
+ * Shown whenever the file is manifest-managed — no Gradle sync needed.
  */
 class LocalizerStringFileNotificationProvider : EditorNotificationProvider {
 
@@ -24,9 +25,9 @@ class LocalizerStringFileNotificationProvider : EditorNotificationProvider {
     ): Function<in FileEditor, out JComponent?>? {
         if (!project.service<LocalizerConfigService>().isManagedStringFile(file)) return null
         return Function { fileEditor ->
-            EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Info).apply {
+            EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).apply {
                 icon(BandLabIcons.logo)
-                text = "Localizer-managed strings"
+                text = "Managed by bandlab-localizer — edit via the Localizer actions, not by hand."
                 createActionLabel("Update Strings") { LocalizerOps.update(project) }
                 createActionLabel("Add String") {
                     LocalizerOps.add(project, project.service<LocalizerConfigService>().targetFor(file))
