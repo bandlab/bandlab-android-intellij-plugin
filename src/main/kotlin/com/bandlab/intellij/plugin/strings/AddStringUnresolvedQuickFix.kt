@@ -24,8 +24,7 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
  * `R.string.X` / `R.plurals.X` reference in Kotlin code (incl. import-aliased / typealiased forms) —
  * i.e. when the key doesn't exist yet. By hooking the K2 `UNRESOLVED_REFERENCE` diagnostic the fix
  * sits beside Android's "Create string value resource", rather than buried in the yellow intention
- * list ([AddStringFromReferenceIntention], which stays as the always-on fallback until this path is
- * confirmed in the IDE). Pulls the key from Tolgee via `update-strings --add-keys`.
+ * list. Pulls the key from Tolgee via `update-strings --add-keys`.
  *
  * Registered through the Kotlin plugin EP `org.jetbrains.kotlin.codeinsight.quickfix.registrar`.
  */

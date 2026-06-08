@@ -1,17 +1,12 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
-import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
-import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
-import javax.swing.Icon
 import kotlin.io.path.readText
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtClassOrObject
@@ -21,39 +16,10 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
 /**
- * Alt+Enter intention on the name part of an Android resource reference (`R.string.X` /
- * `R.plurals.X`) in Kotlin code: pulls `X` from Tolgee into the project's base files via
- * `update-strings --add-keys`. Available only when `X` is not yet defined locally — once the key
- * exists in a base file the intention disappears. PSI-only, so it works regardless of Gradle sync.
+ * Detection of Android `R.string.X` / `R.plurals.X` references in Kotlin code, shared by the
+ * "Add string" unresolved-reference quick fix ([AddStringUnresolvedQuickFixRegistrar]) and the
+ * "Update String" intention ([UpdateStringIntention]).
  */
-class AddStringFromReferenceIntention : IntentionAction, Iconable {
-
-    private var key: String? = null
-
-    override fun getIcon(flags: Int): Icon = AllIcons.General.Add
-
-    override fun getFamilyName(): String = "Localizer: Add string"
-
-    override fun getText(): String = key?.let { "Localizer: Add string \"$it\"" } ?: familyName
-
-    override fun startInWriteAction(): Boolean = false
-
-    override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean {
-        key = null
-        if (editor == null || file == null) return false
-        if (!project.service<LocalizerConfigService>().isConfigured()) return false
-        val k = resStringKeyAt(file, editor.caretModel.offset) ?: return false
-        if (k in localBaseKeys(project)) return false
-        key = k
-        return true
-    }
-
-    override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
-        if (editor == null || file == null) return
-        val k = resStringKeyAt(file, editor.caretModel.offset) ?: return
-        LocalizerOps.addKey(project, k)
-    }
-}
 
 /**
  * Referenced name of an Android string/plurals resource reference (`R.string.X` / `R.plurals.X`)

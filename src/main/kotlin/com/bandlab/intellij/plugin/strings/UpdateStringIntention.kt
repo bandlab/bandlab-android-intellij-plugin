@@ -17,8 +17,8 @@ import javax.swing.Icon
  * - on a `<string>`/`<plurals>` element in a manifest string file, and
  * - on an `R.string.X` / `R.plurals.X` reference whose key **is** already defined locally.
  *
- * (Mirror of [AddStringFromReferenceIntention], which fires on a reference whose key is *not* local.)
- * PSI-only, so it works regardless of Gradle sync.
+ * (Sibling of [AddStringUnresolvedQuickFixRegistrar], which fires on a reference whose key is *not*
+ * local — i.e. unresolved.) PSI-only, so it works regardless of Gradle sync.
  */
 class UpdateStringIntention : IntentionAction, Iconable, HighPriorityAction {
 
