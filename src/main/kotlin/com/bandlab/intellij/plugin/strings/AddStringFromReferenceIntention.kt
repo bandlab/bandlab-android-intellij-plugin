@@ -69,8 +69,13 @@ class AddStringFromReferenceIntention : IntentionAction, Iconable {
 internal fun resStringKeyAt(psiFile: PsiFile, offset: Int): String? {
     val element = psiFile.findElementAt(offset) ?: psiFile.findElementAt(offset - 1) ?: return null
     val ref = PsiTreeUtil.getParentOfType(element, KtNameReferenceExpression::class.java, false) ?: return null
+    return resStringKey(ref)
+}
+
+/** Resource key of [ref] when it is the trailing name of an `R.string.X`/`R.plurals.X` reference. */
+internal fun resStringKey(ref: KtNameReferenceExpression): String? {
     val qualified = ref.parent as? KtDotQualifiedExpression ?: return null
-    if (qualified.selectorExpression !== ref) return null // caret must be on the trailing name
+    if (qualified.selectorExpression !== ref) return null // ref must be the trailing name
     val receiver = qualified.receiverExpression
     return if (isResStringReceiverText(receiver.text) || isAliasedResStringReceiver(receiver)) {
         ref.getReferencedName()

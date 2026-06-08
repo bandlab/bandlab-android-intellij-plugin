@@ -1,6 +1,7 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
@@ -18,7 +19,7 @@ import javax.swing.Icon
  * position inside the element (tag, `name` attribute, or text) — it resolves the enclosing keyed
  * element. PSI-only, so it works regardless of Gradle sync.
  */
-class DeleteStringIntention : IntentionAction, Iconable {
+class DeleteStringIntention : IntentionAction, Iconable, HighPriorityAction {
 
     private var key: String? = null
 

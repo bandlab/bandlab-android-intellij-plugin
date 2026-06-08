@@ -1,6 +1,7 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
@@ -19,7 +20,7 @@ import javax.swing.Icon
  * (Mirror of [AddStringFromReferenceIntention], which fires on a reference whose key is *not* local.)
  * PSI-only, so it works regardless of Gradle sync.
  */
-class UpdateStringIntention : IntentionAction, Iconable {
+class UpdateStringIntention : IntentionAction, Iconable, HighPriorityAction {
 
     private var key: String? = null
 
