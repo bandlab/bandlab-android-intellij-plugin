@@ -1,8 +1,8 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
-import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
@@ -20,9 +20,12 @@ import javax.swing.Icon
  * (Sibling of [AddStringUnresolvedQuickFixRegistrar], which fires on a reference whose key is *not*
  * local — i.e. unresolved.) PSI-only, so it works regardless of Gradle sync.
  */
-class UpdateStringIntention : IntentionAction, Iconable, HighPriorityAction {
+class UpdateStringIntention : IntentionAction, Iconable, PriorityAction {
 
     private var key: String? = null
+
+    // TOP so Update sorts above the HIGH-priority Delete intention in the ⌥⏎ popup.
+    override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
 
     override fun getIcon(flags: Int): Icon = AllIcons.Actions.Refresh
 
