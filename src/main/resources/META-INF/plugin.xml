@@ -50,6 +50,10 @@
             <category>Localizer</category>
         </intentionAction>
         <intentionAction>
+            <className>com.bandlab.intellij.plugin.strings.UpdateStringIntention</className>
+            <category>Localizer</category>
+        </intentionAction>
+        <intentionAction>
             <className>com.bandlab.intellij.plugin.strings.AddStringFromReferenceIntention</className>
             <category>Localizer</category>
         </intentionAction>

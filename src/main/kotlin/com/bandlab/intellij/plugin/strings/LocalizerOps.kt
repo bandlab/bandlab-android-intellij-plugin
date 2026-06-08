@@ -49,6 +49,9 @@ internal object LocalizerOps {
     fun deleteKey(project: Project, key: String) =
         run(project, "Delete String", listOf("update-strings", "--delete-keys", key))
 
+    fun updateKey(project: Project, key: String) =
+        run(project, "Update String", listOf("update-strings", "--update-keys", key))
+
     private fun run(project: Project, title: String, args: List<String>) {
         LocalizerRunner.run(project, title, args, project.service<LocalizerConfigService>().managedFilePaths())
     }
