@@ -2,11 +2,14 @@ package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
+import javax.swing.Icon
 import kotlin.io.path.readText
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
@@ -17,9 +20,11 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
  * `update-strings --add-keys`. Available only when `X` is not yet defined locally — once the key
  * exists in a base file the intention disappears. PSI-only, so it works regardless of Gradle sync.
  */
-class AddStringFromReferenceIntention : IntentionAction {
+class AddStringFromReferenceIntention : IntentionAction, Iconable {
 
     private var key: String? = null
+
+    override fun getIcon(flags: Int): Icon = AllIcons.General.Add
 
     override fun getFamilyName(): String = "Localizer: Add string"
 

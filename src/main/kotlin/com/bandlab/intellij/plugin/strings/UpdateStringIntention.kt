@@ -2,10 +2,13 @@ package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiFile
+import javax.swing.Icon
 
 /**
  * Alt+Enter intention to re-fetch a string fresh from Tolgee and overwrite it in place (base + every
@@ -16,9 +19,11 @@ import com.intellij.psi.PsiFile
  * (Mirror of [AddStringFromReferenceIntention], which fires on a reference whose key is *not* local.)
  * PSI-only, so it works regardless of Gradle sync.
  */
-class UpdateStringIntention : IntentionAction {
+class UpdateStringIntention : IntentionAction, Iconable {
 
     private var key: String? = null
+
+    override fun getIcon(flags: Int): Icon = AllIcons.Actions.Refresh
 
     override fun getFamilyName(): String = "Localizer: Update String"
 
