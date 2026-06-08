@@ -165,6 +165,12 @@ kover {
 }
 
 tasks {
+    // Launches a headless IDE to prebuild the settings search index; collides with a running IDE
+    // ("only one instance of IDEA") and breaks local builds. Settings stay searchable without it.
+    buildSearchableOptions {
+        enabled = false
+    }
+
     register("patchReadme") {
         description = "Updates the IntelliJ IDEA badge in README.md to match targetPlatformVersion in gradle.properties"
         group = "documentation"

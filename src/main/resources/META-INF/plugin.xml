@@ -59,6 +59,12 @@
         </intentionAction>
         <editorNotificationProvider
                 implementation="com.bandlab.intellij.plugin.strings.LocalizerStringFileNotificationProvider"/>
+        <notificationGroup id="bandlab-localizer" displayType="BALLOON"/>
+        <typedHandler implementation="com.bandlab.intellij.plugin.localizer.LocalizerEditWarningTypedHandler"/>
+        <applicationConfigurable parentId="tools"
+                                 instance="com.bandlab.intellij.plugin.localizer.LocalizerSettingsConfigurable"
+                                 id="settings.bandlab.localizer"
+                                 displayName="Localizer"/>
     </extensions>
 
     <actions>
@@ -103,10 +109,12 @@
              menu, Project View popup, and editor popup. Available whenever the project has a
              resolved bandlab-localizer-config.toml — no file context or Gradle sync needed. The
              caret-level "Delete String" is an Alt+Enter intention (see DeleteStringIntention). -->
+        <!-- NOT in EditorPopupMenu — IntelliJ surfaces editor-popup actions in the Alt+Enter context
+             list, so a menu entry there leaks into the intention popup. In the editor the warning
+             banner + the intentions cover it; the submenu lives in Tools menu + Project View. -->
         <group id="LocalizerMenu" text="Localizer" popup="true" icon="/drawable/product-bandlab.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
             <add-to-group group-id="ProjectViewPopupMenu" anchor="before" relative-to-action="ModuleAnalysisAction"/>
-            <add-to-group group-id="EditorPopupMenu1" anchor="before" relative-to-action="ApplyTestFixturesPluginAction"/>
             <action id="UpdateStringsAction"
                     class="com.bandlab.intellij.plugin.strings.UpdateStringsAction" text="Update Strings"/>
             <action id="AddStringsAction"
