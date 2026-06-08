@@ -22,7 +22,7 @@ class UpdateStringIntention : IntentionAction {
 
     override fun getFamilyName(): String = "Localizer: Update String"
 
-    override fun getText(): String = key?.let { "Localizer: Update String \"$it\"" } ?: familyName
+    override fun getText(): String = key?.let { "Localizer: Update \"$it\"" } ?: familyName
 
     override fun startInWriteAction(): Boolean = false
 

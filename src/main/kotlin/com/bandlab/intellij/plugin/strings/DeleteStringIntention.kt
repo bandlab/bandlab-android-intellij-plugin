@@ -21,7 +21,7 @@ class DeleteStringIntention : IntentionAction {
 
     override fun getFamilyName(): String = "Localizer: Delete String"
 
-    override fun getText(): String = key?.let { "Localizer: Delete String \"$it\"" } ?: familyName
+    override fun getText(): String = key?.let { "Localizer: Delete \"$it\"" } ?: familyName
 
     override fun startInWriteAction(): Boolean = false
 
