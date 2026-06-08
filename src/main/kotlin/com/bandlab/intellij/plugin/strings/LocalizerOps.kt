@@ -15,7 +15,18 @@ import com.intellij.openapi.ui.Messages
  */
 internal object LocalizerOps {
 
-    fun update(project: Project) = run(project, "Update Strings", listOf("update-strings"))
+    /** Update dialog — All strings (full sync) or Selected strings (`--update-keys`). */
+    fun update(project: Project) {
+        val dialog = UpdateStringsDialog(project)
+        if (!dialog.showAndGet()) return
+        if (dialog.allStrings) {
+            run(project, "Update Strings", listOf("update-strings"))
+        } else {
+            val keys = dialog.keys
+            if (keys.isEmpty()) return
+            run(project, "Update Strings", listOf("update-strings", "--update-keys", keys.joinToString(",")))
+        }
+    }
 
     /** Add dialog (target picker + multi-key paste), [preselected] target defaulting to the first. */
     fun add(project: Project, preselected: Target?) {
