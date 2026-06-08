@@ -29,7 +29,7 @@ class LocalizerStringFileNotificationProvider : EditorNotificationProvider {
                 icon(BandLabIcons.logo)
                 text = "Managed by bandlab-localizer — edit via the Localizer actions, not by hand."
                 createActionLabel("Update Strings") { LocalizerOps.update(project) }
-                createActionLabel("Add String") {
+                createActionLabel("Add Strings") {
                     LocalizerOps.add(project, project.service<LocalizerConfigService>().targetFor(file))
                 }
                 createActionLabel("Delete Strings") { LocalizerOps.delete(project) }
