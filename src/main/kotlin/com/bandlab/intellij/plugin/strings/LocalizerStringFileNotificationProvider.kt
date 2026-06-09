@@ -2,6 +2,7 @@ package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.BandLabIcons
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.intellij.codeInsight.intention.IntentionActionWithOptions
 import com.intellij.openapi.components.service
 import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.project.Project
@@ -16,6 +17,9 @@ import javax.swing.JComponent
  * by the localizer and shouldn't be hand-edited, so the banner nudges toward the Localizer actions
  * (one-click links here, via the shared [LocalizerOps] the menu actions and intentions also use).
  * Shown whenever the file is manifest-managed — no Gradle sync needed.
+ *
+ * [getIntentionAction] is overridden to return null so the banner's action labels don't surface in
+ * the Alt+Enter popup — the per-string intentions own that surface instead.
  */
 class LocalizerStringFileNotificationProvider : EditorNotificationProvider {
 
@@ -25,7 +29,9 @@ class LocalizerStringFileNotificationProvider : EditorNotificationProvider {
     ): Function<in FileEditor, out JComponent?>? {
         if (!project.service<LocalizerConfigService>().isManagedStringFile(file)) return null
         return Function { fileEditor ->
-            EditorNotificationPanel(fileEditor, EditorNotificationPanel.Status.Warning).apply {
+            object : EditorNotificationPanel(fileEditor, Status.Warning) {
+                override fun getIntentionAction(): IntentionActionWithOptions? = null
+            }.apply {
                 icon(BandLabIcons.logo)
                 text = "Managed by bandlab-localizer — edit via the Localizer actions, not by hand."
                 createActionLabel("Update Strings") { LocalizerOps.update(project) }
