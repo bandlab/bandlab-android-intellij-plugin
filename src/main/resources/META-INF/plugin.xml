@@ -56,7 +56,6 @@
         </intentionAction>
         <editorNotificationProvider
                 implementation="com.bandlab.intellij.plugin.strings.LocalizerStringFileNotificationProvider"/>
-        <notificationGroup id="bandlab-localizer" displayType="BALLOON"/>
         <typedHandler implementation="com.bandlab.intellij.plugin.localizer.LocalizerEditWarningTypedHandler"/>
         <applicationConfigurable parentId="tools"
                                  instance="com.bandlab.intellij.plugin.localizer.LocalizerSettingsConfigurable"

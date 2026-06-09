@@ -1,22 +1,28 @@
 package com.bandlab.intellij.plugin.localizer
 
+import com.bandlab.intellij.plugin.strings.LocalizerOps
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
-import com.intellij.notification.NotificationGroupManager
-import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiFile
-import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Nudges devs away from hand-editing localizer-managed string files. On the first keystroke in such
- * a file — once per file per IDE session — it shows a non-blocking warning notification and lets the
- * keystroke through (returns [Result.CONTINUE]). Opt-out via Settings > Tools > Localizer.
+ * Guards localizer-managed string files from accidental hand-edits. On the first keystroke in such
+ * a file — unless the current git branch has already been marked as allowed — it **consumes** the
+ * keystroke ([Result.STOP]) and, outside the write action, opens a blocking dialog that lets the
+ * developer either:
  *
- * Fires only on literal typing (not on the plugin's own CLI-driven reloads, refactors, or
- * formatters), so it never false-warns on the localizer's own writes.
+ * - Allow edits on this branch (persisted in the project workspace file via [EditAllowedBranches]).
+ *   When the branch can't be determined, a sentinel stands in so the prompt is shown at most once.
+ * - Delegate to a Localizer CLI command (Update / Add / Delete).
+ * - Cancel (the dialog will reappear on the next keystroke).
+ *
+ * Opt-out entirely via Settings > Tools > Localizer.
  */
 class LocalizerEditWarningTypedHandler : TypedHandlerDelegate() {
 
@@ -28,25 +34,50 @@ class LocalizerEditWarningTypedHandler : TypedHandlerDelegate() {
         fileType: FileType,
     ): Result {
         if (!LocalizerSettings.getInstance().warnOnEditingManagedFile) return Result.CONTINUE
-        val virtualFile = file.virtualFile ?: return Result.CONTINUE
-        if (virtualFile.path in warnedFiles) return Result.CONTINUE
-        if (!project.service<LocalizerConfigService>().isManagedStringFile(virtualFile)) return Result.CONTINUE
+        val vFile = file.virtualFile ?: return Result.CONTINUE
+        if (!project.service<LocalizerConfigService>().isManagedStringFile(vFile)) return Result.CONTINUE
 
-        warnedFiles.add(virtualFile.path)
-        NotificationGroupManager.getInstance()
-            .getNotificationGroup("bandlab-localizer")
-            .createNotification(
-                "Localizer-managed string file",
-                "Don't edit \"${virtualFile.name}\" by hand — bandlab-localizer owns it. " +
-                    "Use the Localizer actions: Add a string that already exists on Tolgee, or Update one to re-pull it.",
-                NotificationType.WARNING,
-            )
-            .notify(project)
-        return Result.CONTINUE
+        // Fall back to a sentinel when the branch can't be determined (no git, detached HEAD, IO
+        // error) so the dialog still appears — but only once ever, then the choice is remembered.
+        val branch = currentGitBranch(project) ?: NO_BRANCH
+        if (EditAllowedBranches.getInstance(project).isAllowed(branch)) return Result.CONTINUE
+
+        // Schedule the dialog outside the current write action (invokeLater posts to the EDT after
+        // the write action unwinds). The triggering character is discarded (Result.STOP); the user
+        // re-types it after dismissing the dialog.
+        ApplicationManager.getApplication().invokeLater(
+            { showEditWarningDialog(project, vFile, branch) },
+            project.disposed,
+        )
+        return Result.STOP
+    }
+
+    private fun showEditWarningDialog(project: Project, vFile: VirtualFile, branch: String) {
+        val options = arrayOf("Edit on this branch", "Update Strings", "Add Strings", "Delete Strings", "Cancel")
+        val choice = Messages.showDialog(
+            project,
+            "\"${vFile.name}\" is managed by bandlab-localizer.\n\n" +
+                "Hand-edit it directly only when you're on a feature branch whose strings aren't finalized yet " +
+                "(adding temporary/custom strings, or tweaking copy locally). Otherwise use the Localizer commands " +
+                "so changes stay in sync with Tolgee.",
+            "Edit Localizer-Managed File",
+            options,
+            /* defaultOptionIndex = */ 1,
+            Messages.getWarningIcon(),
+        )
+        when (choice) {
+            0 -> EditAllowedBranches.getInstance(project).allow(branch)
+            1 -> LocalizerOps.update(project)
+            2 -> LocalizerOps.add(project, null)
+            3 -> LocalizerOps.delete(project)
+            else -> {} // 4 (Cancel) or -1 (ESC/close): do nothing, will warn again next keystroke
+        }
     }
 
     private companion object {
-        /** Files already warned this session — keyed by path so each file nags at most once. */
-        val warnedFiles: MutableSet<String> = ConcurrentHashMap.newKeySet()
+        // Branch names can't contain spaces, so this never collides with a real branch. Used when
+        // the branch is unknown (no git / detached HEAD / IO error): the prompt still shows, and
+        // "Edit on this branch" remembers the choice so it's asked at most once ever.
+        const val NO_BRANCH = "(no git branch)"
     }
 }
