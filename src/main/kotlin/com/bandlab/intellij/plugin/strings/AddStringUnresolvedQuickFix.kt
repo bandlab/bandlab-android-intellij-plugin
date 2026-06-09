@@ -1,8 +1,8 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
-import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
+import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
@@ -53,7 +53,10 @@ private fun addStringFixesFor(psi: PsiElement): List<IntentionAction> {
 private class AddStringQuickFix(
     private val key: String,
     private val rClassFqn: String?,
-) : IntentionAction, Iconable, HighPriorityAction {
+) : IntentionAction, Iconable, PriorityAction {
+
+    // TOP so it sorts above Android's "Create string value resource" fix (same error-fix category).
+    override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
 
     override fun getIcon(flags: Int): Icon = AllIcons.General.Add
 

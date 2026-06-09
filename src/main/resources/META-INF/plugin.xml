@@ -47,11 +47,11 @@
             <category>Gradle</category>
         </intentionAction>
         <intentionAction>
-            <className>com.bandlab.intellij.plugin.strings.DeleteStringIntention</className>
+            <className>com.bandlab.intellij.plugin.strings.UpdateStringIntention</className>
             <category>Localizer</category>
         </intentionAction>
         <intentionAction>
-            <className>com.bandlab.intellij.plugin.strings.UpdateStringIntention</className>
+            <className>com.bandlab.intellij.plugin.strings.DeleteStringIntention</className>
             <category>Localizer</category>
         </intentionAction>
         <editorNotificationProvider
