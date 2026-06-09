@@ -1,6 +1,5 @@
 package com.bandlab.intellij.plugin.localizer
 
-import com.bandlab.intellij.plugin.strings.LocalizerOps
 import com.intellij.codeInsight.editorActions.TypedHandlerDelegate
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.service
@@ -19,8 +18,8 @@ import com.intellij.psi.PsiFile
  *
  * - Allow edits on this branch (persisted in the project workspace file via [EditAllowedBranches]).
  *   When the branch can't be determined, a sentinel stands in so the prompt is shown at most once.
- * - Delegate to a Localizer CLI command (Update / Add / Delete).
- * - Cancel (the dialog will reappear on the next keystroke).
+ * - Cancel (the dialog reappears on the next keystroke). The Localizer actions stay reachable via the
+ *   string context actions (⌥⏎) and the editor toolbar.
  *
  * Opt-out entirely via Settings > Tools > Localizer.
  */
@@ -53,25 +52,21 @@ class LocalizerEditWarningTypedHandler : TypedHandlerDelegate() {
     }
 
     private fun showEditWarningDialog(project: Project, vFile: VirtualFile, branch: String) {
-        val options = arrayOf("Edit on this branch", "Update Strings", "Add Strings", "Delete Strings", "Cancel")
+        val options = arrayOf("Edit on this branch", "Cancel")
         val choice = Messages.showDialog(
             project,
             "\"${vFile.name}\" is managed by bandlab-localizer.\n\n" +
                 "Hand-edit it directly only when you're on a feature branch whose strings aren't finalized yet " +
-                "(adding temporary/custom strings, or tweaking copy locally). Otherwise use the Localizer commands " +
-                "so changes stay in sync with Tolgee.",
+                "(adding temporary/custom strings, or tweaking copy locally).\n\n" +
+                "Otherwise use the Localizer context actions on a string (⌥⏎) or the editor toolbar to keep " +
+                "changes in sync with Tolgee.",
             "Edit Localizer-Managed File",
             options,
-            /* defaultOptionIndex = */ 1,
+            /* defaultOptionIndex = */ -1, // no default button — don't emphasize either choice
             Messages.getWarningIcon(),
         )
-        when (choice) {
-            0 -> EditAllowedBranches.getInstance(project).allow(branch)
-            1 -> LocalizerOps.update(project)
-            2 -> LocalizerOps.add(project, null)
-            3 -> LocalizerOps.delete(project)
-            else -> {} // 4 (Cancel) or -1 (ESC/close): do nothing, will warn again next keystroke
-        }
+        if (choice == 0) EditAllowedBranches.getInstance(project).allow(branch)
+        // choice 1 (Cancel) or -1 (Esc/close): do nothing — the dialog reappears on the next keystroke.
     }
 
     private companion object {
