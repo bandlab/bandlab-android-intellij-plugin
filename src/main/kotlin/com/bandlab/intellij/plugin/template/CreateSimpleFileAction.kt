@@ -1,6 +1,7 @@
 package com.bandlab.intellij.plugin.template
 
 import com.bandlab.intellij.plugin.BandLabIcons
+import com.bandlab.intellij.plugin.utils.isComposeModule
 import com.bandlab.intellij.plugin.utils.resolvePath
 import com.intellij.ide.actions.CreateFileAction
 import com.intellij.ide.ui.newItemPopup.NewItemPopupUtil
@@ -25,15 +26,19 @@ abstract class CreateSimpleFileAction(
     { description },
     { BandLabIcons.logo },
 ) {
-    /**
-     * Make the action only available for main source set.
-     */
     override fun isAvailable(dataContext: DataContext): Boolean {
         return when (availability) {
             Availability.Always -> true
             Availability.MainOnly -> {
                 val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
                 targetPath.contains("/src/main/")
+            }
+            Availability.ComposeOnly -> {
+                val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
+                if (!targetPath.contains("/src/main/")) return false
+                val project = CommonDataKeys.PROJECT.getData(dataContext) ?: return false
+                val virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext) ?: return false
+                project.isComposeModule(virtualFile)
             }
         }
     }
@@ -71,6 +76,6 @@ abstract class CreateSimpleFileAction(
     }
 
     enum class Availability {
-        Always, MainOnly
+        Always, MainOnly, ComposeOnly
     }
 }

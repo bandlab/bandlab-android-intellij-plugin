@@ -9,7 +9,7 @@ class ComposableTemplateCreateAction : CreateSimpleFileAction(
     text = "Composable Template",
     description = "Create a Composable template with latest convention.",
     inputHint = "Composable Name (Ex: ProjectContent)",
-    availability = Availability.MainOnly
+    availability = Availability.ComposeOnly
 ) {
     override fun create(newName: String, directory: PsiDirectory): Array<PsiElement> {
         val templateBuilder = ComposableTemplateBuilder(
