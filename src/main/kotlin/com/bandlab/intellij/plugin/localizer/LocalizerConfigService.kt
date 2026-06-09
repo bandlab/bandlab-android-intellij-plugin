@@ -36,6 +36,12 @@ class LocalizerConfigService(private val project: Project) {
     /** Every target base file, in manifest order (the first is the CLI's default). */
     fun targets(): List<Target> = groups().map { it.toTarget() }
 
+    /** Targets whose base file lives under the module mapped from [rClassFqn]; empty when unmapped. */
+    fun targetsForRClass(rClassFqn: String): List<Target> {
+        val prefix = R_CLASS_TO_MODULE[rClassFqn] ?: return emptyList()
+        return targets().filter { it.addKeysToFile.startsWith("$prefix/") }
+    }
+
     /** The target owning [file] when it's a manifest base or translation string file, else null. */
     fun targetFor(file: VirtualFile): Target? {
         val path = file.toNioPathOrNull() ?: return null
@@ -69,6 +75,15 @@ class LocalizerConfigService(private val project: Project) {
         cache?.let { (cachedStamp, cfg) -> if (cachedStamp == stamp) return cfg }
         return runCatching { LocalizerConfigLoader.load(manifest) }.getOrNull()
             .also { cache = stamp to it }
+    }
+
+    private companion object {
+        // R class FQN -> module base_path prefix (matches the addKeysToFile path prefix).
+        // Hardcoded — devs are not expected to customize it.
+        val R_CLASS_TO_MODULE = mapOf(
+            "com.bandlab.audiostretch.common.strings.R" to "audiostretch/common-strings",
+            "com.bandlab.common.strings.R" to "common/android/strings",
+        )
     }
 }
 

@@ -11,7 +11,6 @@ import kotlin.io.path.readText
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
@@ -39,12 +38,35 @@ internal fun resStringKeyAt(psiFile: PsiFile, offset: Int): String? {
 }
 
 /** Resource key of [ref] when it is the trailing name of an `R.string.X`/`R.plurals.X` reference. */
-internal fun resStringKey(ref: KtNameReferenceExpression): String? {
+internal fun resStringKey(ref: KtNameReferenceExpression): String? =
+    if (resStringReceiver(ref) != null) ref.getReferencedName() else null
+
+/**
+ * Fully-qualified name of the `R` class behind [ref] when it is the trailing name of an
+ * `R.string.X`/`R.plurals.X` reference, else null. Parallel to [resStringKey]:
+ * - bare `R.string.X` → `"R"` (won't match any module mapping, which is fine),
+ * - package-qualified `com.app.R.string.X` → `"com.app.R"`,
+ * - import-aliased / typealiased (`appR.string.X`) → the resolved R class FQN (e.g. `com.app.R`).
+ */
+internal fun resStringRClassFqn(ref: KtNameReferenceExpression): String? {
+    val receiver = resStringReceiver(ref) ?: return null
+    // [receiver] is the `<R>.string` / `<R>.plurals` expression; drop the trailing selector.
+    rClassFqnFromText(receiver.text)?.let { return it }
+    return aliasedRClassFqn(receiver)
+}
+
+/**
+ * The `<R>.string`/`<R>.plurals` qualified receiver of [ref] when [ref] is the trailing name of an
+ * `R.string.X`/`R.plurals.X` reference (in any form: bare, package-qualified, or aliased), else
+ * null. Shared classifier for [resStringKey] and [resStringRClassFqn].
+ */
+private fun resStringReceiver(ref: KtNameReferenceExpression): KtDotQualifiedExpression? {
     val qualified = ref.parent as? KtDotQualifiedExpression ?: return null
     if (qualified.selectorExpression !== ref) return null // ref must be the trailing name
     val receiver = qualified.receiverExpression
-    return if (isResStringReceiverText(receiver.text) || isAliasedResStringReceiver(receiver)) {
-        ref.getReferencedName()
+    val typeQualified = receiver as? KtDotQualifiedExpression ?: return null
+    return if (isResStringReceiverText(receiver.text) || isAliasedResStringReceiver(typeQualified)) {
+        typeQualified
     } else {
         null
     }
@@ -55,6 +77,14 @@ private fun isResStringReceiverText(receiver: String): Boolean =
     receiver == "R.string" || receiver == "R.plurals" ||
         receiver.endsWith(".R.string") || receiver.endsWith(".R.plurals")
 
+/** R class FQN for a bare/package-qualified `R.string`/`R.plurals` receiver text, else null. */
+private fun rClassFqnFromText(receiver: String): String? = when {
+    receiver == "R.string" || receiver == "R.plurals" -> "R"
+    receiver.endsWith(".R.string") -> receiver.removeSuffix(".string")
+    receiver.endsWith(".R.plurals") -> receiver.removeSuffix(".plurals")
+    else -> null
+}
+
 /**
  * Recognizes an aliased receiver `<alias>.string`/`<alias>.plurals` where `<alias>` stands for an
  * `R` class — covering both an import alias (`import com.app.R as appR`, resolves straight to the
@@ -63,13 +93,16 @@ private fun isResStringReceiverText(receiver: String): Boolean =
  * name checked. The bandlab-android convention is import aliases (`audiostretchCommonStringsR`) that
  * disambiguate the several per-module `R` classes.
  */
-private fun isAliasedResStringReceiver(receiver: KtExpression): Boolean {
-    val typeQualified = receiver as? KtDotQualifiedExpression ?: return false
-    val typeSelector = typeQualified.selectorExpression as? KtNameReferenceExpression ?: return false
-    if (typeSelector.getReferencedName() !in setOf("string", "plurals")) return false
-    val head = typeQualified.receiverExpression as? KtNameReferenceExpression ?: return false
-    val rName = head.mainReference.resolve()?.resolvedRClassName() ?: return false
-    return rName == "R" || rName.endsWith(".R")
+private fun isAliasedResStringReceiver(receiver: KtDotQualifiedExpression): Boolean =
+    aliasedRClassFqn(receiver) != null
+
+/** FQN of the aliased `R` class behind a `<alias>.string`/`<alias>.plurals` receiver, else null. */
+private fun aliasedRClassFqn(receiver: KtDotQualifiedExpression): String? {
+    val typeSelector = receiver.selectorExpression as? KtNameReferenceExpression ?: return null
+    if (typeSelector.getReferencedName() !in setOf("string", "plurals")) return null
+    val head = receiver.receiverExpression as? KtNameReferenceExpression ?: return null
+    val rName = head.mainReference.resolve()?.resolvedRClassName() ?: return null
+    return rName.takeIf { it == "R" || it.endsWith(".R") }
 }
 
 /** Name an aliased/plain receiver head stands for: a class FQN, or a type alias's target text. */

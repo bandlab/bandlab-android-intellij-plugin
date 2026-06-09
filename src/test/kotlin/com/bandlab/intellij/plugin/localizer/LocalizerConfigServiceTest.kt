@@ -52,6 +52,27 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
         assertThat(service.targets()).isEmpty()
     }
 
+    fun testTargetsForRClassMapsToSingleModuleTarget() {
+        writeManifest(TWO_TARGETS)
+        assertThat(service.targetsForRClass("com.bandlab.audiostretch.common.strings.R").map { it.addKeysToFile })
+            .containsExactly("audiostretch/common-strings/src/main/res/values/strings.xml")
+    }
+
+    fun testTargetsForRClassReturnsEveryTargetUnderTheModule() {
+        writeManifest(COMMON_STRINGS_WITH_PLURALS)
+        assertThat(service.targetsForRClass("com.bandlab.common.strings.R").map { it.addKeysToFile })
+            .containsExactly(
+                "common/android/strings/src/main/res/values/strings.xml",
+                "common/android/strings/src/main/res/values/strings-plurals.xml",
+            ).inOrder()
+    }
+
+    fun testTargetsForUnmappedRClassIsEmpty() {
+        writeManifest(TWO_TARGETS)
+        assertThat(service.targetsForRClass("com.unknown.R")).isEmpty()
+        assertThat(service.targetsForRClass("R")).isEmpty()
+    }
+
     private fun writeManifest(content: String) {
         createFile("localizer/bandlab-localizer-config.toml", content)
     }
@@ -83,6 +104,22 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
 
             [file.translations]
             fr = "values-fr/strings.xml"
+        """.trimIndent()
+
+        // Two base files under the same common/android/strings module: singulars + plurals.
+        val COMMON_STRINGS_WITH_PLURALS = """
+            api-key = "k"
+            project-id = "1"
+
+            [[file]]
+            locale = "en"
+            base_path = "common/android/strings/src/main/res"
+            path = "values/strings.xml"
+
+            [[file]]
+            locale = "en"
+            base_path = "common/android/strings/src/main/res"
+            path = "values/strings-plurals.xml"
         """.trimIndent()
     }
 }

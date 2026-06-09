@@ -28,17 +28,50 @@ internal object LocalizerOps {
         }
     }
 
-    /** Add dialog (target picker + multi-key paste), [preselected] target defaulting to the first. */
+    /**
+     * Add dialog (target picker + multi-key paste) over the full target list. [preselected] picks
+     * the initial target; null forces an explicit choice (no default).
+     */
     fun add(project: Project, preselected: Target?) {
         val targets = project.service<LocalizerConfigService>().targets()
         if (targets.isEmpty()) return
-        val dialog = AddStringsDialog(project, targets, preselected ?: targets.first())
+        addWithDialog(project, dialogTargets = targets, preselected = preselected, initialKeys = "")
+    }
+
+    /**
+     * Add strings for an unresolved `R.string.X`/`R.plurals.X` reference. Resolves candidate targets
+     * from the reference's R class FQN: exactly one → run immediately; none → dialog over the full
+     * list (forced pick); several → dialog over just the candidates (forced pick). [key] pre-fills.
+     */
+    fun addForReference(project: Project, key: String, rClassFqn: String?) {
+        val service = project.service<LocalizerConfigService>()
+        if (service.targets().isEmpty()) return
+        val candidates = rClassFqn?.let { service.targetsForRClass(it) }.orEmpty()
+        when (candidates.size) {
+            1 -> addDirect(project, listOf(key), candidates.single())
+            0 -> addWithDialog(project, service.targets(), preselected = null, initialKeys = key)
+            else -> addWithDialog(project, candidates, preselected = null, initialKeys = key)
+        }
+    }
+
+    /** Add [keys] to [target] immediately, no dialog. */
+    fun addDirect(project: Project, keys: List<String>, target: Target) {
+        if (keys.isEmpty()) return
+        runAdd(project, keys, target)
+    }
+
+    private fun addWithDialog(project: Project, dialogTargets: List<Target>, preselected: Target?, initialKeys: String) {
+        val dialog = AddStringsDialog(project, dialogTargets, preselected, initialKeys)
         if (!dialog.showAndGet()) return
         val keys = dialog.keys
         if (keys.isEmpty()) return
+        runAdd(project, keys, dialog.selectedTarget)
+    }
+
+    private fun runAdd(project: Project, keys: List<String>, target: Target) {
         run(
             project, "Add Strings",
-            listOf("update-strings", "--add-keys", keys.joinToString(","), "--add-keys-to-file", dialog.selectedTarget.addKeysToFile),
+            listOf("update-strings", "--add-keys", keys.joinToString(","), "--add-keys-to-file", target.addKeysToFile),
         )
     }
 
@@ -53,9 +86,6 @@ internal object LocalizerOps {
         if (keys.isEmpty()) return
         run(project, "Delete Strings", listOf("update-strings", "--delete-keys", keys.joinToString(",")))
     }
-
-    fun addKey(project: Project, key: String) =
-        run(project, "Add Strings", listOf("update-strings", "--add-keys", key))
 
     fun deleteKey(project: Project, key: String) =
         run(project, "Delete String", listOf("update-strings", "--delete-keys", key))

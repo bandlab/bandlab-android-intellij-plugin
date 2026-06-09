@@ -1,6 +1,7 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
@@ -46,10 +47,13 @@ private fun addStringFixesFor(psi: PsiElement): List<IntentionAction> {
         ?: PsiTreeUtil.getParentOfType(psi, KtNameReferenceExpression::class.java, false)
         ?: return emptyList()
     val key = resStringKey(ref) ?: return emptyList()
-    return listOf(AddStringQuickFix(key))
+    return listOf(AddStringQuickFix(key, resStringRClassFqn(ref)))
 }
 
-private class AddStringQuickFix(private val key: String) : IntentionAction, Iconable {
+private class AddStringQuickFix(
+    private val key: String,
+    private val rClassFqn: String?,
+) : IntentionAction, Iconable, HighPriorityAction {
 
     override fun getIcon(flags: Int): Icon = AllIcons.General.Add
 
@@ -62,6 +66,6 @@ private class AddStringQuickFix(private val key: String) : IntentionAction, Icon
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = true
 
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
-        LocalizerOps.addKey(project, key)
+        LocalizerOps.addForReference(project, key, rClassFqn)
     }
 }
