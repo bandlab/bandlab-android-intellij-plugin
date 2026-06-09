@@ -6,6 +6,9 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
+import com.intellij.psi.util.CachedValueProvider
+import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import kotlin.io.path.readText
 import org.jetbrains.kotlin.idea.references.mainReference
@@ -32,7 +35,9 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
  * works for not-yet-defined keys too (the Add case).
  */
 internal fun resStringKeyAt(psiFile: PsiFile, offset: Int): String? {
-    val element = psiFile.findElementAt(offset) ?: psiFile.findElementAt(offset - 1) ?: return null
+    val element = psiFile.findElementAt(offset)
+        ?: (if (offset > 0) psiFile.findElementAt(offset - 1) else null)
+        ?: return null
     val ref = PsiTreeUtil.getParentOfType(element, KtNameReferenceExpression::class.java, false) ?: return null
     return resStringKey(ref)
 }
@@ -113,13 +118,21 @@ private fun PsiElement.resolvedRClassName(): String? = when (this) {
     else -> null
 }
 
-/** Every `<string>`/`<plurals>` key already defined across the manifest's base files. */
-internal fun localBaseKeys(project: Project): Set<String> {
-    val regex = Regex("<(?:string|plurals)\\s+name=\"([^\"]+)\"")
-    return project.service<LocalizerConfigService>().targets()
-        .flatMap { target ->
-            runCatching { target.baseFile.readText() }.getOrDefault("")
-                .let { text -> regex.findAll(text).map { it.groupValues[1] }.toList() }
-        }
-        .toSet()
-}
+/**
+ * Every `<string>`/`<plurals>` key already defined across the manifest's base files. Cached and
+ * recomputed only on a PSI change (covers edits to the base files) so a moving caret — which
+ * recomputes the intention list — doesn't re-read every base file from disk each time.
+ */
+internal fun localBaseKeys(project: Project): Set<String> =
+    CachedValuesManager.getManager(project).getCachedValue(project) {
+        // `name` is not necessarily the first attribute (e.g. `<string translatable="false" name="…">`),
+        // so match it anywhere inside the opening tag.
+        val regex = Regex("<(?:string|plurals)\\b[^>]*?\\bname\\s*=\\s*\"([^\"]+)\"")
+        val keys = project.service<LocalizerConfigService>().targets()
+            .flatMap { target ->
+                runCatching { target.baseFile.readText() }.getOrDefault("")
+                    .let { text -> regex.findAll(text).map { it.groupValues[1] }.toList() }
+            }
+            .toSet()
+        CachedValueProvider.Result.create(keys, PsiModificationTracker.MODIFICATION_COUNT)
+    }

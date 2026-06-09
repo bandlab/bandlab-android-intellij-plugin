@@ -58,6 +58,7 @@ object LocalizerRunner {
             handler.addProcessListener(object : ProcessListener {
                 override fun processTerminated(event: ProcessEvent) {
                     ApplicationManager.getApplication().invokeLater {
+                        if (project.isDisposed) return@invokeLater
                         val lfs = LocalFileSystem.getInstance()
                         val files = refresh.mapNotNull { runCatching { lfs.refreshAndFindFileByNioFile(it) }.getOrNull() }
                         if (files.isEmpty()) return@invokeLater

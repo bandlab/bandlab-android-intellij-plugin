@@ -57,7 +57,9 @@ class DeleteStringIntention : IntentionAction, Iconable, PriorityAction {
  * at the element's trailing boundary.
  */
 internal fun stringKeyAt(psiFile: PsiFile, offset: Int): String? {
-    val element = psiFile.findElementAt(offset) ?: psiFile.findElementAt(offset - 1) ?: return null
+    val element = psiFile.findElementAt(offset)
+        ?: (if (offset > 0) psiFile.findElementAt(offset - 1) else null)
+        ?: return null
     val tag = generateSequence(PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)) { it.parentTag }
         .firstOrNull { it.name == "string" || it.name == "plurals" } ?: return null
     return tag.getAttributeValue("name")?.takeIf { it.isNotBlank() }
