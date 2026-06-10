@@ -11,7 +11,7 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
 import com.android.ide.common.vectordrawable.VdPreview
-import com.intellij.util.SVGLoader
+import com.intellij.util.ImageLoader
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
@@ -121,7 +121,6 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
         return null
     }
 
-    @Suppress("UnstableApiUsage")
     private fun loadIcon(file: VirtualFile): Icon? {
         val image = when (file.extension?.lowercase()) {
             "xml" -> {
@@ -132,7 +131,7 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
                     StringBuilder(),
                 )
             }
-            "svg" -> file.inputStream.use { SVGLoader.load(it, 1.0f) }
+            "svg" -> ImageLoader.loadFromUrl(file.toNioPath().toUri().toURL())
             "png", "jpg", "jpeg", "webp" -> file.inputStream.use { ImageIO.read(it) }
             else -> return null
         } ?: return null
