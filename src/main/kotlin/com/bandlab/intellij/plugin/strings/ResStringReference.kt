@@ -1,6 +1,7 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.bandlab.intellij.plugin.localizer.isKnownRClass
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiClass
@@ -104,8 +105,9 @@ private fun aliasedRClassFqn(receiver: KtDotQualifiedExpression): String? {
  *
  * Resolved purely from the file's import (text only — no type resolution, so it holds without a
  * Gradle sync, when the other module isn't indexed): `import <pkg>.Strings` ⇒ R class `<pkg>.R`.
- * Requiring a matching import also avoids false positives on unrelated locals named `Strings`. An
- * unexpected import shape still detects the reference, with the target picked explicitly (bare `R`).
+ * Unlike the explicit `R.string.X` forms, a bare name like `Strings` is ambiguous, so this is gated
+ * on [isKnownRClass]: it's a string reference only when `<pkg>.R` is a known strings module. That
+ * keeps "Add string" from showing on an unrelated class named `Strings`.
  */
 private fun rClassFqnFromMemberAlias(name: KtNameReferenceExpression): String? {
     val referenced = name.getReferencedName()
@@ -113,10 +115,8 @@ private fun rClassFqnFromMemberAlias(name: KtNameReferenceExpression): String? {
     val imported = name.containingKtFile.importDirectives
         .firstOrNull { (it.aliasName ?: it.importedFqName?.shortName()?.asString()) == referenced }
         ?.importedFqName ?: return null
-    return when (imported.shortName().asString()) {
-        STRINGS_ALIAS, PLURALS_ALIAS -> imported.parent().asString() + ".R" // import <pkg>.Strings
-        else -> "R" // e.g. import <pkg>.R.string as Strings — detected, target picked explicitly
-    }
+    if (imported.shortName().asString() != referenced) return null // not `import <pkg>.Strings`
+    return (imported.parent().asString() + ".R").takeIf(::isKnownRClass)
 }
 
 private const val STRINGS_ALIAS = "Strings"

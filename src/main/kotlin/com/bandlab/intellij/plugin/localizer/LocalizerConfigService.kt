@@ -77,14 +77,20 @@ class LocalizerConfigService(private val project: Project) {
             .also { cache = stamp to it }
     }
 
-    private companion object {
-        // R class FQN -> module base_path prefix (matches the addKeysToFile path prefix).
-        // Hardcoded — devs are not expected to customize it.
-        val R_CLASS_TO_MODULE = mapOf(
-            "com.bandlab.audiostretch.common.strings.R" to "audiostretch/common-strings",
-            "com.bandlab.common.strings.R" to "common/android/strings",
-        )
-    }
 }
+
+/**
+ * R class FQN -> module base_path prefix (matches the `addKeysToFile` path prefix). Hardcoded — devs
+ * are not expected to customize it. Single source of truth for "which strings modules we know": both
+ * target resolution ([LocalizerConfigService.targetsForRClass]) and the bare-name `Strings`/`Plurals`
+ * reference detection ([isKnownRClass]) key off it.
+ */
+internal val R_CLASS_TO_MODULE = mapOf(
+    "com.bandlab.audiostretch.common.strings.R" to "audiostretch/common-strings",
+    "com.bandlab.common.strings.R" to "common/android/strings",
+)
+
+/** True when [rClassFqn] is one of our known strings modules' `R` classes. */
+internal fun isKnownRClass(rClassFqn: String): Boolean = rClassFqn in R_CLASS_TO_MODULE
 
 private fun VirtualFile.toNioPathOrNull(): Path? = runCatching { toNioPath() }.getOrNull()

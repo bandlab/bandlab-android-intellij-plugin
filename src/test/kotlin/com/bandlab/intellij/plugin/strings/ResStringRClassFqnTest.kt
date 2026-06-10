@@ -75,6 +75,15 @@ class ResStringRClassFqnTest : BasePlatformTestCase() {
         assertThat(rClassFqnAt(file, "foo")).isNull()
     }
 
+    fun testMemberAliasFromUnknownPackageIsNotDetected() {
+        // `Strings` imported from a package we don't recognize as a strings module: don't offer Add.
+        val file = myFixture.configureByText(
+            "Usage.kt",
+            "import com.acme.unrelated.Strings\nval x = Strings.foo",
+        )
+        assertThat(rClassFqnAt(file, "foo")).isNull()
+    }
+
     fun testNullWhenNotOnResourceReference() {
         val file = myFixture.configureByText("R.kt", "val welcome_title = 1")
         assertThat(rClassFqnAt(file, "welcome_title")).isNull()
