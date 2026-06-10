@@ -1,7 +1,7 @@
 package com.bandlab.intellij.plugin.template
 
 import com.bandlab.intellij.plugin.BandLabIcons
-import com.bandlab.intellij.plugin.utils.isComposeModule
+import com.bandlab.intellij.plugin.utils.hasComposePlugin
 import com.bandlab.intellij.plugin.utils.resolvePath
 import com.intellij.ide.actions.CreateFileAction
 import com.intellij.ide.ui.newItemPopup.NewItemPopupUtil
@@ -11,8 +11,6 @@ import com.intellij.openapi.actionSystem.DataContext
 import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
-import com.intellij.psi.util.PsiUtilCore
-import org.jetbrains.kotlin.idea.refactoring.psiElement
 import java.awt.event.InputEvent
 import java.util.function.Consumer
 
@@ -33,12 +31,13 @@ abstract class CreateSimpleFileAction(
                 val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
                 targetPath.contains("/src/main/")
             }
+
             Availability.ComposeOnly -> {
                 val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
                 if (!targetPath.contains("/src/main/")) return false
                 val project = CommonDataKeys.PROJECT.getData(dataContext) ?: return false
                 val virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext) ?: return false
-                project.isComposeModule(virtualFile)
+                project.hasComposePlugin(virtualFile)
             }
         }
     }

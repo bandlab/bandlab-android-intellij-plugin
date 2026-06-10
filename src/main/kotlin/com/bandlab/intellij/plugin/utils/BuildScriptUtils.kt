@@ -49,7 +49,7 @@ internal fun Project.isAndroidModule(projectFolderPath: String): Boolean {
 /**
  * @returns `true` if the nearest Gradle module containing [moduleDir] has the Compose plugin applied.
  */
-internal fun Project.isComposeModule(moduleDir: VirtualFile): Boolean {
+internal fun Project.hasComposePlugin(moduleDir: VirtualFile): Boolean {
     val projectRoot = basePath?.let { LocalFileSystem.getInstance().findFileByPath(it) } ?: return false
     val gradleProjectDir = GradleProjectUtils.findNearestGradleProject(projectRoot, moduleDir) ?: return false
     val buildScript = File(gradleProjectDir.path, buildScriptName())
