@@ -94,14 +94,28 @@ The plugin helps invoke these tasks in your IDE's Run tab:
 ---
 
 ## Localization Strings
-![localization strings](https://i.imgur.com/l7BLO2N.png)
 
 Add, update, and delete localization keys without hand-editing string resources — every action shells out to `./localizer/bandlab-localizer`, which owns merging, validation, and multi-locale output. Available whenever `bandlab-localizer-config.toml` resolves (no Gradle sync needed).
 
-- **Unresolved `R.string` / `R.plurals`** in a strings module (e.g. `audiostretch`, `common`)? Alt+Enter → **Add string** pulls it from Tolgee into the right file.
-- **In a `strings.xml` / `strings-plurals.xml`:** Alt+Enter on a key to **Update** or **Delete** just that one string — no full re-sync.
-- **From anywhere** (Find Action, or the Localizer menu/toolbar): **Add / Update / Delete Strings** into a target file you pick.
-- **Editing a managed file** raises a reminder to use the actions instead — a nudge, not a block: you can choose to edit by hand anyway (e.g. on a feature branch with un-finalized strings).
+**Add a key that doesn't exist yet.** On an unresolved reference (`Strings.foo` / `R.string.foo`), Alt+Enter → **Localizer: Add string** pulls it from Tolgee into the right module's file.
+
+![Add string from a new reference](docs/images/localization-add-reference.png)
+
+**Update an existing key in place.** On a defined `Strings.foo` / `R.string.foo` reference, Alt+Enter → **Localizer: Update** re-fetches just that key — no full re-sync.
+
+![Update an existing reference](docs/images/localization-update-reference.png)
+
+**Work from the string file.** Open a managed `strings.xml` / `strings-plurals.xml`: a banner links to the actions, and Alt+Enter on a `<string>` offers **Update** / **Delete** for that one key.
+
+![Managed string file — banner and context actions](docs/images/localization-strings-file.png)
+
+**Run an action from anywhere.** Find Action (or the Localizer menu) → **Update / Add / Delete Strings**, choosing the target file.
+
+![Localizer global actions](docs/images/localization-global-actions.png)
+
+**Hand-editing is gated, not blocked.** Typing into a managed file prompts you to use the actions instead; choose *Edit on this branch* to proceed anyway (remembered per Git branch — e.g. a feature branch with un-finalized strings).
+
+![Edit-warning dialog](docs/images/localization-edit-warning.png)
 
 ---
 
