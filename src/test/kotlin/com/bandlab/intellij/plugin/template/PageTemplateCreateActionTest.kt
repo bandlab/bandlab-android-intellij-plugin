@@ -3,20 +3,38 @@ package com.bandlab.intellij.plugin.template
 import com.bandlab.intellij.plugin.utils.readFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction
+import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
+import java.io.File
 
 class PageTemplateCreateActionTest : CreateTemplateActionTest() {
 
-    fun testIsAvailableOnlyForMainDirectories() {
+    fun testIsAvailableOnlyForMainDirectoriesWithComposePlugin() {
         val action = PageTemplateCreateAction()
-        val mainDirectory = createProjectDirectory("src/main/kotlin/com/bandlab/page")
-        val androidTestDirectory = createProjectDirectory("src/androidTest/kotlin/com/bandlab/page")
-        val nonSourceDirectory = createProjectDirectory("docs")
+        val mainDirectory = createProjectDirectory("compose-module/src/main/kotlin/com/bandlab/page")
+        val androidTestDirectory = createProjectDirectory("compose-module/src/androidTest/kotlin/com/bandlab/page")
+        val nonSourceDirectory = createProjectDirectory("compose-module/docs")
+        createBuildGradle("compose-module", withCompose = true)
 
         assertThat(action.invokeIsAvailable(createDataContext(mainDirectory))).isTrue()
         assertThat(action.invokeIsAvailable(createDataContext(androidTestDirectory))).isFalse()
         assertThat(action.invokeIsAvailable(createDataContext(nonSourceDirectory))).isFalse()
+    }
+
+    fun testIsNotAvailableForModuleWithoutComposePlugin() {
+        val action = PageTemplateCreateAction()
+        val mainDirectory = createProjectDirectory("no-compose-module/src/main/kotlin/com/bandlab/page")
+        createBuildGradle("no-compose-module", withCompose = false)
+
+        assertThat(action.invokeIsAvailable(createDataContext(mainDirectory))).isFalse()
+    }
+
+    fun testIsNotAvailableWithoutBuildScript() {
+        val action = PageTemplateCreateAction()
+        val mainDirectory = createProjectDirectory("src/main/kotlin/com/bandlab/page")
+
+        assertThat(action.invokeIsAvailable(createDataContext(mainDirectory))).isFalse()
     }
 
     fun testCreateGeneratesPageAndViewModelFiles() {
@@ -92,5 +110,28 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
     private fun PsiDirectory.readFile(fileName: String): String? {
         val path = virtualFile.findChild(fileName)?.path ?: return null
         return project.readFile(path, isAbsolute = true)
+    }
+
+    private fun createBuildGradle(moduleDir: String, withCompose: Boolean) {
+        val baseFile = File(requireNotNull(project.basePath))
+        val buildGradle = File(baseFile, "$moduleDir/build.gradle")
+        val content = if (withCompose) {
+            """
+            plugins {
+                alias(bandlab.plugins.library.android)
+                alias(bandlab.plugins.compose)
+            }
+            """.trimIndent()
+        } else {
+            """
+            plugins {
+                alias(bandlab.plugins.library.android)
+            }
+            """.trimIndent()
+        }
+        buildGradle.writeText(content)
+
+        val moduleVirtualDir = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(File(baseFile, moduleDir))
+        moduleVirtualDir?.refresh(false, true)
     }
 }
