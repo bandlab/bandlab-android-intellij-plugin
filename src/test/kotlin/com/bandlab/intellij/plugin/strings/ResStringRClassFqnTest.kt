@@ -51,6 +51,30 @@ class ResStringRClassFqnTest : BasePlatformTestCase() {
         assertThat(rClassFqnAt(file, "foo")).isEqualTo("com.app.R")
     }
 
+    fun testMemberAliasResolvesToSamePackageRFromImport() {
+        // bandlab convention: `Strings` aliases `R.string` in the strings module; `<pkg>.Strings` → `<pkg>.R`.
+        // Resolved from the import text alone — no need for com.bandlab.common.strings to be indexed.
+        val file = myFixture.configureByText(
+            "Usage.kt",
+            "import com.bandlab.common.strings.Strings\nval x = Strings.new_tool_label",
+        )
+        assertThat(rClassFqnAt(file, "new_tool_label")).isEqualTo("com.bandlab.common.strings.R")
+    }
+
+    fun testPluralsMemberAliasResolvesToSamePackageR() {
+        val file = myFixture.configureByText(
+            "Usage.kt",
+            "import com.bandlab.common.strings.Plurals\nval x = Plurals.songs",
+        )
+        assertThat(rClassFqnAt(file, "songs")).isEqualTo("com.bandlab.common.strings.R")
+    }
+
+    fun testMemberAliasWithoutMatchingImportIsNotDetected() {
+        // A local symbol named `Strings` with no strings-module import must not false-positive.
+        val file = myFixture.configureByText("Usage.kt", "object Strings { val foo = 0 }\nval x = Strings.foo")
+        assertThat(rClassFqnAt(file, "foo")).isNull()
+    }
+
     fun testNullWhenNotOnResourceReference() {
         val file = myFixture.configureByText("R.kt", "val welcome_title = 1")
         assertThat(rClassFqnAt(file, "welcome_title")).isNull()

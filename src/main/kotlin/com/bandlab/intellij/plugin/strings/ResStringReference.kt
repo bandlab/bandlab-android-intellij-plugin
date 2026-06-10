@@ -14,6 +14,7 @@ import kotlin.io.path.readText
 import org.jetbrains.kotlin.idea.references.mainReference
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
+import org.jetbrains.kotlin.psi.KtExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtTypeAlias
 
@@ -26,13 +27,13 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
 /**
  * Referenced name of an Android string/plurals resource reference (`R.string.X` / `R.plurals.X`)
  * when [offset] sits on the trailing name part, else null. Recognizes the reference in every form:
- * bare `R.string.X`, package-qualified `com.app.R.string.X`, and **type-aliased** `appR.string.X`
- * (`typealias appR = com.app.R`). The `offset - 1` fallback covers a caret at the name's trailing
- * boundary.
+ * bare `R.string.X`, package-qualified `com.app.R.string.X`, the `R`-class alias `appR.string.X`
+ * (`typealias appR = com.app.R`), and the **member alias** `Strings.X` (`typealias Strings =
+ * R.string`) — the dominant bandlab-android form. The `offset - 1` fallback covers a caret at the
+ * name's trailing boundary.
  *
- * The bare/qualified forms are recognized textually; the aliased forms can't be — a text check can't
- * see through `appR` — so they are resolved. The key (`X`) itself never needs to resolve, so this
- * works for not-yet-defined keys too (the Add case).
+ * The key (`X`) itself never needs to resolve, so this works for not-yet-defined keys too (the Add
+ * case). See [resStringRClassFqn] for how each form maps to its `R` class.
  */
 internal fun resStringKeyAt(psiFile: PsiFile, offset: Int): String? {
     val element = psiFile.findElementAt(offset)
@@ -44,43 +45,38 @@ internal fun resStringKeyAt(psiFile: PsiFile, offset: Int): String? {
 
 /** Resource key of [ref] when it is the trailing name of an `R.string.X`/`R.plurals.X` reference. */
 internal fun resStringKey(ref: KtNameReferenceExpression): String? =
-    if (resStringReceiver(ref) != null) ref.getReferencedName() else null
+    if (resStringRClassFqn(ref) != null) ref.getReferencedName() else null
 
 /**
  * Fully-qualified name of the `R` class behind [ref] when it is the trailing name of an
- * `R.string.X`/`R.plurals.X` reference, else null. Parallel to [resStringKey]:
- * - bare `R.string.X` → `"R"` (won't match any module mapping, which is fine),
+ * `R.string.X`/`R.plurals.X` reference, else null. Doubles as the detection predicate for
+ * [resStringKey] (non-null ⇔ [ref] is a string/plurals key). Covers every form:
+ * - bare `R.string.X` → `"R"` (won't match a module mapping, which is fine),
  * - package-qualified `com.app.R.string.X` → `"com.app.R"`,
- * - import-aliased / typealiased (`appR.string.X`) → the resolved R class FQN (e.g. `com.app.R`).
+ * - `R`-class alias `appR.string.X` (`import com.app.R as appR` / `typealias appR = com.app.R`) → resolved R FQN,
+ * - **member alias** `Strings.X` (`typealias Strings = R.string` / `import com.app.R.string as Strings`) →
+ *   resolved R FQN. This last form is the common one in bandlab-android.
  */
 internal fun resStringRClassFqn(ref: KtNameReferenceExpression): String? {
-    val receiver = resStringReceiver(ref) ?: return null
-    // [receiver] is the `<R>.string` / `<R>.plurals` expression; drop the trailing selector.
-    rClassFqnFromText(receiver.text)?.let { return it }
-    return aliasedRClassFqn(receiver)
+    val qualified = ref.parent as? KtDotQualifiedExpression ?: return null
+    if (qualified.selectorExpression !== ref) return null // ref must be the trailing name
+    return rClassFqnOfStringReceiver(qualified.receiverExpression)
 }
 
 /**
- * The `<R>.string`/`<R>.plurals` qualified receiver of [ref] when [ref] is the trailing name of an
- * `R.string.X`/`R.plurals.X` reference (in any form: bare, package-qualified, or aliased), else
- * null. Shared classifier for [resStringKey] and [resStringRClassFqn].
+ * R class FQN when [receiver] is the receiver of a string/plurals key access, else null. Two shapes:
+ * - `<R>.string` / `<R>.plurals` — bare/qualified text, or an alias head resolving to an `R` class;
+ * - a plain name aliasing the `R.string`/`R.plurals` member itself (`typealias Strings = R.string`).
  */
-private fun resStringReceiver(ref: KtNameReferenceExpression): KtDotQualifiedExpression? {
-    val qualified = ref.parent as? KtDotQualifiedExpression ?: return null
-    if (qualified.selectorExpression !== ref) return null // ref must be the trailing name
-    val receiver = qualified.receiverExpression
-    val typeQualified = receiver as? KtDotQualifiedExpression ?: return null
-    return if (isResStringReceiverText(receiver.text) || isAliasedResStringReceiver(typeQualified)) {
-        typeQualified
-    } else {
-        null
+private fun rClassFqnOfStringReceiver(receiver: KtExpression): String? = when (receiver) {
+    is KtDotQualifiedExpression -> {
+        val selector = (receiver.selectorExpression as? KtNameReferenceExpression)?.getReferencedName()
+        if (selector != "string" && selector != "plurals") null
+        else rClassFqnFromText(receiver.text) ?: aliasedRClassFqn(receiver)
     }
+    is KtNameReferenceExpression -> rClassFqnFromMemberAlias(receiver)
+    else -> null
 }
-
-/** Recognizes a bare or package-qualified `R.string`/`R.plurals` receiver by text. */
-private fun isResStringReceiverText(receiver: String): Boolean =
-    receiver == "R.string" || receiver == "R.plurals" ||
-        receiver.endsWith(".R.string") || receiver.endsWith(".R.plurals")
 
 /** R class FQN for a bare/package-qualified `R.string`/`R.plurals` receiver text, else null. */
 private fun rClassFqnFromText(receiver: String): String? = when {
@@ -91,27 +87,43 @@ private fun rClassFqnFromText(receiver: String): String? = when {
 }
 
 /**
- * Recognizes an aliased receiver `<alias>.string`/`<alias>.plurals` where `<alias>` stands for an
- * `R` class — covering both an import alias (`import com.app.R as appR`, resolves straight to the
- * class) and a top-level `typealias appR = com.app.R`. The head reference is resolved (this works
- * even when the aliased *member* doesn't resolve — e.g. in tests or before indexing) and its `R`
- * name checked. The bandlab-android convention is import aliases (`audiostretchCommonStringsR`) that
- * disambiguate the several per-module `R` classes.
+ * R class FQN behind an aliased `<alias>.string`/`<alias>.plurals` receiver where `<alias>` stands
+ * for an `R` class — `import com.app.R as appR` or `typealias appR = com.app.R`. The head reference
+ * is resolved (works even when the aliased *member* doesn't resolve — e.g. before indexing).
  */
-private fun isAliasedResStringReceiver(receiver: KtDotQualifiedExpression): Boolean =
-    aliasedRClassFqn(receiver) != null
-
-/** FQN of the aliased `R` class behind a `<alias>.string`/`<alias>.plurals` receiver, else null. */
 private fun aliasedRClassFqn(receiver: KtDotQualifiedExpression): String? {
-    val typeSelector = receiver.selectorExpression as? KtNameReferenceExpression ?: return null
-    if (typeSelector.getReferencedName() !in setOf("string", "plurals")) return null
     val head = receiver.receiverExpression as? KtNameReferenceExpression ?: return null
-    val rName = head.mainReference.resolve()?.resolvedRClassName() ?: return null
-    return rName.takeIf { it == "R" || it.endsWith(".R") }
+    val fqn = head.mainReference.resolve()?.resolvedFqnText() ?: return null
+    return fqn.takeIf { it == "R" || it.endsWith(".R") }
 }
 
-/** Name an aliased/plain receiver head stands for: a class FQN, or a type alias's target text. */
-private fun PsiElement.resolvedRClassName(): String? = when (this) {
+/**
+ * R class FQN for the bandlab convention where a strings module exposes `Strings` (= `R.string`) and
+ * `Plurals` (= `R.plurals`) as siblings of `R` in the same package, referenced as `Strings.key`.
+ * This is the dominant form in bandlab-android.
+ *
+ * Resolved purely from the file's import (text only — no type resolution, so it holds without a
+ * Gradle sync, when the other module isn't indexed): `import <pkg>.Strings` ⇒ R class `<pkg>.R`.
+ * Requiring a matching import also avoids false positives on unrelated locals named `Strings`. An
+ * unexpected import shape still detects the reference, with the target picked explicitly (bare `R`).
+ */
+private fun rClassFqnFromMemberAlias(name: KtNameReferenceExpression): String? {
+    val referenced = name.getReferencedName()
+    if (referenced != STRINGS_ALIAS && referenced != PLURALS_ALIAS) return null
+    val imported = name.containingKtFile.importDirectives
+        .firstOrNull { (it.aliasName ?: it.importedFqName?.shortName()?.asString()) == referenced }
+        ?.importedFqName ?: return null
+    return when (imported.shortName().asString()) {
+        STRINGS_ALIAS, PLURALS_ALIAS -> imported.parent().asString() + ".R" // import <pkg>.Strings
+        else -> "R" // e.g. import <pkg>.R.string as Strings — detected, target picked explicitly
+    }
+}
+
+private const val STRINGS_ALIAS = "Strings"
+private const val PLURALS_ALIAS = "Plurals"
+
+/** FQN/text a resolved declaration stands for: a class/object FQN, or a type alias's target text. */
+private fun PsiElement.resolvedFqnText(): String? = when (this) {
     is KtTypeAlias -> getTypeReference()?.text
     is PsiClass -> qualifiedName
     is KtClassOrObject -> fqName?.asString()
