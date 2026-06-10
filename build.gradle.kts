@@ -30,9 +30,6 @@ repositories {
     mavenCentral()
     google()
 
-    // :config and :utils are vendored as prebuilt jars under libs/ (see dependencies), so the
-    // plugin build needs no access to the private bandlab artifactory and no credentials.
-
     // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
         defaultRepositories()
