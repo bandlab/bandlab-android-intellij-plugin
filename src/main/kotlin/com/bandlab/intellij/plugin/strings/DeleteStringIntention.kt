@@ -1,8 +1,8 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.IntentionAction
-import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.components.service
 import com.intellij.openapi.editor.Editor
@@ -19,12 +19,12 @@ import javax.swing.Icon
  * position inside the element (tag, `name` attribute, or text) — it resolves the enclosing keyed
  * element. PSI-only, so it works regardless of Gradle sync.
  */
-class DeleteStringIntention : IntentionAction, Iconable, PriorityAction {
+class DeleteStringIntention : IntentionAction, Iconable, HighPriorityAction {
 
     private var key: String? = null
 
-    // TOP so Update + Delete group together at the top of the intentions list.
-    override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
+    // HIGH (not TOP) so Delete sits just below the TOP-priority Update in the ⌥⏎ popup. Both still
+    // lead the intentions group; equal priority would tie-break alphabetically and put Delete first.
 
     override fun getIcon(flags: Int): Icon = AllIcons.General.Remove
 
