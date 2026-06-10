@@ -17,7 +17,7 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
     text = "Page Template",
     description = "Create a Page template with latest convention.",
     inputHint = "Feature Name (Ex: UserLibrary)",
-    availability = Availability.MainOnly
+    availability = Availability.ComposeOnly
 ) {
     private var selectedTemplateIndex: Int = 0
     private val isIncludeNavKey: Boolean get() = selectedTemplateIndex == 1
