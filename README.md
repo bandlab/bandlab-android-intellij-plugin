@@ -93,14 +93,15 @@ The plugin helps invoke these tasks in your IDE's Run tab:
 
 ---
 
-## Update Localized Strings
-![update strings](https://i.imgur.com/l7BLO2N.png)
+## Localization Strings
+![localization strings](https://i.imgur.com/l7BLO2N.png)
 
-Update all localized strings for a given module from Tolgee. There are multiple entry points:
-1. Right-click on a module that contains string resources.
-2. Right-click (or Shift+Cmd+A) on a strings.xml, or strings-plurals.xml file.
+Add, update, and delete localization keys without hand-editing string resources — every action shells out to `./localizer/bandlab-localizer`, which owns merging, validation, and multi-locale output. Available whenever `bandlab-localizer-config.toml` resolves (no Gradle sync needed).
 
-The plugin helps invoke `./localizer/bandlab-localizer update-strings` in your IDE's termial tab.
+- **Unresolved `R.string` / `R.plurals`** in a strings module (e.g. `audiostretch`, `common`)? Alt+Enter → **Add string** pulls it from Tolgee into the right file.
+- **In a `strings.xml` / `strings-plurals.xml`:** Alt+Enter on a key to **Update** or **Delete** just that one string — no full re-sync.
+- **From anywhere** (Find Action, or the Localizer menu/toolbar): **Add / Update / Delete Strings** into a target file you pick.
+- **Editing a managed file** raises a reminder to use the actions instead — a nudge, not a block: you can choose to edit by hand anyway (e.g. on a feature branch with un-finalized strings).
 
 ---
 
