@@ -24,7 +24,8 @@ class UpdateStringIntention : IntentionAction, Iconable, PriorityAction {
 
     private var key: String? = null
 
-    // TOP so Update sorts above the HIGH-priority Delete intention in the ⌥⏎ popup.
+    // TOP, matching Delete, so the two group together at the top of the ⌥⏎ list (see
+    // DeleteStringIntention for why we accept the alphabetical Delete-above-Update order).
     override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
 
     override fun getIcon(flags: Int): Icon = AllIcons.Actions.Refresh

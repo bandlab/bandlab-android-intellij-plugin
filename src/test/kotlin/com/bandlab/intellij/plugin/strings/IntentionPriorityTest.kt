@@ -1,15 +1,14 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.intention.HighPriorityAction
 import com.intellij.codeInsight.intention.PriorityAction
 import org.junit.Test
 
 /**
- * Guards the ⌥⏎ ordering of the Localizer intentions. Update must sit above Delete; giving both the
- * same priority ties and tie-breaks alphabetically — putting "Delete" first (the regression this
- * catches). Update is `PriorityAction.TOP`, Delete is `HighPriorityAction` (HIGH); TOP sorts above
- * HIGH, so both still lead the list in the right order.
+ * Both Localizer intentions are `PriorityAction.TOP` so they group together at the top of the ⌥⏎
+ * list rather than being split apart by other TOP-priority actions (e.g. Android's "Open editor").
+ * IntelliJ tie-breaks equal priority alphabetically, so the visible order is Delete then Update —
+ * an accepted trade for keeping them adjacent. This guards both staying TOP.
  */
 class IntentionPriorityTest {
 
@@ -20,9 +19,8 @@ class IntentionPriorityTest {
     }
 
     @Test
-    fun deleteIsHighPriorityNotTop() {
-        // HighPriorityAction (not PriorityAction.TOP) keeps Delete just below Update. The bug had
-        // Delete as PriorityAction.TOP and not HighPriorityAction, which this assertion fails on.
-        assertThat(DeleteStringIntention()).isInstanceOf(HighPriorityAction::class.java)
+    fun deleteIsTopPriority() {
+        assertThat((DeleteStringIntention() as PriorityAction).priority)
+            .isEqualTo(PriorityAction.Priority.TOP)
     }
 }
