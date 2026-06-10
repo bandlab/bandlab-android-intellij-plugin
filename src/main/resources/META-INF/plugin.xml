@@ -48,9 +48,15 @@
     </extensions>
 
     <actions>
+        <action id="ComposableTemplateCreateAction"
+                class="com.bandlab.intellij.plugin.template.ComposableTemplateCreateAction"
+                text="Composable Template">
+            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="Android.CreateResourcesActionGroup"/>
+        </action>
+
         <action id="PageTemplateCreateAction"
                 class="com.bandlab.intellij.plugin.template.PageTemplateCreateAction" text="Page Template">
-            <add-to-group group-id="NewGroup" anchor="before" relative-to-action="Android.CreateResourcesActionGroup"/>
+            <add-to-group group-id="NewGroup" anchor="after" relative-to-action="ComposableTemplateCreateAction"/>
         </action>
 
         <action id="TwoLevelInjectionTemplateCreateAction"

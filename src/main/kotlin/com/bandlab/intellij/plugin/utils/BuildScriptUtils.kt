@@ -2,12 +2,15 @@ package com.bandlab.intellij.plugin.utils
 
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileManager
 import java.io.File
 
 private const val BUILD_GRADLE = "build.gradle"
 private const val BUILD_GRADLE_KTS = "build.gradle.kts"
 private const val ANDROID_LIBRARY_PLUGIN_ID = "bandlab.plugins.library.android"
+private const val COMPOSE_PLUGIN_ID = "bandlab.plugins.compose"
 
 /**
  * @returns `true` if the project is using Kotlin DSL. Default to 'false'
@@ -41,6 +44,17 @@ internal fun Project.isAndroidModule(projectFolderPath: String): Boolean {
     val buildScript = File(projectFolder, buildScriptName())
     if (!buildScript.exists()) return false
     return buildScript.readText().contains(ANDROID_LIBRARY_PLUGIN_ID)
+}
+
+/**
+ * @returns `true` if the nearest Gradle module containing [moduleDir] has the Compose plugin applied.
+ */
+internal fun Project.hasComposePlugin(moduleDir: VirtualFile): Boolean {
+    val projectRoot = basePath?.let { LocalFileSystem.getInstance().findFileByPath(it) } ?: return false
+    val gradleProjectDir = GradleProjectUtils.findNearestGradleProject(projectRoot, moduleDir) ?: return false
+    val buildScript = File(gradleProjectDir.path, buildScriptName())
+    if (!buildScript.exists()) return false
+    return buildScript.readText().contains(COMPOSE_PLUGIN_ID)
 }
 
 private fun Project.resolveProjectFolder(projectFolderPath: String): File {

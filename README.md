@@ -25,10 +25,7 @@ Please note that this plugin is not available for external use; we've open-sourc
 ---
 
 ## Templates
-![Templates](https://i.imgur.com/CGQc12d.png)
-
-### Activity Template
-Generates Activity, ViewModel, and Manifest per latest conventions.
+![Templates](https://i.imgur.com/qX16IK9.png)
 
 ### Page Template
 Generates Page and ViewModel.
@@ -42,6 +39,40 @@ interface Page<ViewModel : Any> {
     fun Content(viewModel: ViewModel)
 }
 ```
+
+### Composable Template
+Generates a Composable with a State class and Preview.
+
+```kotlin
+@Immutable
+data class ProfileHeaderState(
+    // TODO: Params you need for your Composable state
+) {
+    companion object {
+        @ComposePreviewApi
+        fun preview(): ProfileHeaderState = ProfileHeaderState(
+            // TODO: Default values for the state preview
+        )
+    }
+}
+
+@Composable
+internal fun ProfileHeader(
+    state: ProfileHeaderState,
+    modifier: Modifier = Modifier,
+) {
+    
+}
+
+@PreviewDayNight
+@Composable
+private fun ProfileHeader_Preview() {
+    ProfileHeader(
+        state = ProfileHeaderState.preview(),
+    )
+}
+```
+_Notes: `@ComposePreviewApi` is a custom lint check to make sure you don't use the preview state in production code._
 
 ### Two-level Injection template
 Generates an interface and an impl for two-level injection.
