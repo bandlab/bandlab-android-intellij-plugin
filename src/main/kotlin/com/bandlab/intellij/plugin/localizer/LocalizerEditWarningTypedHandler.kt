@@ -21,7 +21,8 @@ import com.intellij.psi.PsiFile
  * - Cancel (the dialog reappears on the next keystroke). The Localizer actions stay reachable via the
  *   string context actions (⌥⏎) and the editor toolbar.
  *
- * Opt-out entirely via Settings > Tools > Localizer.
+ * Reminding on every fresh branch is deliberate — it builds the habit of going through the actions
+ * rather than hand-editing. There's intentionally no global opt-out; the per-branch allow covers it.
  */
 class LocalizerEditWarningTypedHandler : TypedHandlerDelegate() {
 
@@ -32,7 +33,6 @@ class LocalizerEditWarningTypedHandler : TypedHandlerDelegate() {
         file: PsiFile,
         fileType: FileType,
     ): Result {
-        if (!LocalizerSettings.getInstance().warnOnEditingManagedFile) return Result.CONTINUE
         val vFile = file.virtualFile ?: return Result.CONTINUE
         if (!project.service<LocalizerConfigService>().isManagedStringFile(vFile)) return Result.CONTINUE
 

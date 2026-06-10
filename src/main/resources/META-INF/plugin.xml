@@ -57,10 +57,6 @@
         <editorNotificationProvider
                 implementation="com.bandlab.intellij.plugin.strings.LocalizerStringFileNotificationProvider"/>
         <typedHandler implementation="com.bandlab.intellij.plugin.localizer.LocalizerEditWarningTypedHandler"/>
-        <applicationConfigurable parentId="tools"
-                                 instance="com.bandlab.intellij.plugin.localizer.LocalizerSettingsConfigurable"
-                                 id="settings.bandlab.localizer"
-                                 displayName="Localizer"/>
     </extensions>
 
     <!-- Adds "Localizer: Add string" to the red error-fix section on an unresolved R.string/R.plurals
