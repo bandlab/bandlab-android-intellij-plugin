@@ -21,6 +21,11 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
+        <!-- UikitIcons gutter icon preview -->
+        <codeInsight.lineMarkerProvider
+                language="kotlin"
+                implementationClass="com.bandlab.intellij.plugin.resources.UikitIconLineMarkerProvider"/>
+
         <!-- Gradle project path support -->
         <completion.contributor
                 language="Groovy"

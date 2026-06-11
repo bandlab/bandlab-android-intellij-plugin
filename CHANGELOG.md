@@ -5,6 +5,7 @@
 ## Unreleased
 ### Added
 - Add Composable template action
+- Add gutter icon previews for `UikitIcons` drawable references
 
 ## [2.4.1] - 2026-06-03
 ### Changed
