@@ -54,10 +54,10 @@ dependencies {
         composeUI()
     }
 
-    // bandlab-localizer config model, vendored as a prebuilt jar (built from localizer 3.2 code).
+    // bandlab-localizer config model, vendored as a prebuilt jar (config 3.2.0 release artifact).
     // file() deps carry no transitive metadata, so config's runtime deps are declared explicitly.
     implementation(files("libs/config.jar"))
-    implementation("app.gildor:ktoml-file:0.8.0")
+    implementation("app.gildor:ktoml-file:0.8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
 
     testImplementation(libs.junit)
