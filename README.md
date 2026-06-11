@@ -139,7 +139,7 @@ The plugin helps invoke `./localizer/bandlab-localizer update-strings` in your I
 
 Shows the drawable icon inline in the editor gutter when referencing `UikitIcons` properties, including extension properties that delegate to `UikitIcons`.
 
-![Add string from a new reference](docs/images/uikit-icons-gutter-preview.png)
+![UikitIcons gutter preview](docs/images/uikit-icons-gutter-preview.png)
 
 ---
 
