@@ -45,7 +45,7 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
 
         val propertyName = nameRef.getReferencedName()
         val drawableName = when {
-            dotExpr.receiverExpression.text == UIKIT_ICONS -> resolveDrawableName(nameRef, propertyName)
+            dotExpr.receiverExpression.text == UIKIT_ICONS -> resolveDrawableName(nameRef)
             else -> resolveViaExtensionDelegate(nameRef)
         } ?: return null
 
@@ -64,12 +64,9 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
         )
     }
 
-    private fun resolveDrawableName(nameRef: KtNameReferenceExpression, propertyName: String): String {
-        val resolved = nameRef.reference?.resolve() as? KtProperty
-        if (resolved != null) {
-            extractFromGetter(resolved)?.let { return it }
-        }
-        return propertyName.toDrawableName()
+    private fun resolveDrawableName(nameRef: KtNameReferenceExpression): String? {
+        val resolved = nameRef.reference?.resolve() as? KtProperty ?: return null
+        return extractFromGetter(resolved)
     }
 
     // Handles extension properties that delegate to UikitIcons, e.g.:
@@ -78,10 +75,8 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
         val resolved = nameRef.reference?.resolve() as? KtProperty ?: return null
         val getterBody = resolved.getter?.bodyExpression as? KtDotQualifiedExpression ?: return null
         if (getterBody.receiverExpression.text != UIKIT_ICONS) return null
-        val uikitPropName = getterBody.selectorExpression?.text ?: return null
-        val uikitNameRef = getterBody.selectorExpression as? KtNameReferenceExpression
-        return if (uikitNameRef != null) resolveDrawableName(uikitNameRef, uikitPropName)
-               else uikitPropName.toDrawableName()
+        val uikitNameRef = getterBody.selectorExpression as? KtNameReferenceExpression ?: return null
+        return resolveDrawableName(uikitNameRef)
     }
 
     /**
@@ -101,24 +96,19 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
         }
     }
 
-    private fun String.toDrawableName(): String =
-        "ic_" + replace(Regex("([a-z])([A-Z])"), "$1_$2").lowercase()
-
     private fun findIcon(project: Project, drawableName: String): Icon? {
-        for (ext in listOf("xml", "svg", "png", "jpg", "webp")) {
-            val file = FilenameIndex.getVirtualFilesByName(
-                "$drawableName.$ext",
-                GlobalSearchScope.projectScope(project),
-            ).firstOrNull { "/drawable" in it.path } ?: continue
-
-            return try {
-                loadIcon(file)
-            } catch (e: Exception) {
-                LOG.warn("Failed to load icon from ${file.path}", e)
-                null
+        val scope = GlobalSearchScope.projectScope(project)
+        return listOf("xml", "svg", "png", "jpg", "webp")
+            .flatMap { ext -> FilenameIndex.getVirtualFilesByName("$drawableName.$ext", scope) }
+            .firstOrNull { "/drawable" in it.path }
+            ?.let { file ->
+                try {
+                    loadIcon(file)
+                } catch (e: Exception) {
+                    LOG.warn("Failed to load icon from ${file.path}", e)
+                    null
+                }
             }
-        }
-        return null
     }
 
     private fun loadIcon(file: VirtualFile): Icon? {

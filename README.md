@@ -135,6 +135,14 @@ The plugin helps invoke `./localizer/bandlab-localizer update-strings` in your I
 
 ---
 
+## UikitIcons Gutter Previews
+
+Shows the drawable icon inline in the editor gutter when referencing `UikitIcons` properties, including extension properties that delegate to `UikitIcons`.
+
+![Add string from a new reference](docs/images/uikit-icons-gutter-preview.png)
+
+---
+
 ## build.gradle Actions
 ![build.gradle actions](https://i.imgur.com/MW2zART.png)
 
