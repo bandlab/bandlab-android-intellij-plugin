@@ -7,6 +7,9 @@
 - Add Composable template action
 - Add gutter icon previews for `UikitIcons` drawable references
 
+### Changed
+- Remove `Context` from Page constructor in the template
+
 ## [2.4.1] - 2026-06-03
 ### Changed
 - Update Strings: Support Localizer 3.0
