@@ -23,7 +23,7 @@ import kotlin.io.path.getLastModifiedTime
 class LocalizerConfigService(private val project: Project) {
 
     /**
-     * One `[[file]]` base file. [addKeysToFile] is the value to pass to the CLI's `--add-keys-to-file`
+     * One `[[file]]` base file. [addKeysToFile] is the value to pass to the CLI's `--target-file`
      * (the manifest's resolved, base_path-folded path); [baseFile] is its absolute location.
      */
     data class Target(val addKeysToFile: String, val baseFile: Path)

@@ -10,7 +10,7 @@ import com.intellij.openapi.components.service
 
 /**
  * "Localizer: Add Strings" — pulls existing Tolgee keys into a target string file via
- * `update-strings --add-keys --add-keys-to-file`. The target is always explicit: invoked from a
+ * `update-strings --add-keys --target-file`. The target is always explicit: invoked from a
  * string file's context menu it pre-selects that file's `[[file]]` group; globally it defaults to
  * the first base file. Targeted — never a full sync.
  */

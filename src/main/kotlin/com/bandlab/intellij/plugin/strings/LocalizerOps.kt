@@ -71,7 +71,7 @@ internal object LocalizerOps {
     private fun runAdd(project: Project, keys: List<String>, target: Target) {
         run(
             project, "Add Strings",
-            listOf("update-strings", "--add-keys", keys.joinToString(","), "--add-keys-to-file", target.addKeysToFile),
+            listOf("update-strings", "--add-keys", keys.joinToString(","), "--target-file", target.addKeysToFile),
         )
     }
 
