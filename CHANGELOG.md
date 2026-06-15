@@ -3,9 +3,12 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.5.0] - 2026-06-15
 ### Added
 - Add Composable template action
 - Add gutter icon previews for `UikitIcons` drawable references
+- New set of localization string actions
 
 ### Changed
 - Remove `Context` from Page constructor in the template
