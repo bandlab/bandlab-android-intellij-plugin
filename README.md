@@ -124,14 +124,29 @@ The plugin helps invoke these tasks in your IDE's Run tab:
 
 ---
 
-## Update Localized Strings
-![update strings](https://i.imgur.com/l7BLO2N.png)
+## Localization Strings
 
-Update all localized strings for a given module from Tolgee. There are multiple entry points:
-1. Right-click on a module that contains string resources.
-2. Right-click (or Shift+Cmd+A) on a strings.xml, or strings-plurals.xml file.
+Add, update, and delete localization keys without hand-editing string resources — every action shells out to `./localizer/bandlab-localizer`, which owns merging, validation, and multi-locale output. Available whenever `bandlab-localizer-config.toml` resolves (no Gradle sync needed).
 
-The plugin helps invoke `./localizer/bandlab-localizer update-strings` in your IDE's termial tab.
+**Add a key that doesn't exist yet.** On an unresolved reference (`Strings.foo` / `R.string.foo`), Alt+Enter → **Localizer: Add string** pulls it from Tolgee into the right module's file.
+
+![Add string from a new reference](docs/images/localization-add-reference.png)
+
+**Update an existing key in place.** On a defined `Strings.foo` / `R.string.foo` reference, Alt+Enter → **Localizer: Update** re-fetches just that key — no full re-sync.
+
+![Update an existing reference](docs/images/localization-update-reference.png)
+
+**Work from the string file.** Open a managed `strings.xml` / `strings-plurals.xml`: a banner links to the actions, and Alt+Enter on a `<string>` offers **Update** / **Delete** for that one key.
+
+![Managed string file — banner and context actions](docs/images/localization-strings-file.png)
+
+**Run an action from anywhere.** Find Action (or the Localizer menu) → **Update / Add / Delete Strings**, choosing the target file.
+
+![Localizer global actions](docs/images/localization-global-actions.png)
+
+**Hand-editing is gated, not blocked.** Typing into a managed file prompts you to use the actions instead; choose *Edit on this branch* to proceed anyway (remembered per Git branch — e.g. a feature branch with un-finalized strings).
+
+![Edit-warning dialog](docs/images/localization-edit-warning.png)
 
 ---
 

@@ -9,6 +9,10 @@ turbine = "1.2.1"
 coroutines = "1.10.2"
 # https://github.com/ota4j-team/opentest4j/releases
 opentest4j = "1.3.0"
+# Runtime deps of the vendored bandlab-localizer config.jar (libs/).
+# app.gildor ktoml fork — https://github.com/gildor/ktoml/releases
+ktoml = "0.8.1"
+serialization = "1.8.1"
 
 # plugins
 changelog = "2.5.0"
@@ -27,6 +31,8 @@ truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 opentest4j = { group = "org.opentest4j", name = "opentest4j", version.ref = "opentest4j" }
 turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+ktoml-file = { group = "app.gildor", name = "ktoml-file", version.ref = "ktoml" }
+serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }

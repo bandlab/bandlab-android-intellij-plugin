@@ -54,6 +54,12 @@ dependencies {
         composeUI()
     }
 
+    // bandlab-localizer config model, vendored as a prebuilt jar (config 3.2.0 release artifact).
+    // file() deps carry no transitive metadata, so config's runtime deps are declared explicitly.
+    implementation(files("libs/config.jar"))
+    implementation(libs.ktoml.file)
+    implementation(libs.serialization.json)
+
     testImplementation(libs.junit)
     // Used in com.intellij.util.lang.UrlClassLoader
     // see: https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/2127
@@ -148,6 +154,12 @@ kover {
 }
 
 tasks {
+    // Launches a headless IDE to prebuild the settings search index; collides with a running IDE
+    // ("only one instance of IDEA") and breaks local builds. Settings stay searchable without it.
+    buildSearchableOptions {
+        enabled = false
+    }
+
     register("patchReadme") {
         description = "Updates the IntelliJ IDEA badge in README.md to match targetPlatformVersion in gradle.properties"
         group = "documentation"
