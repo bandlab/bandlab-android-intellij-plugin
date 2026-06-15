@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Fixed
+- Add Strings: pass `--target-file` to bandlab-localizer (renamed from `--add-keys-to-file` in Localizer 3.2.0); the Add action failed against Localizer ≥3.2.0
 
 ## [2.5.0] - 2026-06-15
 ### Added
