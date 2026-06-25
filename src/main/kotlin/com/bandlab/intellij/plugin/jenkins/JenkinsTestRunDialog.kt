@@ -122,7 +122,7 @@ class JenkinsTestRunDialog(
         }
         val clearButton = JButton("Clear").apply { addActionListener { clearAll() } }
         val previewPanel = JPanel(BorderLayout(0, 4)).apply {
-            add(JBLabel("targets (JSON) — accumulated across files:"), BorderLayout.NORTH)
+            add(JBLabel("Targets (JSON)"), BorderLayout.NORTH)
             add(JBScrollPane(jsonPreview).apply { preferredSize = Dimension(560, 320) }, BorderLayout.CENTER)
             add(
                 JPanel(BorderLayout()).apply {
@@ -135,11 +135,11 @@ class JenkinsTestRunDialog(
         // FormBuilder keeps each label at its natural width and stretches the field to fill the row —
         // no half-width column gap, so "user:" sits right before its input.
         val paramsPanel = FormBuilder.createFormBuilder()
-            .addLabeledComponent("user:", userField)
-            .addLabeledComponent("branch:", branchField)
-            .addLabeledComponent("testApi:", testApiCombo)
-            .addLabeledComponent("devices:", devicesField)
-            .addLabeledComponent("shardTimeout:", shardTimeoutField)
+            .addLabeledComponent("User:", userField)
+            .addLabeledComponent("Branch:", branchField)
+            .addLabeledComponent("TestApi:", testApiCombo)
+            .addLabeledComponent("Devices:", devicesField)
+            .addLabeledComponent("ShardTimeout:", shardTimeoutField)
             .panel
             .apply { border = JBUI.Borders.emptyTop(8) }
 
