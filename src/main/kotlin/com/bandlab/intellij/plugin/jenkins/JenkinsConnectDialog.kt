@@ -16,8 +16,9 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
- * "Connect to Jenkins" — collects the connection config (base URL, job, username) and a personal API
- * token, verifies it, and stores it via [JenkinsAuthService] (token → PasswordSafe).
+ * "Connect to Jenkins" — collects the username and a personal API token and stores them via
+ * [JenkinsAuthService] (token → PasswordSafe). The base URL and job are fixed constants, so they are
+ * not asked for here.
  *
  * There is no Google login here on purpose: the REST API uses an API token, not the SSO session (see
  * [JenkinsAuthService]). The "Open token page" button takes the user to their Jenkins user page —

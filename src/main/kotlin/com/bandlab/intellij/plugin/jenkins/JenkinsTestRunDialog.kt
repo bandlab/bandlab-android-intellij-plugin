@@ -212,7 +212,7 @@ class JenkinsTestRunDialog(
                         // Bad/expired token → forget it so the next Send prompts to reconnect.
                         if ("HTTP 401" in message || "HTTP 403" in message) {
                             service<JenkinsAuthService>().clearToken()
-                            notifyError("Jenkins rejected the token (it was cleared — reconnect on next send):\n$message")
+                            notifyError("Jenkins rejected the token:\n$message")
                         } else {
                             notifyError("Failed to trigger Jenkins build:\n$message")
                         }
