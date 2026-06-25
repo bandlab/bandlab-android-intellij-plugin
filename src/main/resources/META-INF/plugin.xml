@@ -61,6 +61,9 @@
         </intentionAction>
         <editorNotificationProvider
                 implementation="com.bandlab.intellij.plugin.strings.LocalizerStringFileNotificationProvider"/>
+
+        <!-- Balloon notifications for Jenkins test-run results (with an "Open in Jenkins" link). -->
+        <notificationGroup id="BandLab Jenkins" displayType="BALLOON"/>
         <typedHandler implementation="com.bandlab.intellij.plugin.localizer.LocalizerEditWarningTypedHandler"/>
     </extensions>
 
@@ -115,6 +118,16 @@
                 class="com.bandlab.intellij.plugin.analysis.ModuleAnalysisAction" text="Analyze Module">
             <add-to-group group-id="ProjectViewPopupMenu" anchor="before"
                           relative-to-action="AnalyzeMenu"/>
+        </action>
+
+        <!-- "Configure Jenkins Test Run" — surfaced in the editor popup (where you're reading a test
+             file) and the Project View popup. The action gates itself to .kt files under
+             src/androidTest/, so it stays hidden elsewhere. -->
+        <action id="ConfigureJenkinsTestRunAction"
+                class="com.bandlab.intellij.plugin.jenkins.ConfigureJenkinsTestRunAction"
+                text="Configure Jenkins Test Run">
+            <add-to-group group-id="EditorPopupMenu1" anchor="last"/>
+            <add-to-group group-id="ProjectViewPopupMenuModifyGroup" anchor="last"/>
         </action>
 
         <!-- File/dialog-level Localizer commands, grouped under a "Localizer" submenu in the Tools
