@@ -88,13 +88,17 @@ class JenkinsTestRunDialog(
         text = "[ ]"
     }
 
-    // Build parameters — all default-filled except `targets`, which comes from the tree above.
-    // `user` defaults to the git config user (user.name), falling back to the job's own default.
+    // Build parameters. `user` defaults to the git config user (user.name), falling back to the job's
+    // own default. `targets` comes from the tree above.
     private val userField = JBTextField(currentGitUser(project) ?: DEFAULT_USER)
     private val branchField = JBTextField(currentGitBranch(project).orEmpty())
     private val testApiCombo = ComboBox(arrayOf("prod", "stage"))
-    private val devicesField = JBTextField(DEFAULT_DEVICES)
-    private val shardTimeoutField = JBTextField(DEFAULT_SHARD_TIMEOUT)
+
+    // devices: "Default" omits the param (Jenkins applies the job's default); "Custom" sends the JSON.
+    private val devicesModeCombo = ComboBox(arrayOf(DEVICES_DEFAULT, DEVICES_CUSTOM)).apply {
+        addActionListener { onDevicesModeChanged() }
+    }
+    private val devicesField = JBTextField(EXAMPLE_DEVICES).apply { isEnabled = false }
 
     init {
         title = "Configure Jenkins Test Run"
@@ -103,10 +107,12 @@ class JenkinsTestRunDialog(
             override fun nodeStateChanged(node: CheckedTreeNode) {
                 syncStore()
                 refreshPreview()
+                updateSendEnabled()
             }
         })
         refreshPreview()
         init()
+        updateSendEnabled()
     }
 
     override fun createCenterPanel(): JComponent {
@@ -132,14 +138,18 @@ class JenkinsTestRunDialog(
             )
         }
 
+        val devicesRow = JPanel(BorderLayout(8, 0)).apply {
+            add(devicesModeCombo, BorderLayout.WEST)
+            add(devicesField, BorderLayout.CENTER)
+        }
+
         // FormBuilder keeps each label at its natural width and stretches the field to fill the row —
-        // no half-width column gap, so "user:" sits right before its input.
+        // no half-width column gap, so "User:" sits right before its input.
         val paramsPanel = FormBuilder.createFormBuilder()
             .addLabeledComponent("User:", userField)
             .addLabeledComponent("Branch:", branchField)
             .addLabeledComponent("TestApi:", testApiCombo)
-            .addLabeledComponent("Devices:", devicesField)
-            .addLabeledComponent("ShardTimeout:", shardTimeoutField)
+            .addLabeledComponent("Devices:", devicesRow)
             .panel
             .apply { border = JBUI.Borders.emptyTop(8) }
 
@@ -157,7 +167,9 @@ class JenkinsTestRunDialog(
         }
         if (userField.text.isBlank()) return ValidationInfo("Enter the user", userField)
         if (branchField.text.isBlank()) return ValidationInfo("Enter the branch", branchField)
-        if (devicesField.text.isBlank()) return ValidationInfo("Enter the devices JSON", devicesField)
+        if (isCustomDevices() && devicesField.text.isBlank()) {
+            return ValidationInfo("Enter the devices JSON", devicesField)
+        }
         return null
     }
 
@@ -172,14 +184,14 @@ class JenkinsTestRunDialog(
             return
         }
 
-        val parameters = mapOf(
-            "user" to userField.text.trim(),
-            "branch" to branchField.text.trim(),
-            "testApi" to (testApiCombo.selectedItem as? String).orEmpty(),
-            "devices" to devicesField.text.trim(),
-            "targets" to JenkinsTargets.toJson(store.all()),
-            "shardTimeout" to shardTimeoutField.text.trim(),
-        )
+        val parameters = buildMap {
+            put("user", userField.text.trim())
+            put("branch", branchField.text.trim())
+            put("testApi", (testApiCombo.selectedItem as? String).orEmpty())
+            put("targets", JenkinsTargets.toJson(store.all()))
+            // "Default" → omit devices so Jenkins uses the job's own default value.
+            if (isCustomDevices()) put("devices", devicesField.text.trim())
+        }
         triggerInBackground(config, parameters)
         store.clear() // start fresh next time, now that this selection has been sent
         super.doOKAction()
@@ -225,6 +237,14 @@ class JenkinsTestRunDialog(
         }
     }
 
+    private fun isCustomDevices(): Boolean = devicesModeCombo.selectedItem == DEVICES_CUSTOM
+
+    /** Enable the field only in Custom; refill the template if the field was left blank. */
+    private fun onDevicesModeChanged() {
+        devicesField.isEnabled = isCustomDevices()
+        if (devicesField.text.isBlank()) devicesField.text = EXAMPLE_DEVICES
+    }
+
     private fun copyJson() {
         CopyPasteManager.getInstance().setContents(StringSelection(JenkinsTargets.toJson(store.all())))
     }
@@ -260,6 +280,12 @@ class JenkinsTestRunDialog(
         }
         tree.repaint()
         refreshPreview()
+        updateSendEnabled()
+    }
+
+    /** Send to Jenkins is only allowed when at least one target is selected. */
+    private fun updateSendEnabled() {
+        isOKActionEnabled = !store.isEmpty()
     }
 
     /** Reads the current file's checkbox state out of the tree and builds its target list. */
@@ -301,9 +327,14 @@ class JenkinsTestRunDialog(
     }
 
     private companion object {
-        // Defaults mirror the Jenkins job's own parameter defaults.
         const val DEFAULT_USER = "bandlab"
-        const val DEFAULT_DEVICES = """[ {"model": "MediumPhone.arm", "version": "36"} ]"""
-        const val DEFAULT_SHARD_TIMEOUT = "30m"
+
+        // devices mode options.
+        const val DEVICES_DEFAULT = "Default"
+        const val DEVICES_CUSTOM = "Custom"
+
+        // A starting template for the Custom field — only sent when "Custom" is selected, so it is
+        // not a hardcoded default (Default mode defers to the Jenkins job).
+        const val EXAMPLE_DEVICES = """[ {"model": "MediumPhone.arm", "version": "36"} ]"""
     }
 }
