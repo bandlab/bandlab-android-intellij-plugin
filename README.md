@@ -130,11 +130,11 @@ Trigger the Jenkins UI test build straight from the IDE, instead of opening Jenk
 
 Right-click a Kotlin file under an Android test directory (`src/androidTest/`) that contains tests, and choose **Configure Jenkins Test Run**. A dialog opens where you build the run and send it.
 
-![Jenkins test run entry point](/docs/images/configure-test-entry-point.png)
+![Jenkins test run entry point](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/configure-test-entry-point.png)
 
 - **Pick tests with checkboxes.** Test classes and their methods are shown as a tree — select a whole class or individual methods. The resulting `targets` JSON is shown live and can be copied.
 
-![Jenkins test selection and run setup](/docs/images/configure-test-dialog.png)
+![Jenkins test selection and run setup](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/configure-test-dialog.png)
 
 - **Select across multiple files.** Your selection is kept when you close the dialog, so you can open another test file and add more tests; everything accumulates into one `targets` list. Use **Clear** to reset it.
 - **Smart defaults.** `branch` and `user` are pre-filled from your local git config.
@@ -142,7 +142,7 @@ Right-click a Kotlin file under an Android test directory (`src/androidTest/`) t
 
 **First-time setup.** The first time you press **Send to Jenkins**, you're asked to connect: use **Open token page…** to generate a Jenkins API token (you're already signed in there via Google), paste it, and click **Save**. The username is pre-filled from your git config — update it if it doesn't match your Jenkins account. The token is stored securely in the IDE's password storage, so this is a one-time step.
 
-![Connect to Jenkins dialog](/docs/images/jenkins-connection-dialog.png)
+![Connect to Jenkins dialog](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/jenkins-connection-dialog.png)
 
 After sending, a notification with an **Open in Jenkins** link points to the job page, where your new build appears at the top.
 
@@ -154,23 +154,23 @@ Add, update, and delete localization keys without hand-editing string resources 
 
 **Add a key that doesn't exist yet.** On an unresolved reference (`Strings.foo` / `R.string.foo`), Alt+Enter → **Localizer: Add string** pulls it from Tolgee into the right module's file.
 
-![Add string from a new reference](docs/images/localization-add-reference.png)
+![Add string from a new reference](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-add-reference.png)
 
 **Update an existing key in place.** On a defined `Strings.foo` / `R.string.foo` reference, Alt+Enter → **Localizer: Update** re-fetches just that key — no full re-sync.
 
-![Update an existing reference](docs/images/localization-update-reference.png)
+![Update an existing reference](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-update-reference.png)
 
 **Work from the string file.** Open a managed `strings.xml` / `strings-plurals.xml`: a banner links to the actions, and Alt+Enter on a `<string>` offers **Update** / **Delete** for that one key.
 
-![Managed string file — banner and context actions](docs/images/localization-strings-file.png)
+![Managed string file — banner and context actions](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-strings-file.png)
 
 **Run an action from anywhere.** Find Action (or the Localizer menu) → **Update / Add / Delete Strings**, choosing the target file.
 
-![Localizer global actions](docs/images/localization-global-actions.png)
+![Localizer global actions](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-global-actions.png)
 
 **Hand-editing is gated, not blocked.** Typing into a managed file prompts you to use the actions instead; choose *Edit on this branch* to proceed anyway (remembered per Git branch — e.g. a feature branch with un-finalized strings).
 
-![Edit-warning dialog](docs/images/localization-edit-warning.png)
+![Edit-warning dialog](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-edit-warning.png)
 
 ---
 
@@ -178,7 +178,7 @@ Add, update, and delete localization keys without hand-editing string resources 
 
 Shows the drawable icon inline in the editor gutter when referencing `UikitIcons` properties, including extension properties that delegate to `UikitIcons`.
 
-![UikitIcons gutter preview](docs/images/uikit-icons-gutter-preview.png)
+![UikitIcons gutter preview](https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/uikit-icons-gutter-preview.png)
 
 ---
 
