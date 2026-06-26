@@ -23,6 +23,7 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeBase.CheckPolicy
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
+import com.intellij.ui.TreeSpeedSearch
 import com.intellij.ui.awt.RelativePoint
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBScrollPane
@@ -73,11 +74,21 @@ class JenkinsTestRunDialog(
         }
     }
 
-    private val tree = CheckboxTree(
+    private val tree = object : CheckboxTree(
         TestTreeCellRenderer(),
         rootNode,
-        checkPolicy = CheckPolicy.PROPAGATE_EVERYTHING_POLICY
-    ).apply {
+        checkPolicy = CheckPolicy.PROPAGATE_EVERYTHING_POLICY,
+    ) {
+        override fun installSpeedSearch() {
+            TreeSpeedSearch.installOn(this, true) { path ->
+                when (val userObject = (path.lastPathComponent as? CheckedTreeNode)?.userObject) {
+                    is TestClass -> userObject.simpleName
+                    is TestMethod -> userObject.name
+                    else -> ""
+                }
+            }
+        }
+    }.apply {
         isRootVisible = false
         showsRootHandles = true
         TreeUtil.expandAll(this)
@@ -205,20 +216,21 @@ class JenkinsTestRunDialog(
                 "Triggering Jenkins build",
                 true
             ) {
-            override fun run(indicator: ProgressIndicator) {
-                try {
-                    JenkinsClient.trigger(config, parameters)
-                    notifyTriggered()
-                } catch (error: IOException) {
-                    val message = error.message.orEmpty()
-                    // Bad/expired token → forget it so the next Send prompts to reconnect.
-                    if ("HTTP 401" in message || "HTTP 403" in message) {
-                        service<JenkinsAuthService>().clear()
+                override fun run(indicator: ProgressIndicator) {
+                    try {
+                        JenkinsClient.trigger(config, parameters)
+                        notifyTriggered()
+                    } catch (error: IOException) {
+                        val message = error.message.orEmpty()
+                        // Bad/expired token → forget it so the next Send prompts to reconnect.
+                        if ("HTTP 401" in message || "HTTP 403" in message) {
+                            service<JenkinsAuthService>().clear()
+                        }
+                        notifyError(message)
                     }
-                    notifyError(message)
                 }
             }
-        })
+        )
     }
 
     private fun notifyTriggered() {
@@ -241,7 +253,7 @@ class JenkinsTestRunDialog(
     private fun isCustomDevices(): Boolean = devicesModeCombo.selectedItem == DEVICES_CUSTOM
 
     private fun onDevicesModeChanged() {
-        val isCustomDevices =  isCustomDevices()
+        val isCustomDevices = isCustomDevices()
         devicesField.isEnabled = isCustomDevices
         if (!isCustomDevices) devicesField.text = EXAMPLE_DEVICES
     }
