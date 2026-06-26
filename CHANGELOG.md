@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.6.0] - 2026-06-26
 ### Added
 - Run UI tests on Jenkins from the IDE
 
