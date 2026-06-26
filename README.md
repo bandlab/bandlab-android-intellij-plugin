@@ -124,6 +124,30 @@ The plugin helps invoke these tasks in your IDE's Run tab:
 
 ---
 
+## Jenkins Test Run
+
+Trigger the Jenkins UI test build straight from the IDE, instead of opening Jenkins and filling in the parameters by hand.
+
+Right-click a Kotlin file under an Android test directory (`src/androidTest/`) that contains tests, and choose **Configure Jenkins Test Run**. A dialog opens where you build the run and send it.
+
+![Jenkins test run entry point](/docs/images/configure-test-entry-point.png)
+
+- **Pick tests with checkboxes.** Test classes and their methods are shown as a tree — select a whole class or individual methods. The resulting `targets` JSON is shown live and can be copied.
+
+![Jenkins test selection and run setup](/docs/images/configure-test-dialog.png)
+
+- **Select across multiple files.** Your selection is kept when you close the dialog, so you can open another test file and add more tests; everything accumulates into one `targets` list. Use **Clear** to reset it.
+- **Smart defaults.** `branch` and `user` are pre-filled from your local git config.
+- **Device options.** For `devices`, choose **Default** to use the value configured on the Jenkins job, or **Custom** to provide your own JSON.
+
+**First-time setup.** The first time you press **Send to Jenkins**, you're asked to connect: use **Open token page…** to generate a Jenkins API token (you're already signed in there via Google), paste it, and click **Save**. The username is pre-filled from your git config — update it if it doesn't match your Jenkins account. The token is stored securely in the IDE's password storage, so this is a one-time step.
+
+![Connect to Jenkins dialog](/docs/images/jenkins-connection-dialog.png)
+
+After sending, a notification with an **Open in Jenkins** link points to the job page, where your new build appears at the top.
+
+---
+
 ## Localization Strings
 
 Add, update, and delete localization keys without hand-editing string resources — every action shells out to `./localizer/bandlab-localizer`, which owns merging, validation, and multi-locale output. Available whenever `bandlab-localizer-config.toml` resolves (no Gradle sync needed).
