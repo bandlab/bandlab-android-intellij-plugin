@@ -1,21 +1,19 @@
 package com.bandlab.intellij.plugin.jenkins
 
 import com.bandlab.intellij.plugin.BandLabIcons
-import com.bandlab.intellij.plugin.utils.psiFileOrNull
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.project.DumbAwareAction
-import com.intellij.openapi.ui.Messages
 import org.jetbrains.kotlin.psi.KtFile
 
 /**
- * "Configure Jenkins Test Run" — analyzes the currently open Kotlin test file, lets the user pick
- * tests (whole classes or individual methods) in a checkbox tree, builds the Jenkins `targets` JSON,
- * and can trigger the Jenkins build.
+ * "Configure Jenkins Test Run" — lets the user pick tests from the open Kotlin test file (whole
+ * classes or individual methods), builds the Jenkins `targets`, and triggers the build.
  *
- * Available only for `.kt` files under `src/androidTest/` — the source set our instrumentation tests
- * live in (same gating convention as the Automation templates).
+ * Shown only for a `.kt` file under `src/androidTest/` that actually declares `@Test` methods — both
+ * [update] and [actionPerformed] parse the file with [TestFileParser], so the menu item is hidden
+ * when there's nothing to run (no info dialog needed).
  */
 class ConfigureJenkinsTestRunAction : DumbAwareAction(
     /* text = */ "Configure Jenkins Test Run",
@@ -26,7 +24,8 @@ class ConfigureJenkinsTestRunAction : DumbAwareAction(
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible = e.androidTestKtFile() != null
+        val ktFile = e.androidTestKtFile()
+        e.presentation.isEnabledAndVisible = ktFile != null && TestFileParser.parse(ktFile).isNotEmpty()
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -34,23 +33,19 @@ class ConfigureJenkinsTestRunAction : DumbAwareAction(
         val ktFile = e.androidTestKtFile() ?: return
 
         val testClasses = TestFileParser.parse(ktFile)
-        if (testClasses.isEmpty()) {
-            Messages.showInfoMessage(
-                project,
-                "No @Test methods found in ${ktFile.name}.",
-                "Configure Jenkins Test Run",
-            )
-            return
-        }
+        if (testClasses.isEmpty()) return
 
         JenkinsTestRunDialog(project, testClasses).show()
     }
 
-    /** The open file as a Kotlin file under `src/androidTest/`, or null when the action shouldn't show. */
+    /** The open file as a Kotlin file under `src/androidTest/`, else null. */
     private fun AnActionEvent.androidTestKtFile(): KtFile? {
-        val file = getData(CommonDataKeys.PSI_FILE) ?: psiFileOrNull()
-        val ktFile = file as? KtFile ?: return null
-        val path = ktFile.virtualFile?.path ?: return null
-        return ktFile.takeIf { "/src/androidTest/" in path }
+        val psiFile = getData(CommonDataKeys.PSI_FILE) as? KtFile ?: return null
+        val path = psiFile.virtualFile?.path ?: return null
+        return psiFile.takeIf { isAndroidTestKtPath(path) }
     }
 }
+
+/** A Kotlin file under an `androidTest` source set — where instrumentation tests live. */
+internal fun isAndroidTestKtPath(path: String): Boolean =
+    path.endsWith(".kt") && "/src/androidTest/" in path

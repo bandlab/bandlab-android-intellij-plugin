@@ -32,6 +32,7 @@ import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
+import java.io.IOException
 import java.awt.Dimension
 import java.awt.datatransfer.StringSelection
 import javax.swing.JButton
@@ -198,33 +199,35 @@ class JenkinsTestRunDialog(
     }
 
     private fun triggerInBackground(config: JenkinsClient.Config, parameters: Map<String, String>) {
-        ProgressManager.getInstance().run(object : Task.Backgroundable(project, "Triggering Jenkins build", true) {
+        ProgressManager.getInstance().run(
+            object : Task.Backgroundable(
+                project,
+                "Triggering Jenkins build",
+                true
+            ) {
             override fun run(indicator: ProgressIndicator) {
-                JenkinsClient.trigger(config, parameters)
-                    .onSuccess {
-                        // Link to the job page — instant and always valid (the build number doesn't
-                        // exist until the build leaves the queue). It's also where Jenkins' own
-                        // "Build" button redirects; the just-triggered build sits at the top.
-                        notifyTriggered(JenkinsClient.jobUrl(config))
+                try {
+                    JenkinsClient.trigger(config, parameters)
+                    notifyTriggered()
+                } catch (error: IOException) {
+                    val message = error.message.orEmpty()
+                    // Bad/expired token → forget it so the next Send prompts to reconnect.
+                    if ("HTTP 401" in message || "HTTP 403" in message) {
+                        service<JenkinsAuthService>().clear()
                     }
-                    .onFailure { error ->
-                        val message = error.message.orEmpty()
-                        // Bad/expired token → forget it so the next Send prompts to reconnect.
-                        if ("HTTP 401" in message || "HTTP 403" in message) {
-                            service<JenkinsAuthService>().clearToken()
-                        }
-                        notifyError(message)
-                    }
+                    notifyError(message)
+                }
             }
         })
     }
 
-    private fun notifyTriggered(buildUrl: String) {
+    private fun notifyTriggered() {
+        val url = JenkinsAuthService.JOBS_URL
         ApplicationManager.getApplication().invokeLater {
             NotificationGroupManager.getInstance()
                 .getNotificationGroup("BandLab Jenkins")
-                .createNotification("Jenkins test run triggered", buildUrl, NotificationType.INFORMATION)
-                .addAction(NotificationAction.createSimple("Open in Jenkins") { BrowserUtil.browse(buildUrl) })
+                .createNotification("Jenkins test run triggered", url, NotificationType.INFORMATION)
+                .addAction(NotificationAction.createSimple("Open in Jenkins") { BrowserUtil.browse(url) })
                 .notify(project)
         }
     }
@@ -237,10 +240,10 @@ class JenkinsTestRunDialog(
 
     private fun isCustomDevices(): Boolean = devicesModeCombo.selectedItem == DEVICES_CUSTOM
 
-    /** Enable the field only in Custom; refill the template if the field was left blank. */
     private fun onDevicesModeChanged() {
-        devicesField.isEnabled = isCustomDevices()
-        if (devicesField.text.isBlank()) devicesField.text = EXAMPLE_DEVICES
+        val isCustomDevices =  isCustomDevices()
+        devicesField.isEnabled = isCustomDevices
+        if (!isCustomDevices) devicesField.text = EXAMPLE_DEVICES
     }
 
     private fun copyJson() {

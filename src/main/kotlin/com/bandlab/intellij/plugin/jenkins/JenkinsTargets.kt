@@ -18,7 +18,10 @@ import kotlinx.serialization.json.JsonPrimitive
 object JenkinsTargets {
 
     /** One selected test class with the subset of its methods the user checked. */
-    data class Selection(val testClass: TestClass, val selectedMethods: List<TestMethod>)
+    data class Selection(
+        val testClass: TestClass,
+        val selectedMethods: List<TestMethod>
+    )
 
     private val json = Json { prettyPrint = true }
 

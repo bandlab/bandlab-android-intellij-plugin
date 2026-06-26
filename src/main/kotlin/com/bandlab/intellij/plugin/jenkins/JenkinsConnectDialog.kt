@@ -74,16 +74,15 @@ class JenkinsConnectDialog(private val project: Project) : DialogWrapper(project
     }
 
     override fun doOKAction() {
-        auth.username = fullUsername()
-        auth.saveToken(String(tokenField.password))
+        auth.save(username = fullUsername(), token = String(tokenField.password))
         super.doOKAction()
     }
 
     /** Jenkins user "Security" page is the modern home of API tokens; falls back to the user root. */
     private fun tokenPageUrl(): String {
         val base = JenkinsAuthService.BASE_URL.trimEnd('/')
-        val user = fullUsername()
-        return if (localPart().isBlank()) "$base/me/security/" else "$base/user/$user/security/"
+        val fullUsername = fullUsername()
+        return if (localPart().isBlank()) "$base/me/security/" else "$base/user/$fullUsername/security/"
     }
 
     /** Local part the user is editing (anything they type after a stray `@` is ignored). */
@@ -94,7 +93,7 @@ class JenkinsConnectDialog(private val project: Project) : DialogWrapper(project
 
     /** Local part seeded from a saved username or git `user.email` (e.g. `artyom.tarassov`). */
     private fun defaultLocalPart(): String {
-        val source = auth.username.ifBlank { currentGitEmail(project).orEmpty() }
+        val source = auth.username() ?: currentGitEmail(project).orEmpty()
         return source.substringBefore('@').trim()
     }
 
