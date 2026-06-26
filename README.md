@@ -136,6 +136,10 @@ Right-click a Kotlin file under an Android test directory (`src/androidTest/`) t
 
 ![Jenkins test selection and run setup](/docs/images/configure-test-dialog.png)
 
+- **Select across multiple files.** Your selection is kept when you close the dialog, so you can open another test file and add more tests; everything accumulates into one `targets` list. Use **Clear** to reset it.
+- **Smart defaults.** `branch` and `user` are pre-filled from your local git config.
+- **Device options.** For `devices`, choose **Default** to use the value configured on the Jenkins job, or **Custom** to provide your own JSON.
+
 **First-time setup.** The first time you press **Send to Jenkins**, you're asked to connect: use **Open token page…** to generate a Jenkins API token (you're already signed in there via Google), paste it, and click **Save**. The username is pre-filled from your git config — update it if it doesn't match your Jenkins account. The token is stored securely in the IDE's password storage, so this is a one-time step.
 
 ![Connect to Jenkins dialog](/docs/images/jenkins-connection-dialog.png)
