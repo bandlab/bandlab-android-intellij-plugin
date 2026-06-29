@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+## [2.6.1] - 2026-06-29
+### Changed
+- Fix Jenkins user field: derive GitHub owner from the remote URL
+
 ## [2.6.0] - 2026-06-26
 ### Added
 - Run UI tests on Jenkins from the IDE
