@@ -7,30 +7,47 @@ import com.intellij.util.EnvironmentUtil
 import java.nio.charset.StandardCharsets
 
 /**
- * Resolves the current git `user.name` for the project, or null when git is unavailable / unset.
- *
- * Shells out to `git config user.name` (so it honors global + local config, unlike reading
- * `.git/config` directly) with the captured login-shell environment, mirroring how the rest of the
- * plugin runs external tools (see LocalizerRunner). Runs synchronously with a short timeout — call
- * it off any latency-sensitive path.
- *
- * The current git branch already has a dependency-free reader: `currentGitBranch` in the localizer
- * package.
+ * The GitHub owner of the remote the current branch tracks — i.e. the fork account that holds the
+ * branch.
  */
-fun currentGitUser(project: Project): String? = gitConfig(project, "user.name")
+fun currentGitForkOwner(project: Project): String? {
+    val remote = currentBranchRemote(project) ?: return null
+    val url = runGit(project, "remote", "get-url", remote) ?: return null
+    return gitHubOwner(url)
+}
 
 /** The project's git `user.email`, or null when unset. */
-fun currentGitEmail(project: Project): String? = gitConfig(project, "user.email")
+fun currentGitEmail(project: Project): String? = runGit(project, "config", "--get", "user.email")
 
-private fun gitConfig(project: Project, key: String): String? {
+/** Remote the current branch tracks (e.g. `origin` out of `origin/master`), or null when unset. */
+private fun currentBranchRemote(project: Project): String? =
+    runGit(project, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+        ?.substringBefore('/')
+        ?.takeIf { it.isNotEmpty() }
+
+/** The owner segment of a GitHub remote URL (SSH or HTTPS), or null when it isn't a GitHub URL. */
+private fun gitHubOwner(remoteUrl: String): String? {
+    if ("github.com" !in remoteUrl) return null
+    return remoteUrl.substringAfter("github.com")
+        .trimStart(':', '/')
+        .substringBefore('/')
+        .takeIf { it.isNotEmpty() }
+}
+
+/**
+ * Runs `git <args>` in the project root with the captured login-shell environment (mirroring how the
+ * rest of the plugin runs external tools — see LocalizerRunner). Returns trimmed stdout, or null on
+ * any error / empty output. Synchronous with a short timeout — keep it off latency-sensitive paths.
+ */
+private fun runGit(project: Project, vararg args: String): String? {
     val basePath = project.basePath ?: return null
     return runCatching {
-        val commandLine = GeneralCommandLine("git", "config", "--get", key)
+        // List constructor (as in LocalizerRunner) — the proven form in this codebase.
+        val commandLine = GeneralCommandLine(listOf("git", *args))
             .withWorkDirectory(basePath)
             .withCharset(StandardCharsets.UTF_8)
             .withEnvironment(EnvironmentUtil.getEnvironmentMap())
-        CapturingProcessHandler(commandLine).runProcess(5_000).stdout
-            .trim()
-            .takeIf { it.isNotEmpty() }
+        val output = CapturingProcessHandler(commandLine).runProcess(5_000)
+        output.stdout.trim().takeIf { it.isNotEmpty() }
     }.getOrNull()
 }

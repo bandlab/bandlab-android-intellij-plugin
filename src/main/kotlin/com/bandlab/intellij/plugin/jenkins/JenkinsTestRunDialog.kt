@@ -100,9 +100,7 @@ class JenkinsTestRunDialog(
         text = "[ ]"
     }
 
-    // Build parameters. `user` defaults to the git config user (user.name), falling back to the job's
-    // own default. `targets` comes from the tree above.
-    private val userField = JBTextField(currentGitUser(project) ?: DEFAULT_USER)
+    private val userField = JBTextField(currentGitForkOwner(project) ?: DEFAULT_USER)
     private val branchField = JBTextField(currentGitBranch(project).orEmpty())
     private val testApiCombo = ComboBox(arrayOf("prod", "stage"))
 
