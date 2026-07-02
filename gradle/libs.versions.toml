@@ -6,7 +6,7 @@ truth = "1.4.5"
 # Turbine - https://github.com/cashapp/turbine/releases
 turbine = "1.2.1"
 # Coroutines - https://github.com/Kotlin/kotlinx.coroutines/releases
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 # https://github.com/ota4j-team/opentest4j/releases
 opentest4j = "1.3.0"
 # Runtime deps of the vendored bandlab-localizer config.jar (libs/).
