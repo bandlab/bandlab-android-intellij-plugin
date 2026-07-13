@@ -188,6 +188,17 @@ tasks {
         dependsOn("patchReadme")
     }
 
+    test {
+        // The bundled Vue.js plugin is pulled into the test sandbox transitively via the Android
+        // plugin. During tests that mutate the project's VFS (e.g. adding files), the platform's
+        // TypeScript compiler VFS listener eagerly instantiates all JS language services, and Vue's
+        // LSP service crashes because its `lib/modules` packaging isn't recognized by
+        // PluginManagerCore.getPluginDistDirByClass ("... should be lib directory"). The resulting
+        // logged error is turned into a test failure by TestLoggerFactory. We don't rely on any
+        // JS/Vue functionality, so suppress the plugin in tests to avoid the spurious failures.
+        systemProperty("idea.suppressed.plugins.id", "org.jetbrains.plugins.vue")
+    }
+
     publishPlugin {
         dependsOn(patchChangelog)
     }
