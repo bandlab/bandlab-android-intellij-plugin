@@ -65,6 +65,10 @@
         <!-- Balloon notifications for Jenkins test-run results (with an "Open in Jenkins" link). -->
         <notificationGroup id="BandLab Jenkins" displayType="BALLOON"/>
         <typedHandler implementation="com.bandlab.intellij.plugin.localizer.LocalizerEditWarningTypedHandler"/>
+
+        <!-- Silently installs the pre-commit.com hook on project open (see PreCommitHookInstaller). -->
+        <postStartupActivity implementation="com.bandlab.intellij.plugin.precommit.InstallPreCommitHookActivity"/>
+        <notificationGroup id="BandLab Pre-commit" displayType="BALLOON"/>
     </extensions>
 
     <!-- Adds "Localizer: Add string" to the red error-fix section on an unresolved R.string/R.plurals
