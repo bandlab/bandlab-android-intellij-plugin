@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.7.0] - 2026-08-12
 ### Added
 - Pre-commit hook installer
 
