@@ -198,6 +198,17 @@ Since we avoid Gradle [type-safe accessors](https://www.zacsweers.dev/dont-use-t
 
 _Acknowledgments: The feature was adapted from [Slack foundry](https://github.com/slackhq/foundry/pull/1440)._
 
+---
+
+## Pre-commit Hook Auto-install
+
+The project uses [pre-commit.com](https://pre-commit.com/) hooks to enforce conventions on commit. To spare developers the manual `pre-commit install` setup (and installing the `pre-commit` binary itself), the plugin wires it up automatically.
+
+- **Trigger** — runs on project open (a `postStartupActivity`), so every developer and fresh checkout gets it without any action.
+- **Silent** — no dialog or prompt. The install happens in a background task; a balloon appears only on success or failure.
+- **Idempotent & cheap** — it reads `.git/hooks/pre-commit` and returns immediately if the pre-commit.com hook is already there, so steady-state project opens pay only a single file read. It also no-ops unless the project has a `.pre-commit-config.yaml`.
+- **Cross-platform** — if the `pre-commit` binary is missing it's installed with the OS-appropriate toolchain (Homebrew on macOS, pipx on Windows/Linux), then `pre-commit install` wires the hooks. All processes run with the captured login-shell environment, so `brew`/`pipx` resolve even when the IDE is launched from the dock/Start menu.
+
 <!-- Plugin description end -->
 
 ---
