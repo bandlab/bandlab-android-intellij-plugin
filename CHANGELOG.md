@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Update Page with NavKey template
 
 ## [2.7.0] - 2026-08-12
 ### Added

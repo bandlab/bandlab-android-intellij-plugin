@@ -84,7 +84,6 @@ class PageTemplateCreateAction : CreateSimpleFileAction(
             )
 
             files.add(directory.writeFile("${newName}Key.kt", navKeyBuilder.createNavKey()))
-            files.add(directory.writeFile("${newName}NavEntry.kt", navKeyBuilder.createNavEntry()))
         }
         return files.toTypedArray()
     }

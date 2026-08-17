@@ -78,7 +78,6 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
                 "UserLibraryWithNavPage.kt",
                 "UserLibraryWithNavViewModel.kt",
                 "UserLibraryWithNavKey.kt",
-                "UserLibraryWithNavNavEntry.kt",
             )
             .inOrder()
 
@@ -95,9 +94,6 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
 
         assertThat(targetDirectory.readFile("UserLibraryWithNavKey.kt"))
             .isEqualTo(navKeyBuilder.createNavKey())
-
-        assertThat(targetDirectory.readFile("UserLibraryWithNavNavEntry.kt"))
-            .isEqualTo(navKeyBuilder.createNavEntry())
     }
 
     private fun PageTemplateCreateAction.invokeCreateWithNav(

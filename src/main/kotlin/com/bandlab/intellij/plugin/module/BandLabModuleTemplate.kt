@@ -223,12 +223,6 @@ class BandLabModuleTemplate(
                 KotlinFileType.INSTANCE,
                 navKeyBuilder.createNavKey()
             ).addToPath(moduleInfo.filesPath)
-
-            psiFileFactory.createFileFromText(
-                "${name}NavEntry.kt",
-                KotlinFileType.INSTANCE,
-                navKeyBuilder.createNavEntry()
-            ).addToPath(moduleInfo.filesPath)
         }
     }
 
