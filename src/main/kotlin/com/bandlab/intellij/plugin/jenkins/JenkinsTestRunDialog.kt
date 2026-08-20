@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.bandlab.intellij.plugin.localizer.currentGitBranch
@@ -12,15 +14,10 @@ import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.progress.Task
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.DialogWrapper
-import com.intellij.openapi.ui.MessageType
-import com.intellij.openapi.ui.Messages
-import com.intellij.openapi.ui.ValidationInfo
+import com.intellij.openapi.ui.*
 import com.intellij.openapi.ui.popup.Balloon
 import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.ui.CheckboxTree
-import com.intellij.ui.CheckboxTreeBase.CheckPolicy
 import com.intellij.ui.CheckboxTreeListener
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.TreeSpeedSearch
@@ -33,23 +30,23 @@ import com.intellij.util.ui.FormBuilder
 import com.intellij.util.ui.JBUI
 import com.intellij.util.ui.tree.TreeUtil
 import java.awt.BorderLayout
-import java.io.IOException
 import java.awt.Dimension
 import java.awt.datatransfer.StringSelection
+import java.io.IOException
 import javax.swing.JButton
 import javax.swing.JComponent
 import javax.swing.JPanel
 import javax.swing.JTree
 
 /**
- * Dialog that lets the user pick tests from the open file — by whole class or by individual method —
- * via a checkbox tree, see the resulting Jenkins `targets` JSON live, copy it, or trigger a Jenkins
- * build directly.
+ * Dialog that lets the user pick tests from the open file — by whole class or by individual method
+ * — via a checkbox tree, see the resulting Jenkins `targets` JSON live, copy it, or trigger a
+ * Jenkins build directly.
  *
- * The tree mirrors the file's structure: each [TestClass] is a parent node, each [TestMethod] a leaf
- * under it. Checkbox propagation (check a class → checks its tests) is handled by [CheckboxTree].
- * Selection is collapsed to `class <fqName>` when all of a class's methods are checked (see
- * [JenkinsTargets]).
+ * The tree mirrors the file's structure: each [TestClass] is a parent node, each [TestMethod] a
+ * leaf under it. Checkbox propagation (check a class → checks its tests) is handled by
+ * [CheckboxTree]. Selection is collapsed to `class <fqName>` when all of a class's methods are
+ * checked (see [JenkinsTargets]).
  */
 class JenkinsTestRunDialog(
     private val project: Project,
@@ -60,76 +57,93 @@ class JenkinsTestRunDialog(
     private val store = project.service<JenkinsTargetsStore>()
     private val classFqns = testClasses.map { it.fqName }.toSet()
 
-    private val rootNode = CheckedTreeNode("Tests").apply {
-        val stored = store.all().toSet()
-        isChecked = false
-        testClasses.forEach { testClass ->
-            val wholeClassSelected = "class ${testClass.fqName}" in stored
-            val classNode = CheckedTreeNode(testClass).apply { isChecked = wholeClassSelected }
-            testClass.methods.forEach { method ->
-                val checked = wholeClassSelected || "class ${testClass.fqName}#${method.name}" in stored
-                classNode.add(CheckedTreeNode(method).apply { isChecked = checked })
+    private val rootNode =
+        CheckedTreeNode("Tests").apply {
+            val stored = store.all().toSet()
+            isChecked = false
+            testClasses.forEach { testClass ->
+                val wholeClassSelected = "class ${testClass.fqName}" in stored
+                val classNode = CheckedTreeNode(testClass).apply { isChecked = wholeClassSelected }
+                testClass.methods.forEach { method ->
+                    val checked =
+                        wholeClassSelected || "class ${testClass.fqName}#${method.name}" in stored
+                    classNode.add(CheckedTreeNode(method).apply { isChecked = checked })
+                }
+                add(classNode)
             }
-            add(classNode)
         }
-    }
 
-    private val tree = object : CheckboxTree(
-        TestTreeCellRenderer(),
-        rootNode,
-        checkPolicy = CheckPolicy.PROPAGATE_EVERYTHING_POLICY,
-    ) {
-        override fun installSpeedSearch() {
-            TreeSpeedSearch.installOn(this, true) { path ->
-                when (val userObject = (path.lastPathComponent as? CheckedTreeNode)?.userObject) {
-                    is TestClass -> userObject.simpleName
-                    is TestMethod -> userObject.name
-                    else -> ""
+    private val tree =
+        object :
+                CheckboxTree(
+                    TestTreeCellRenderer(),
+                    rootNode,
+                    checkPolicy = CheckPolicy.PROPAGATE_EVERYTHING_POLICY,
+                ) {
+                override fun installSpeedSearch() {
+                    TreeSpeedSearch.installOn(this, true) { path ->
+                        when (
+                            val userObject =
+                                (path.lastPathComponent as? CheckedTreeNode)?.userObject
+                        ) {
+                            is TestClass -> userObject.simpleName
+                            is TestMethod -> userObject.name
+                            else -> ""
+                        }
+                    }
                 }
             }
-        }
-    }.apply {
-        isRootVisible = false
-        showsRootHandles = true
-        TreeUtil.expandAll(this)
-    }
+            .apply {
+                isRootVisible = false
+                showsRootHandles = true
+                TreeUtil.expandAll(this)
+            }
 
-    private val jsonPreview = JBTextArea(16, 48).apply {
-        isEditable = false
-        lineWrap = false
-        text = "[ ]"
-    }
+    private val jsonPreview =
+        JBTextArea(16, 48).apply {
+            isEditable = false
+            lineWrap = false
+            text = "[ ]"
+        }
 
     private val userField = JBTextField(currentGitForkOwner(project) ?: DEFAULT_USER)
     private val branchField = JBTextField(currentGitBranch(project).orEmpty())
     private val testApiCombo = ComboBox(arrayOf("prod", "stage"))
 
-    // devices: "Default" omits the param (Jenkins applies the job's default); "Custom" sends the JSON.
-    private val devicesModeCombo = ComboBox(arrayOf(DEVICES_DEFAULT, DEVICES_CUSTOM)).apply {
-        addActionListener { onDevicesModeChanged() }
-    }
+    // devices: "Default" omits the param (Jenkins applies the job's default); "Custom" sends the
+    // JSON.
+    private val devicesModeCombo =
+        ComboBox(arrayOf(DEVICES_DEFAULT, DEVICES_CUSTOM)).apply {
+            addActionListener { onDevicesModeChanged() }
+        }
     private val devicesField = JBTextField(EXAMPLE_DEVICES).apply { isEnabled = false }
 
     init {
         title = "Configure Jenkins Test Run"
         setOKButtonText("Send to Jenkins")
-        tree.addCheckboxTreeListener(object : CheckboxTreeListener {
-            override fun nodeStateChanged(node: CheckedTreeNode) {
-                syncStore()
-                refreshPreview()
-                updateSendEnabled()
+        tree.addCheckboxTreeListener(
+            object : CheckboxTreeListener {
+                override fun nodeStateChanged(node: CheckedTreeNode) {
+                    syncStore()
+                    refreshPreview()
+                    updateSendEnabled()
+                }
             }
-        })
+        )
         refreshPreview()
         init()
         updateSendEnabled()
     }
 
     override fun createCenterPanel(): JComponent {
-        val treePanel = JPanel(BorderLayout(0, 4)).apply {
-            add(JBLabel("Select classes or individual tests to run:"), BorderLayout.NORTH)
-            add(JBScrollPane(tree).apply { preferredSize = Dimension(560, 240) }, BorderLayout.CENTER)
-        }
+        val treePanel =
+            JPanel(BorderLayout(0, 4)).apply {
+                add(JBLabel("Select classes or individual tests to run:"), BorderLayout.NORTH)
+                add(
+                    JBScrollPane(tree).apply { preferredSize = Dimension(560, 240) },
+                    BorderLayout.CENTER,
+                )
+            }
 
         val copyButton = JButton("Copy JSON")
         copyButton.addActionListener {
@@ -137,31 +151,44 @@ class JenkinsTestRunDialog(
             showCopiedBalloon(copyButton)
         }
         val clearButton = JButton("Clear").apply { addActionListener { clearAll() } }
-        val previewPanel = JPanel(BorderLayout(0, 4)).apply {
-            add(JBLabel("Targets (JSON)"), BorderLayout.NORTH)
-            add(JBScrollPane(jsonPreview).apply { preferredSize = Dimension(560, 320) }, BorderLayout.CENTER)
-            add(
-                JPanel(BorderLayout()).apply {
-                    add(JPanel().apply { add(clearButton); add(copyButton) }, BorderLayout.EAST)
-                },
-                BorderLayout.SOUTH,
-            )
-        }
+        val previewPanel =
+            JPanel(BorderLayout(0, 4)).apply {
+                add(JBLabel("Targets (JSON)"), BorderLayout.NORTH)
+                add(
+                    JBScrollPane(jsonPreview).apply { preferredSize = Dimension(560, 320) },
+                    BorderLayout.CENTER,
+                )
+                add(
+                    JPanel(BorderLayout()).apply {
+                        add(
+                            JPanel().apply {
+                                add(clearButton)
+                                add(copyButton)
+                            },
+                            BorderLayout.EAST,
+                        )
+                    },
+                    BorderLayout.SOUTH,
+                )
+            }
 
-        val devicesRow = JPanel(BorderLayout(8, 0)).apply {
-            add(devicesModeCombo, BorderLayout.WEST)
-            add(devicesField, BorderLayout.CENTER)
-        }
+        val devicesRow =
+            JPanel(BorderLayout(8, 0)).apply {
+                add(devicesModeCombo, BorderLayout.WEST)
+                add(devicesField, BorderLayout.CENTER)
+            }
 
-        // FormBuilder keeps each label at its natural width and stretches the field to fill the row —
+        // FormBuilder keeps each label at its natural width and stretches the field to fill the row
+        // —
         // no half-width column gap, so "User:" sits right before its input.
-        val paramsPanel = FormBuilder.createFormBuilder()
-            .addLabeledComponent("User:", userField)
-            .addLabeledComponent("Branch:", branchField)
-            .addLabeledComponent("TestApi:", testApiCombo)
-            .addLabeledComponent("Devices:", devicesRow)
-            .panel
-            .apply { border = JBUI.Borders.emptyTop(8) }
+        val paramsPanel =
+            FormBuilder.createFormBuilder()
+                .addLabeledComponent("User:", userField)
+                .addLabeledComponent("Branch:", branchField)
+                .addLabeledComponent("TestApi:", testApiCombo)
+                .addLabeledComponent("Devices:", devicesRow)
+                .panel
+                .apply { border = JBUI.Borders.emptyTop(8) }
 
         return JPanel(BorderLayout(0, 10)).apply {
             add(treePanel, BorderLayout.NORTH)
@@ -189,10 +216,16 @@ class JenkinsTestRunDialog(
         if (!auth.hasToken()) {
             if (!JenkinsConnectDialog(project).showAndGet()) return
         }
-        val config = auth.config() ?: run {
-            Messages.showErrorDialog(project, "Jenkins connection is not fully configured.", "Jenkins Test Run")
-            return
-        }
+        val config =
+            auth.config()
+                ?: run {
+                    Messages.showErrorDialog(
+                        project,
+                        "Jenkins connection is not fully configured.",
+                        "Jenkins Test Run",
+                    )
+                    return
+                }
 
         val parameters = buildMap {
             put("user", userField.text.trim())
@@ -208,27 +241,29 @@ class JenkinsTestRunDialog(
     }
 
     private fun triggerInBackground(config: JenkinsClient.Config, parameters: Map<String, String>) {
-        ProgressManager.getInstance().run(
-            object : Task.Backgroundable(
-                project,
-                "Triggering Jenkins build",
-                true
-            ) {
-                override fun run(indicator: ProgressIndicator) {
-                    try {
-                        JenkinsClient.trigger(config, parameters)
-                        notifyTriggered()
-                    } catch (error: IOException) {
-                        val message = error.message.orEmpty()
-                        // Bad/expired token → forget it so the next Send prompts to reconnect.
-                        if ("HTTP 401" in message || "HTTP 403" in message) {
-                            service<JenkinsAuthService>().clear()
+        ProgressManager.getInstance()
+            .run(
+                object :
+                    Task.Backgroundable(
+                        project,
+                        "Triggering Jenkins build",
+                        true,
+                    ) {
+                    override fun run(indicator: ProgressIndicator) {
+                        try {
+                            JenkinsClient.trigger(config, parameters)
+                            notifyTriggered()
+                        } catch (error: IOException) {
+                            val message = error.message.orEmpty()
+                            // Bad/expired token → forget it so the next Send prompts to reconnect.
+                            if ("HTTP 401" in message || "HTTP 403" in message) {
+                                service<JenkinsAuthService>().clear()
+                            }
+                            notifyError(message)
                         }
-                        notifyError(message)
                     }
                 }
-            }
-        )
+            )
     }
 
     private fun notifyTriggered() {
@@ -237,7 +272,9 @@ class JenkinsTestRunDialog(
             NotificationGroupManager.getInstance()
                 .getNotificationGroup("BandLab Jenkins")
                 .createNotification("Jenkins test run triggered", url, NotificationType.INFORMATION)
-                .addAction(NotificationAction.createSimple("Open in Jenkins") { BrowserUtil.browse(url) })
+                .addAction(
+                    NotificationAction.createSimple("Open in Jenkins") { BrowserUtil.browse(url) }
+                )
                 .notify(project)
         }
     }
@@ -257,10 +294,13 @@ class JenkinsTestRunDialog(
     }
 
     private fun copyJson() {
-        CopyPasteManager.getInstance().setContents(StringSelection(JenkinsTargets.toJson(store.all())))
+        CopyPasteManager.getInstance()
+            .setContents(StringSelection(JenkinsTargets.toJson(store.all())))
     }
 
-    /** Small auto-fading "copied" balloon anchored above the Copy button (works inside the modal). */
+    /**
+     * Small auto-fading "copied" balloon anchored above the Copy button (works inside the modal).
+     */
     private fun showCopiedBalloon(anchor: JComponent) {
         JBPopupFactory.getInstance()
             .createHtmlTextBalloonBuilder("Targets copied to clipboard", MessageType.INFO, null)
@@ -325,14 +365,15 @@ class JenkinsTestRunDialog(
             expanded: Boolean,
             leaf: Boolean,
             row: Int,
-            hasFocus: Boolean
+            hasFocus: Boolean,
         ) {
             val node = value as? CheckedTreeNode ?: return
-            val text = when (val obj = node.userObject) {
-                is TestClass -> "${obj.simpleName}  (${obj.methods.size})"
-                is TestMethod -> obj.name
-                else -> obj?.toString().orEmpty()
-            }
+            val text =
+                when (val obj = node.userObject) {
+                    is TestClass -> "${obj.simpleName}  (${obj.methods.size})"
+                    is TestMethod -> obj.name
+                    else -> obj?.toString().orEmpty()
+                }
             textRenderer.append(text)
         }
     }

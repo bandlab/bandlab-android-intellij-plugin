@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.bandlab.intellij.plugin.BandLabIcons
@@ -11,21 +13,23 @@ import org.jetbrains.kotlin.psi.KtFile
  * "Configure Jenkins Test Run" — lets the user pick tests from the open Kotlin test file (whole
  * classes or individual methods), builds the Jenkins `targets`, and triggers the build.
  *
- * Shown only for a `.kt` file under `src/androidTest/` that actually declares `@Test` methods — both
- * [update] and [actionPerformed] parse the file with [TestFileParser], so the menu item is hidden
- * when there's nothing to run (no info dialog needed).
+ * Shown only for a `.kt` file under `src/androidTest/` that actually declares `@Test` methods —
+ * both [update] and [actionPerformed] parse the file with [TestFileParser], so the menu item is
+ * hidden when there's nothing to run (no info dialog needed).
  */
-class ConfigureJenkinsTestRunAction : DumbAwareAction(
-    /* text = */ "Configure Jenkins Test Run",
-    /* description = */ "Pick tests from this file and trigger a Jenkins test run.",
-    /* icon = */ BandLabIcons.logo,
-) {
+class ConfigureJenkinsTestRunAction :
+    DumbAwareAction(
+        /* text = */ "Configure Jenkins Test Run",
+        /* description = */ "Pick tests from this file and trigger a Jenkins test run.",
+        /* icon = */ BandLabIcons.logo,
+    ) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
     override fun update(e: AnActionEvent) {
         val ktFile = e.androidTestKtFile()
-        e.presentation.isEnabledAndVisible = ktFile != null && TestFileParser.parse(ktFile).isNotEmpty()
+        e.presentation.isEnabledAndVisible =
+            ktFile != null && TestFileParser.parse(ktFile).isNotEmpty()
     }
 
     override fun actionPerformed(e: AnActionEvent) {

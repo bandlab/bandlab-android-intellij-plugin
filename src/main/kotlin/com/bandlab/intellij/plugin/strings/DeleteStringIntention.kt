@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
@@ -25,7 +27,8 @@ class DeleteStringIntention : IntentionAction, Iconable, PriorityAction {
 
     // TOP, matching Update, so the two sit together at the top of the ⌥⏎ list rather than being
     // split by other TOP-priority actions (e.g. Android's "Open editor"). Same priority tie-breaks
-    // alphabetically, so Delete lists just above Update — an accepted trade for keeping them grouped.
+    // alphabetically, so Delete lists just above Update — an accepted trade for keeping them
+    // grouped.
     override fun getPriority(): PriorityAction.Priority = PriorityAction.Priority.TOP
 
     override fun getIcon(flags: Int): Icon = AllIcons.General.Remove
@@ -40,7 +43,8 @@ class DeleteStringIntention : IntentionAction, Iconable, PriorityAction {
         key = null
         if (editor == null || file == null) return false
         val virtualFile = file.virtualFile ?: return false
-        if (!project.service<LocalizerConfigService>().isManagedStringFile(virtualFile)) return false
+        if (!project.service<LocalizerConfigService>().isManagedStringFile(virtualFile))
+            return false
         key = stringKeyAt(file, editor.caretModel.offset)
         return key != null
     }
@@ -59,10 +63,14 @@ class DeleteStringIntention : IntentionAction, Iconable, PriorityAction {
  * at the element's trailing boundary.
  */
 internal fun stringKeyAt(psiFile: PsiFile, offset: Int): String? {
-    val element = psiFile.findElementAt(offset)
-        ?: (if (offset > 0) psiFile.findElementAt(offset - 1) else null)
-        ?: return null
-    val tag = generateSequence(PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)) { it.parentTag }
-        .firstOrNull { it.name == "string" || it.name == "plurals" } ?: return null
+    val element =
+        psiFile.findElementAt(offset)
+            ?: (if (offset > 0) psiFile.findElementAt(offset - 1) else null)
+            ?: return null
+    val tag =
+        generateSequence(PsiTreeUtil.getParentOfType(element, XmlTag::class.java, false)) {
+                it.parentTag
+            }
+            .firstOrNull { it.name == "string" || it.name == "plurals" } ?: return null
     return tag.getAttributeValue("name")?.takeIf { it.isNotBlank() }
 }

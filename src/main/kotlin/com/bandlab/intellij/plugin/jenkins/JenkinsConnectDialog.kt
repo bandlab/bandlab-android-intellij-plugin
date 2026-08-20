@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.intellij.ide.BrowserUtil
@@ -17,12 +19,12 @@ import javax.swing.JPanel
 
 /**
  * "Connect to Jenkins" — collects the username and a personal API token and stores them via
- * [JenkinsAuthService] (token → PasswordSafe). The base URL and job are fixed constants, so they are
- * not asked for here.
+ * [JenkinsAuthService] (token → PasswordSafe). The base URL and job are fixed constants, so they
+ * are not asked for here.
  *
- * There is no Google login here on purpose: the REST API uses an API token, not the SSO session (see
- * [JenkinsAuthService]). The "Open token page" button takes the user to their Jenkins user page —
- * where they're already logged in via Google — to generate one.
+ * There is no Google login here on purpose: the REST API uses an API token, not the SSO session
+ * (see [JenkinsAuthService]). The "Open token page" button takes the user to their Jenkins user
+ * page — where they're already logged in via Google — to generate one.
  */
 class JenkinsConnectDialog(private val project: Project) : DialogWrapper(project) {
 
@@ -40,14 +42,16 @@ class JenkinsConnectDialog(private val project: Project) : DialogWrapper(project
     }
 
     override fun createCenterPanel(): JComponent {
-        val openTokenPageButton = JButton("Open token page…").apply {
-            addActionListener { BrowserUtil.browse(tokenPageUrl()) }
-        }
+        val openTokenPageButton =
+            JButton("Open token page…").apply {
+                addActionListener { BrowserUtil.browse(tokenPageUrl()) }
+            }
 
-        val usernameRow = JPanel(BorderLayout(4, 0)).apply {
-            add(usernameField, BorderLayout.CENTER)
-            add(JBLabel(USERNAME_SUFFIX), BorderLayout.EAST)
-        }
+        val usernameRow =
+            JPanel(BorderLayout(4, 0)).apply {
+                add(usernameField, BorderLayout.CENTER)
+                add(JBLabel(USERNAME_SUFFIX), BorderLayout.EAST)
+            }
 
         return FormBuilder.createFormBuilder()
             .addComponentToRightColumn(
@@ -78,11 +82,14 @@ class JenkinsConnectDialog(private val project: Project) : DialogWrapper(project
         super.doOKAction()
     }
 
-    /** Jenkins user "Security" page is the modern home of API tokens; falls back to the user root. */
+    /**
+     * Jenkins user "Security" page is the modern home of API tokens; falls back to the user root.
+     */
     private fun tokenPageUrl(): String {
         val base = JenkinsAuthService.BASE_URL.trimEnd('/')
         val fullUsername = fullUsername()
-        return if (localPart().isBlank()) "$base/me/security/" else "$base/user/$fullUsername/security/"
+        return if (localPart().isBlank()) "$base/me/security/"
+        else "$base/user/$fullUsername/security/"
     }
 
     /** Local part the user is editing (anything they type after a stray `@` is ignored). */

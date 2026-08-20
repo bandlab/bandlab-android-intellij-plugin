@@ -1,5 +1,5 @@
-rootProject.name = "bandlab-android-intellij-plugin"
-
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 pluginManagement {
     repositories {
         google()

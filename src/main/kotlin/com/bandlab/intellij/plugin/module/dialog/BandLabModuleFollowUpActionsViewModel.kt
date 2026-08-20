@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module.dialog
 
 import androidx.compose.runtime.Immutable
@@ -16,7 +18,7 @@ import com.intellij.openapi.vfs.findOrCreateFile
 @Immutable
 internal data class FollowUpActionState(
     val text: String,
-    val onClick: () -> Unit
+    val onClick: () -> Unit,
 )
 
 internal class BandLabModuleFollowUpActionsViewModel(
@@ -31,51 +33,57 @@ internal class BandLabModuleFollowUpActionsViewModel(
         // Edit build.gradle
         if (state.apiConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :api $buildScriptName",
-                onClick = { editFile("$modulePath/api/$buildScriptName") }
-            ).also(::add)
+                    text = "Edit :api $buildScriptName",
+                    onClick = { editFile("$modulePath/api/$buildScriptName") },
+                )
+                .also(::add)
         }
 
         if (state.uiConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :ui $buildScriptName",
-                onClick = { editFile("$modulePath/ui/$buildScriptName") }
-            ).also(::add)
+                    text = "Edit :ui $buildScriptName",
+                    onClick = { editFile("$modulePath/ui/$buildScriptName") },
+                )
+                .also(::add)
         }
 
         if (state.implConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :impl $buildScriptName",
-                onClick = { editFile("$modulePath/impl/$buildScriptName") }
-            ).also(::add)
+                    text = "Edit :impl $buildScriptName",
+                    onClick = { editFile("$modulePath/impl/$buildScriptName") },
+                )
+                .also(::add)
         }
 
         if (state.screenConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Edit :screen $buildScriptName",
-                onClick = { editFile("$modulePath/screen/$buildScriptName") }
-            ).also(::add)
+                    text = "Edit :screen $buildScriptName",
+                    onClick = { editFile("$modulePath/screen/$buildScriptName") },
+                )
+                .also(::add)
         }
 
         // Spotlight
         if (state.implConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Add :impl to spotlight",
-                onClick = { addToSpotlight(ModuleInfo("$modulePath/impl")) }
-            ).also(::add)
+                    text = "Add :impl to spotlight",
+                    onClick = { addToSpotlight(ModuleInfo("$modulePath/impl")) },
+                )
+                .also(::add)
         }
 
         if (state.screenConfig.value.isSelected) {
             FollowUpActionState(
-                text = "Add :screen to spotlight",
-                onClick = { addToSpotlight(ModuleInfo("$modulePath/screen")) }
-            ).also(::add)
+                    text = "Add :screen to spotlight",
+                    onClick = { addToSpotlight(ModuleInfo("$modulePath/screen")) },
+                )
+                .also(::add)
         }
 
         add(
             FollowUpActionState(
                 text = "Sync Project",
-                onClick = ::syncProject
+                onClick = ::syncProject,
             )
         )
     }
@@ -85,9 +93,9 @@ internal class BandLabModuleFollowUpActionsViewModel(
     }
 
     private fun editFile(filePath: String) {
-        val buildGradleFile = LocalFileSystem.getInstance()
-            .refreshAndFindFileByPath(project.basePath + filePath)
-            ?: return
+        val buildGradleFile =
+            LocalFileSystem.getInstance().refreshAndFindFileByPath(project.basePath + filePath)
+                ?: return
         FileEditorManager.getInstance(project).openFile(buildGradleFile, true)
     }
 
@@ -103,14 +111,15 @@ internal class BandLabModuleFollowUpActionsViewModel(
 
                 project.editFile(ideProjects) {
                     appendLine(moduleInfo.reference)
-                    val modules = toString()
-                        .split(NEW_LINE)
-                        .filter { it.isNotBlank() }
-                        .distinct()
-                        .joinToString(NEW_LINE)
+                    val modules =
+                        toString()
+                            .split(NEW_LINE)
+                            .filter { it.isNotBlank() }
+                            .distinct()
+                            .joinToString(NEW_LINE)
                     replace(0, length, modules)
                 }
-            }
+            },
         )
     }
 }

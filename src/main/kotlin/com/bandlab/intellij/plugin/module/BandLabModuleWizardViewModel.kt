@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module
 
 import androidx.compose.foundation.text.input.TextFieldState
@@ -10,10 +12,10 @@ import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
 import com.bandlab.intellij.plugin.utils.readFile
 import com.intellij.openapi.application.readAction
 import com.intellij.openapi.project.Project
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.withContext
-import kotlin.coroutines.CoroutineContext
 
 internal class BandLabModuleWizardViewModel(
     wizardScope: CoroutineScope,
@@ -33,110 +35,117 @@ internal class BandLabModuleWizardViewModel(
 
     val moduleNameTextFlow = snapshotFlow { moduleRoot.text.toString() }
 
-    val existingModuleNames = ::retrieveExistingModules
-        .asFlow()
-        .shareIn(wizardScope, SharingStarted.WhileSubscribed(), replay = 1)
+    val existingModuleNames =
+        ::retrieveExistingModules
+            .asFlow()
+            .shareIn(wizardScope, SharingStarted.WhileSubscribed(), replay = 1)
 
-    private val validationErrors: StateFlow<Set<ModuleValidationError>> = combine(
-        moduleNameTextFlow,
-        existingModuleNames
-    ) { name, existingModuleNames ->
-        buildSet {
-            if (name.isBlank() || name == ":") {
-                add(ModuleValidationError.ModuleNameEmpty)
-                return@buildSet
-            }
-            if (!name.startsWith(':')) {
-                add(ModuleValidationError.ModuleNameShouldStartWithColon)
-                return@buildSet
-            }
-            if (name.endsWith(':')) {
-                add(ModuleValidationError.ModuleNameEndsWithColon)
-                return@buildSet
-            }
-            if (!moduleNameRegex.matches(name)) {
-                add(ModuleValidationError.ModuleNameInvalidChar)
-                return@buildSet
-            }
-            if (
-                name.endsWith(":api") || name.endsWith(":impl") ||
-                name.endsWith(":screen") || name.endsWith(":ui")
-            ) {
-                add(ModuleValidationError.ModuleNameEndsWithConfig)
-                return@buildSet
-            }
+    private val validationErrors: StateFlow<Set<ModuleValidationError>> =
+        combine(
+                moduleNameTextFlow,
+                existingModuleNames,
+            ) { name, existingModuleNames ->
+                buildSet {
+                    if (name.isBlank() || name == ":") {
+                        add(ModuleValidationError.ModuleNameEmpty)
+                        return@buildSet
+                    }
+                    if (!name.startsWith(':')) {
+                        add(ModuleValidationError.ModuleNameShouldStartWithColon)
+                        return@buildSet
+                    }
+                    if (name.endsWith(':')) {
+                        add(ModuleValidationError.ModuleNameEndsWithColon)
+                        return@buildSet
+                    }
+                    if (!moduleNameRegex.matches(name)) {
+                        add(ModuleValidationError.ModuleNameInvalidChar)
+                        return@buildSet
+                    }
+                    if (
+                        name.endsWith(":api") ||
+                            name.endsWith(":impl") ||
+                            name.endsWith(":screen") ||
+                            name.endsWith(":ui")
+                    ) {
+                        add(ModuleValidationError.ModuleNameEndsWithConfig)
+                        return@buildSet
+                    }
 
-            // Check for modules existence
-            if ("$name:api" in existingModuleNames) {
-                apiConfig.update { it.copy(isSelected = false) }
-                add(ModuleValidationError.ApiModuleExist)
+                    // Check for modules existence
+                    if ("$name:api" in existingModuleNames) {
+                        apiConfig.update { it.copy(isSelected = false) }
+                        add(ModuleValidationError.ApiModuleExist)
+                    }
+                    if ("$name:impl" in existingModuleNames) {
+                        implConfig.update { it.copy(isSelected = false) }
+                        add(ModuleValidationError.ImplModuleExist)
+                    }
+                    if ("$name:ui" in existingModuleNames) {
+                        uiConfig.update { it.copy(isSelected = false) }
+                        add(ModuleValidationError.UiModuleExist)
+                    }
+                    if ("$name:screen" in existingModuleNames) {
+                        screenConfig.update { it.copy(isSelected = false) }
+                        add(ModuleValidationError.ScreenModuleExist)
+                    }
+                }
             }
-            if ("$name:impl" in existingModuleNames) {
-                implConfig.update { it.copy(isSelected = false) }
-                add(ModuleValidationError.ImplModuleExist)
-            }
-            if ("$name:ui" in existingModuleNames) {
-                uiConfig.update { it.copy(isSelected = false) }
-                add(ModuleValidationError.UiModuleExist)
-            }
-            if ("$name:screen" in existingModuleNames) {
-                screenConfig.update { it.copy(isSelected = false) }
-                add(ModuleValidationError.ScreenModuleExist)
-            }
-        }
-    }
-        .stateIn(wizardScope, SharingStarted.WhileSubscribed(), emptySet())
+            .stateIn(wizardScope, SharingStarted.WhileSubscribed(), emptySet())
 
     val canCreate = BoolValueProperty(false)
 
-    val state = WizardState(
-        moduleRoot = moduleRoot,
-        apiConfig = apiConfig,
-        implConfig = implConfig,
-        uiConfig = uiConfig,
-        screenConfig = screenConfig,
-        onConfigClick = ::onConfigClick,
-        onModuleTypeClick = ::onModuleTypeClick,
-        onPluginClick = ::onPluginClick,
-        onExposureClick = ::onExposureClick,
-        onTemplateSelection = ::onTemplateSelection,
-        featureName = featureName,
-        existingModuleNames = existingModuleNames,
-        validationErrors = validationErrors
-    )
+    val state =
+        WizardState(
+            moduleRoot = moduleRoot,
+            apiConfig = apiConfig,
+            implConfig = implConfig,
+            uiConfig = uiConfig,
+            screenConfig = screenConfig,
+            onConfigClick = ::onConfigClick,
+            onModuleTypeClick = ::onModuleTypeClick,
+            onPluginClick = ::onPluginClick,
+            onExposureClick = ::onExposureClick,
+            onTemplateSelection = ::onTemplateSelection,
+            featureName = featureName,
+            existingModuleNames = existingModuleNames,
+            validationErrors = validationErrors,
+        )
 
     init {
         // Map feature name with the module path by default
         moduleNameTextFlow
             .onEach { name ->
                 featureName.setTextAndPlaceCursorAtEnd(
-                    name.split(':', '-')
-                        .joinToString("") {
-                            it.replaceFirstChar { c -> c.uppercaseChar() }
-                        }
+                    name.split(':', '-').joinToString("") {
+                        it.replaceFirstChar { c -> c.uppercaseChar() }
+                    }
                 )
             }
             .launchIn(wizardScope)
 
         combine(
-            apiConfig.map { it.isSelected }.distinctUntilChanged(),
-            implConfig,
-            uiConfig.map { it.isSelected }.distinctUntilChanged(),
-            screenConfig.map { it.isSelected }.distinctUntilChanged(),
-            validationErrors
-        ) { isApiSelected, impl, isUiSelected, isScreenSelected, errors ->
-            val isAnyModuleSelected = isApiSelected || impl.isSelected || isUiSelected || isScreenSelected
-            val isImplModuleTypeValid = !impl.isSelected || impl.typeSelection.type != null
-            val isValid = isAnyModuleSelected && isImplModuleTypeValid && errors.none { it.isNameError }
-            canCreate.set(isValid)
-        }
+                apiConfig.map { it.isSelected }.distinctUntilChanged(),
+                implConfig,
+                uiConfig.map { it.isSelected }.distinctUntilChanged(),
+                screenConfig.map { it.isSelected }.distinctUntilChanged(),
+                validationErrors,
+            ) { isApiSelected, impl, isUiSelected, isScreenSelected, errors ->
+                val isAnyModuleSelected =
+                    isApiSelected || impl.isSelected || isUiSelected || isScreenSelected
+                val isImplModuleTypeValid = !impl.isSelected || impl.typeSelection.type != null
+                val isValid =
+                    isAnyModuleSelected && isImplModuleTypeValid && errors.none { it.isNameError }
+                canCreate.set(isValid)
+            }
             .launchIn(wizardScope)
     }
 
     private fun onConfigClick(config: BandLabModuleConfig) {
         when (config) {
             is BandLabModuleConfig.Api -> apiConfig.update { it.copy(isSelected = !it.isSelected) }
-            is BandLabModuleConfig.Impl -> implConfig.update { it.copy(isSelected = !it.isSelected) }
+            is BandLabModuleConfig.Impl ->
+                implConfig.update { it.copy(isSelected = !it.isSelected) }
             is BandLabModuleConfig.Ui -> uiConfig.update { it.copy(isSelected = !it.isSelected) }
             is BandLabModuleConfig.Screen -> {
                 screenConfig.update { it.copy(isSelected = !it.isSelected) }
@@ -157,22 +166,28 @@ internal class BandLabModuleWizardViewModel(
     }
 
     private fun onPluginClick(config: BandLabModuleConfig, plugin: ModulePlugin) {
-        val currentSelected = when (config) {
-            is BandLabModuleConfig.Api -> apiConfig.value.selectedPlugins
-            is BandLabModuleConfig.Impl -> implConfig.value.selectedPlugins
-            is BandLabModuleConfig.Ui -> uiConfig.value.selectedPlugins
-            is BandLabModuleConfig.Screen -> screenConfig.value.selectedPlugins
-        }
-        val selectedPlugins = if (plugin in currentSelected) {
-            currentSelected - plugin
-        } else {
-            currentSelected + plugin
-        }
+        val currentSelected =
+            when (config) {
+                is BandLabModuleConfig.Api -> apiConfig.value.selectedPlugins
+                is BandLabModuleConfig.Impl -> implConfig.value.selectedPlugins
+                is BandLabModuleConfig.Ui -> uiConfig.value.selectedPlugins
+                is BandLabModuleConfig.Screen -> screenConfig.value.selectedPlugins
+            }
+        val selectedPlugins =
+            if (plugin in currentSelected) {
+                currentSelected - plugin
+            } else {
+                currentSelected + plugin
+            }
         when (config) {
-            is BandLabModuleConfig.Api -> apiConfig.update { it.copy(selectedPlugins = selectedPlugins) }
-            is BandLabModuleConfig.Impl -> implConfig.update { it.copy(selectedPlugins = selectedPlugins) }
-            is BandLabModuleConfig.Ui -> uiConfig.update { it.copy(selectedPlugins = selectedPlugins) }
-            is BandLabModuleConfig.Screen -> screenConfig.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleConfig.Api ->
+                apiConfig.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleConfig.Impl ->
+                implConfig.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleConfig.Ui ->
+                uiConfig.update { it.copy(selectedPlugins = selectedPlugins) }
+            is BandLabModuleConfig.Screen ->
+                screenConfig.update { it.copy(selectedPlugins = selectedPlugins) }
         }
     }
 
@@ -180,26 +195,29 @@ internal class BandLabModuleWizardViewModel(
         when (config) {
             is BandLabModuleConfig.Impl -> implConfig.update { it.copy(exposure = exposure) }
             is BandLabModuleConfig.Screen -> screenConfig.update { it.copy(exposure = exposure) }
-            is BandLabModuleConfig.Api, is BandLabModuleConfig.Ui -> error("Api and Ui module can't be exposed")
+            is BandLabModuleConfig.Api,
+            is BandLabModuleConfig.Ui -> error("Api and Ui module can't be exposed")
         }
     }
 
     private fun onTemplateSelection(template: BandLabModuleConfig.Screen.Template) {
         screenConfig.update {
-            val newTemplate = if(it.template == template) null else template
+            val newTemplate = if (it.template == template) null else template
             it.copy(template = newTemplate)
         }
     }
 
-    private suspend fun retrieveExistingModules(): Set<String> = withContext(ioDispatcher) {
-        readAction {
-            project.readFile(
-                filePath = ALL_PROJECTS_PATH,
-                isAbsolute = false
-            )
-                .split(NEW_LINE)
-                .filter { it.isNotBlank() }
-                .toSet()
+    private suspend fun retrieveExistingModules(): Set<String> =
+        withContext(ioDispatcher) {
+            readAction {
+                project
+                    .readFile(
+                        filePath = ALL_PROJECTS_PATH,
+                        isAbsolute = false,
+                    )
+                    .split(NEW_LINE)
+                    .filter { it.isNotBlank() }
+                    .toSet()
+            }
         }
-    }
 }

@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.template
 
 import com.bandlab.intellij.plugin.utils.filePackage
@@ -5,19 +7,21 @@ import com.bandlab.intellij.plugin.utils.writeFile
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 
-class ComposableTemplateCreateAction : CreateSimpleFileAction(
-    text = "Composable Template",
-    description = "Create a Composable template with latest convention.",
-    inputHint = "Composable Name (Ex: ProjectContent)",
-    availability = Availability.ComposeOnly
-) {
+class ComposableTemplateCreateAction :
+    CreateSimpleFileAction(
+        text = "Composable Template",
+        description = "Create a Composable template with latest convention.",
+        inputHint = "Composable Name (Ex: ProjectContent)",
+        availability = Availability.ComposeOnly,
+    ) {
     override fun create(newName: String, directory: PsiDirectory): Array<PsiElement> {
-        val templateBuilder = ComposableTemplateBuilder(
-            name = newName,
-            filePackage = directory.filePackage
-        )
+        val templateBuilder =
+            ComposableTemplateBuilder(
+                name = newName,
+                filePackage = directory.filePackage,
+            )
         return arrayOf(
-            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.buildFile()),
+            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.buildFile())
         )
     }
 

@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module
 
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -26,7 +28,7 @@ private class BandLabModuleEntry : ModuleGalleryEntry {
     override fun createStep(
         project: Project,
         moduleParent: String,
-        projectSyncInvoker: ProjectSyncInvoker
+        projectSyncInvoker: ProjectSyncInvoker,
     ): SkippableWizardStep<*> {
         return BandLabModuleWizardStep(project, moduleParent, projectSyncInvoker)
     }

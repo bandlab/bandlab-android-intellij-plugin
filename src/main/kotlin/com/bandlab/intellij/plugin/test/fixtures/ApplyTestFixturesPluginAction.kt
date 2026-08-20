@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.test.fixtures
 
 import com.bandlab.intellij.plugin.BandLabIcons
@@ -17,17 +19,16 @@ import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import java.io.File
 
-class ApplyTestFixturesPluginAction : DumbAwareAction(
-    /* text = */ "Apply Test Fixtures Plugin",
-    /* description = */ "Apply testFixtures plugin and create required folders.",
-    /* icon = */ BandLabIcons.logo
-) {
+class ApplyTestFixturesPluginAction :
+    DumbAwareAction(
+        /* text = */ "Apply Test Fixtures Plugin",
+        /* description = */ "Apply testFixtures plugin and create required folders.",
+        /* icon = */ BandLabIcons.logo,
+    ) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    /**
-     *  Make the action available only when the menu is shown for the build.gradle.kts
-     */
+    /** Make the action available only when the menu is shown for the build.gradle.kts */
     override fun update(e: AnActionEvent) {
         e.presentation.isEnabledAndVisible = isBuildScriptFile(e.psiFileOrNull()?.name)
     }
@@ -44,7 +45,7 @@ class ApplyTestFixturesPluginAction : DumbAwareAction(
                 project.addTestFixturesPlugin(buildGradle.path)
                 project.createTestFixturesFolder(buildGradle)
                 project.sortDependencies(buildGradle.path)
-            }
+            },
         )
     }
 

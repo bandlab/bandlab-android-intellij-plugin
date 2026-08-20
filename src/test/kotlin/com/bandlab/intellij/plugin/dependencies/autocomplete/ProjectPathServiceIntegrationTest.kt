@@ -1,18 +1,5 @@
-/*
- * Copyright (C) 2025 Slack Technologies, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
 import com.bandlab.intellij.plugin.utils.GradleProjectUtils.parseProjectPaths
@@ -27,20 +14,20 @@ class ProjectPathServiceIntegrationTest {
     fun `service correctly parses all-projects txt file`() {
         val projectFileContent =
             """
-      :platforms:gradle:agp-handlers:agp-handler-api
-      :platforms:gradle:better-gradle-properties
-      :platforms:gradle:foundry-gradle-plugin
-      :platforms:intellij:artifactory-authenticator
-      :platforms:intellij:compose
-      :platforms:intellij:compose:playground
-      :platforms:intellij:skate
-      :tools:cli
-      :tools:foundry-common
-      :tools:robolectric-sdk-management
-      :tools:skippy
-      :tools:tracing
-      :tools:version-number
-    """
+            :platforms:gradle:agp-handlers:agp-handler-api
+            :platforms:gradle:better-gradle-properties
+            :platforms:gradle:foundry-gradle-plugin
+            :platforms:intellij:artifactory-authenticator
+            :platforms:intellij:compose
+            :platforms:intellij:compose:playground
+            :platforms:intellij:skate
+            :tools:cli
+            :tools:foundry-common
+            :tools:robolectric-sdk-management
+            :tools:skippy
+            :tools:tracing
+            :tools:version-number
+            """
                 .trimIndent()
 
         val parsedPaths = parseProjectPaths(projectFileContent)
@@ -55,15 +42,15 @@ class ProjectPathServiceIntegrationTest {
     fun `service handles empty lines and comments`() {
         val projectFileContent =
             """
-      # This is a comment
-      :platforms:intellij:skate
+            # This is a comment
+            :platforms:intellij:skate
 
-      # Another comment
-      :tools:cli
+            # Another comment
+            :tools:cli
 
-      :tools:foundry-common
-      # End comment
-    """
+            :tools:foundry-common
+            # End comment
+            """
                 .trimIndent()
 
         val parsedPaths = parseProjectPaths(projectFileContent)

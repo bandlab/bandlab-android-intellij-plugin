@@ -1,11 +1,8 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.localizer
 
-import com.intellij.openapi.components.PersistentStateComponent
-import com.intellij.openapi.components.Service
-import com.intellij.openapi.components.State
-import com.intellij.openapi.components.Storage
-import com.intellij.openapi.components.StoragePathMacros
-import com.intellij.openapi.components.service
+import com.intellij.openapi.components.*
 import com.intellij.openapi.project.Project
 
 /**
@@ -40,7 +37,9 @@ class EditAllowedBranches : PersistentStateComponent<EditAllowedBranches.State> 
     /** True when edits on [branch] should be allowed without a warning dialog. */
     fun isAllowed(branch: String): Boolean = branch in state.branches
 
-    /** Marks [branch] as allowed; subsequent keystrokes in managed files will pass through silently. */
+    /**
+     * Marks [branch] as allowed; subsequent keystrokes in managed files will pass through silently.
+     */
     fun allow(branch: String) {
         if (branch !in state.branches) state.branches.add(branch)
     }

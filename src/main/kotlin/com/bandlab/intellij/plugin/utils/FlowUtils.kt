@@ -1,11 +1,14 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.utils
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 
 /**
- * Returns a [Flow] whose values are generated with [transform] function by combining
- * the most recently emitted values by each flow.
+ * Returns a [Flow] whose values are generated with [transform] function by combining the most
+ * recently emitted values by each flow.
+ *
  * @see [kotlinx.coroutines.flow.combine]
  */
 fun <T1, T2, T3, T4, T5, T6, R> combine(
@@ -16,14 +19,15 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
     flow5: Flow<T5>,
     flow6: Flow<T6>,
     transform: suspend (T1, T2, T3, T4, T5, T6) -> R,
-): Flow<R> = combine(flow, flow2, flow3, flow4, flow5, flow6) { args: Array<*> ->
-    @Suppress("UNCHECKED_CAST")
-    transform(
-        args[0] as T1,
-        args[1] as T2,
-        args[2] as T3,
-        args[3] as T4,
-        args[4] as T5,
-        args[5] as T6,
-    )
-}
+): Flow<R> =
+    combine(flow, flow2, flow3, flow4, flow5, flow6) { args: Array<*> ->
+        @Suppress("UNCHECKED_CAST")
+        transform(
+            args[0] as T1,
+            args[1] as T2,
+            args[2] as T3,
+            args[3] as T4,
+            args[4] as T5,
+            args[5] as T6,
+        )
+    }

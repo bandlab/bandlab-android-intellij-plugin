@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module.ui
 
 import androidx.compose.animation.animateContentSize
@@ -25,35 +27,35 @@ internal fun BandLabModuleConfigSelector(
     screenSettingsSlot: @Composable ((BandLabModuleConfig.Screen) -> Unit)?,
     errorMessage: String?,
 ) {
-    Column(
-        modifier = Modifier.animateContentSize()
-    ) {
-        val configName = when (state) {
-            is BandLabModuleConfig.Api -> ":api"
-            is BandLabModuleConfig.Impl -> ":impl"
-            is BandLabModuleConfig.Ui -> ":ui"
-            is BandLabModuleConfig.Screen -> ":screen"
-        }
+    Column(modifier = Modifier.animateContentSize()) {
+        val configName =
+            when (state) {
+                is BandLabModuleConfig.Api -> ":api"
+                is BandLabModuleConfig.Impl -> ":impl"
+                is BandLabModuleConfig.Ui -> ":ui"
+                is BandLabModuleConfig.Screen -> ":screen"
+            }
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             CheckboxRow(
                 text = configName,
                 checked = state.isSelected,
                 enabled = errorMessage == null,
                 onCheckedChange = { _ -> onConfigClick(state) },
-                textStyle = TextStyle(
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
+                textStyle =
+                    TextStyle(
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
             )
 
             if (errorMessage != null) {
                 ErrorText(
                     errorMessage = errorMessage,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp),
                 )
             }
         }
@@ -63,42 +65,44 @@ internal fun BandLabModuleConfigSelector(
             val bottomPadding = 16.dp
             val groupBorderColor = GroupBorderColor
             Column(
-                modifier = Modifier
-                    .drawBehind {
-                        val strokeWidth = 0.5.dp.toPx()
-                        val startPaddingPx = startPadding.toPx()
-                        val topPaddingPx = 8.dp.toPx()
-                        val bottomPaddingPx = bottomPadding.toPx()
-                        drawLine(
-                            color = groupBorderColor,
-                            start = Offset(x = startPaddingPx, y = topPaddingPx),
-                            end = Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
-                            strokeWidth = strokeWidth
-                        )
-                        drawLine(
-                            color = groupBorderColor,
-                            start = Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
-                            end = Offset(
-                                x = startPaddingPx + GroupIndicatorWidth.toPx(),
-                                y = size.height - bottomPaddingPx
-                            ),
-                            strokeWidth = strokeWidth
-                        )
-                    }
-                    .padding(start = startPadding)
+                modifier =
+                    Modifier.drawBehind {
+                            val strokeWidth = 0.5.dp.toPx()
+                            val startPaddingPx = startPadding.toPx()
+                            val topPaddingPx = 8.dp.toPx()
+                            val bottomPaddingPx = bottomPadding.toPx()
+                            drawLine(
+                                color = groupBorderColor,
+                                start = Offset(x = startPaddingPx, y = topPaddingPx),
+                                end = Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
+                                strokeWidth = strokeWidth,
+                            )
+                            drawLine(
+                                color = groupBorderColor,
+                                start =
+                                    Offset(x = startPaddingPx, y = size.height - bottomPaddingPx),
+                                end =
+                                    Offset(
+                                        x = startPaddingPx + GroupIndicatorWidth.toPx(),
+                                        y = size.height - bottomPaddingPx,
+                                    ),
+                                strokeWidth = strokeWidth,
+                            )
+                        }
+                        .padding(start = startPadding)
             ) {
                 val typeSelection = state.typeSelection
                 if (typeSelection is ModuleTypeSelection.RequireSelection) {
                     SettingsGroup("Module Type") {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             BandLabModuleType.entries.forEach { type ->
                                 RadioButtonRow(
                                     text = type.name,
                                     selected = type == typeSelection.type,
-                                    onClick = { onModuleTypeClick(state, type) }
+                                    onClick = { onModuleTypeClick(state, type) },
                                 )
                             }
                             if (typeSelection.type == null) {
@@ -113,7 +117,7 @@ internal fun BandLabModuleConfigSelector(
                         CheckboxRow(
                             text = plugin.name,
                             checked = plugin in state.selectedPlugins,
-                            onCheckedChange = { onPluginClick(state, plugin) }
+                            onCheckedChange = { onPluginClick(state, plugin) },
                         )
                     }
                 }
@@ -126,7 +130,7 @@ internal fun BandLabModuleConfigSelector(
                                 RadioButtonRow(
                                     text = exposure.name,
                                     selected = exposure == selectedExposure,
-                                    onClick = { onExposureClick(state, exposure) }
+                                    onClick = { onExposureClick(state, exposure) },
                                 )
                             }
                         }

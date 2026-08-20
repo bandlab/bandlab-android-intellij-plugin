@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module.ui
 
 import androidx.compose.animation.animateContentSize
@@ -47,15 +49,11 @@ internal data class WizardState(
 internal fun BandLabModuleWizard(state: WizardState) {
     val validationErrors by state.validationErrors.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .padding(24.dp)
-    ) {
+    Column(modifier = Modifier.verticalScroll(rememberScrollState()).padding(24.dp)) {
         Text(
             text = "BandLab Module Structure Convention",
             fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         Spacer(Modifier.height(16.dp))
@@ -63,28 +61,27 @@ internal fun BandLabModuleWizard(state: WizardState) {
         Row {
             Text(
                 text = "Module Root",
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 4.dp),
             )
 
             Spacer(Modifier.width(16.dp))
 
-            Column(
-                modifier = Modifier.animateContentSize()
-            ) {
+            Column(modifier = Modifier.animateContentSize()) {
                 AutoCompleteTextField(
                     state = state.moduleRoot,
                     suggestionsFlow = state.existingModuleNames,
-                    outline = Outline.of(
-                        warning = false,
-                        error = validationErrors.any { it.isNameError }
-                    )
+                    outline =
+                        Outline.of(
+                            warning = false,
+                            error = validationErrors.any { it.isNameError },
+                        ),
                 )
 
                 val nameError = validationErrors.firstOrNull { it.isNameError }
                 if (nameError != null) {
                     ErrorText(
                         errorMessage = nameError.errorMessage,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.padding(top = 4.dp),
                     )
                 }
 
@@ -96,33 +93,35 @@ internal fun BandLabModuleWizard(state: WizardState) {
 
         val uriHandler = LocalUriHandler.current
         Row(
-            modifier = Modifier.clickable {
-                uriHandler.openUri(MODULE_STRUCTURE_CONVENTION_URL)
-            }
+            modifier =
+                Modifier.clickable {
+                    uriHandler.openUri(MODULE_STRUCTURE_CONVENTION_URL)
+                }
         ) {
             HintText(hint = "See the convention doc")
 
             Icon(
                 key = AllIconsKeys.Ide.External_link_arrow,
                 contentDescription = "Link",
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 4.dp),
             )
         }
 
         Spacer(Modifier.height(8.dp))
 
         listOf(
-            state.apiConfig,
-            state.implConfig,
-            state.screenConfig,
-            state.uiConfig
-        )
+                state.apiConfig,
+                state.implConfig,
+                state.screenConfig,
+                state.uiConfig,
+            )
             .forEach { configState ->
                 val config = configState.collectAsState().value
-                val errorMessage = validationErrors.errorMessageOrNull(
-                    config = config,
-                    parentModule = state.moduleRoot.text
-                )
+                val errorMessage =
+                    validationErrors.errorMessageOrNull(
+                        config = config,
+                        parentModule = state.moduleRoot.text,
+                    )
 
                 BandLabModuleConfigSelector(
                     state = config,
@@ -130,18 +129,19 @@ internal fun BandLabModuleWizard(state: WizardState) {
                     onModuleTypeClick = state.onModuleTypeClick,
                     onPluginClick = state.onPluginClick,
                     onExposureClick = state.onExposureClick,
-                    screenSettingsSlot = if (config is BandLabModuleConfig.Screen) {
-                        {
-                            BandLabScreenModuleSelector(
-                                state = config,
-                                featureName = state.featureName,
-                                onTemplateSelection = state.onTemplateSelection,
-                            )
-                        }
-                    } else {
-                        null
-                    },
-                    errorMessage = errorMessage
+                    screenSettingsSlot =
+                        if (config is BandLabModuleConfig.Screen) {
+                            {
+                                BandLabScreenModuleSelector(
+                                    state = config,
+                                    featureName = state.featureName,
+                                    onTemplateSelection = state.onTemplateSelection,
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    errorMessage = errorMessage,
                 )
             }
     }
@@ -154,20 +154,21 @@ private const val MODULE_STRUCTURE_CONVENTION_URL =
 @Composable
 private fun BandLabModuleWizard_Preview() {
     BandLabModuleWizard(
-        state = WizardState(
-            moduleRoot = TextFieldState(":example:module"),
-            apiConfig = MutableStateFlow(BandLabModuleConfig.Api(isSelected = true)),
-            implConfig = MutableStateFlow(BandLabModuleConfig.Impl(isSelected = true)),
-            uiConfig = MutableStateFlow(BandLabModuleConfig.Ui(isSelected = true)),
-            screenConfig = MutableStateFlow(BandLabModuleConfig.Screen(isSelected = true)),
-            onConfigClick = {},
-            onModuleTypeClick = { _, _ -> },
-            onPluginClick = { _, _ -> },
-            onExposureClick = { _, _ -> },
-            onTemplateSelection = {},
-            featureName = TextFieldState("ExampleFeature"),
-            existingModuleNames = MutableStateFlow(emptySet()),
-            validationErrors = MutableStateFlow(emptySet())
-        )
+        state =
+            WizardState(
+                moduleRoot = TextFieldState(":example:module"),
+                apiConfig = MutableStateFlow(BandLabModuleConfig.Api(isSelected = true)),
+                implConfig = MutableStateFlow(BandLabModuleConfig.Impl(isSelected = true)),
+                uiConfig = MutableStateFlow(BandLabModuleConfig.Ui(isSelected = true)),
+                screenConfig = MutableStateFlow(BandLabModuleConfig.Screen(isSelected = true)),
+                onConfigClick = {},
+                onModuleTypeClick = { _, _ -> },
+                onPluginClick = { _, _ -> },
+                onExposureClick = { _, _ -> },
+                onTemplateSelection = {},
+                featureName = TextFieldState("ExampleFeature"),
+                existingModuleNames = MutableStateFlow(emptySet()),
+                validationErrors = MutableStateFlow(emptySet()),
+            )
     )
 }

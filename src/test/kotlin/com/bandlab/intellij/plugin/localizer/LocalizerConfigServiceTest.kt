@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.localizer
 
 import com.google.common.truth.Truth.assertThat
@@ -16,26 +18,34 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
         }
     }
 
-    private val service get() = project.service<LocalizerConfigService>()
+    private val service
+        get() = project.service<LocalizerConfigService>()
 
     fun testTargetsInManifestOrderFirstIsDefault() {
         writeManifest(TWO_TARGETS)
-        assertThat(service.targets().map { it.addKeysToFile }).containsExactly(
-            "common/android/strings/src/main/res/values/strings.xml",
-            "audiostretch/common-strings/src/main/res/values/strings.xml",
-        ).inOrder()
+        assertThat(service.targets().map { it.addKeysToFile })
+            .containsExactly(
+                "common/android/strings/src/main/res/values/strings.xml",
+                "audiostretch/common-strings/src/main/res/values/strings.xml",
+            )
+            .inOrder()
     }
 
     fun testTargetForBaseFile() {
         writeManifest(TWO_TARGETS)
-        val base = createFile("audiostretch/common-strings/src/main/res/values/strings.xml", "<resources/>")
+        val base =
+            createFile(
+                "audiostretch/common-strings/src/main/res/values/strings.xml",
+                "<resources/>",
+            )
         assertThat(service.targetFor(base)?.addKeysToFile)
             .isEqualTo("audiostretch/common-strings/src/main/res/values/strings.xml")
     }
 
     fun testTargetForTranslationFileMapsToItsBase() {
         writeManifest(TWO_TARGETS)
-        val fr = createFile("common/android/strings/src/main/res/values-fr/strings.xml", "<resources/>")
+        val fr =
+            createFile("common/android/strings/src/main/res/values-fr/strings.xml", "<resources/>")
         assertThat(service.targetFor(fr)?.addKeysToFile)
             .isEqualTo("common/android/strings/src/main/res/values/strings.xml")
     }
@@ -54,17 +64,24 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
 
     fun testTargetsForRClassMapsToSingleModuleTarget() {
         writeManifest(TWO_TARGETS)
-        assertThat(service.targetsForRClass("com.bandlab.audiostretch.common.strings.R").map { it.addKeysToFile })
+        assertThat(
+                service.targetsForRClass("com.bandlab.audiostretch.common.strings.R").map {
+                    it.addKeysToFile
+                }
+            )
             .containsExactly("audiostretch/common-strings/src/main/res/values/strings.xml")
     }
 
     fun testTargetsForRClassReturnsEveryTargetUnderTheModule() {
         writeManifest(COMMON_STRINGS_WITH_PLURALS)
-        assertThat(service.targetsForRClass("com.bandlab.common.strings.R").map { it.addKeysToFile })
+        assertThat(
+                service.targetsForRClass("com.bandlab.common.strings.R").map { it.addKeysToFile }
+            )
             .containsExactly(
                 "common/android/strings/src/main/res/values/strings.xml",
                 "common/android/strings/src/main/res/values/strings-plurals.xml",
-            ).inOrder()
+            )
+            .inOrder()
     }
 
     fun testTargetsForUnmappedRClassIsEmpty() {
@@ -85,7 +102,8 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
     }
 
     private companion object {
-        val TWO_TARGETS = """
+        val TWO_TARGETS =
+            """
             api-key = "k"
             project-id = "1"
 
@@ -104,10 +122,12 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
 
             [file.translations]
             fr = "values-fr/strings.xml"
-        """.trimIndent()
+            """
+                .trimIndent()
 
         // Two base files under the same common/android/strings module: singulars + plurals.
-        val COMMON_STRINGS_WITH_PLURALS = """
+        val COMMON_STRINGS_WITH_PLURALS =
+            """
             api-key = "k"
             project-id = "1"
 
@@ -120,6 +140,7 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
             locale = "en"
             base_path = "common/android/strings/src/main/res"
             path = "values/strings-plurals.xml"
-        """.trimIndent()
+            """
+                .trimIndent()
     }
 }

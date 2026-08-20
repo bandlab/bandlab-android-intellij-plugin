@@ -1,9 +1,11 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 import dev.bmac.gradle.intellij.PluginUploader
+import java.util.*
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.SignPluginTask
-import java.util.*
 
 plugins {
     id("java")
@@ -17,6 +19,7 @@ plugins {
 }
 
 group = providers.gradleProperty("pluginGroup").get()
+
 version = providers.gradleProperty("pluginVersion").get()
 
 // Set the JVM language level used to build the project.
@@ -30,28 +33,30 @@ repositories {
     mavenCentral()
     google()
 
-    // IntelliJ Platform Gradle Plugin Repositories Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
+    // IntelliJ Platform Gradle Plugin Repositories Extension - read more:
+    // https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-repositories-extension.html
     intellijPlatform {
         defaultRepositories()
     }
 }
 
-// Dependencies are managed with Gradle version catalog - read more: https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
+// Dependencies are managed with Gradle version catalog - read more:
+// https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
 dependencies {
-    // IntelliJ Platform Gradle Plugin Dependencies Extension - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-dependencies-extension.html
     intellijPlatform {
         intellijIdea(providers.gradleProperty("targetPlatformVersion"))
 
-        // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties file for bundled IntelliJ Platform plugins.
+        // Plugin Dependencies. Uses `platformBundledPlugins` property from the gradle.properties
+        // file for bundled IntelliJ Platform plugins.
         bundledPlugins(providers.gradleProperty("platformBundledPlugins").map { it.split(',') })
 
-        // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for plugin from JetBrains Marketplace.
+        // Plugin Dependencies. Uses `platformPlugins` property from the gradle.properties file for
+        // plugin from JetBrains Marketplace.
         plugins(providers.gradleProperty("platformPlugins").map { it.split(',') })
 
         testFramework(TestFrameworkType.Platform)
 
-        @Suppress("UnstableApiUsage")
-        composeUI()
+        @Suppress("UnstableApiUsage") composeUI()
     }
 
     // bandlab-localizer config model, vendored as a prebuilt jar (config 3.2.0 release artifact).
@@ -59,54 +64,61 @@ dependencies {
     implementation(files("libs/config.jar"))
     implementation(libs.ktoml.file)
     implementation(libs.serialization.json)
-
+    testImplementation(kotlin("stdlib"))
+    testImplementation(libs.coroutines.test) {
+        // To avoid conflicts with IntelliJ embedded coroutines
+        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
+    }
     testImplementation(libs.junit)
     // Used in com.intellij.util.lang.UrlClassLoader
     // see: https://github.com/JetBrains/intellij-platform-gradle-plugin/issues/2127
     testImplementation(libs.opentest4j)
     testImplementation(libs.truth)
-    testImplementation(kotlin("stdlib"))
     testImplementation(libs.turbine) {
-        // To avoid conflicts with IntelliJ embedded coroutines
-        exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
-    }
-    testImplementation(libs.coroutines.test) {
         // To avoid conflicts with IntelliJ embedded coroutines
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
     }
 }
 
-// Configure IntelliJ Platform Gradle Plugin - read more: https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
+// Configure IntelliJ Platform Gradle Plugin - read more:
+// https://plugins.jetbrains.com/docs/intellij/tools-intellij-platform-gradle-plugin-extension.html
 intellijPlatform {
     pluginConfiguration {
         name = providers.gradleProperty("pluginName")
         version = providers.gradleProperty("pluginVersion")
 
-        // Extract the <!-- Plugin description --> section from README.md and provide for the plugin's manifest
-        description = providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
-            val start = "<!-- Plugin description -->"
-            val end = "<!-- Plugin description end -->"
+        // Extract the <!-- Plugin description --> section from README.md and provide for the
+        // plugin's manifest
+        description =
+            providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
+                val start = "<!-- Plugin description -->"
+                val end = "<!-- Plugin description end -->"
 
-            with(it.lines()) {
-                if (!containsAll(listOf(start, end))) {
-                    throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
+                with(it.lines()) {
+                    if (!containsAll(listOf(start, end))) {
+                        throw GradleException(
+                            "Plugin description section not found in README.md:\n$start ... $end"
+                        )
+                    }
+                    subList(indexOf(start) + 1, indexOf(end))
+                        .joinToString("\n")
+                        .let(::markdownToHTML)
                 }
-                subList(indexOf(start) + 1, indexOf(end)).joinToString("\n").let(::markdownToHTML)
             }
-        }
 
         val changelog = project.changelog // local variable for configuration cache compatibility
         // Get the latest available change notes from the changelog file
-        changeNotes = providers.gradleProperty("pluginVersion").map { pluginVersion ->
-            with(changelog) {
-                renderItem(
-                    (getOrNull(pluginVersion) ?: getUnreleased())
-                        .withHeader(false)
-                        .withEmptySections(false),
-                    Changelog.OutputType.HTML,
-                )
+        changeNotes =
+            providers.gradleProperty("pluginVersion").map { pluginVersion ->
+                with(changelog) {
+                    renderItem(
+                        (getOrNull(pluginVersion) ?: getUnreleased())
+                            .withHeader(false)
+                            .withEmptySections(false),
+                        Changelog.OutputType.HTML,
+                    )
+                }
             }
-        }
 
         ideaVersion {
             sinceBuild = providers.gradleProperty("pluginSinceBuild")
@@ -121,20 +133,25 @@ intellijPlatform {
 
     publishing {
         token = providers.environmentVariable("PUBLISH_TOKEN")
-        // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release labels, like 2.1.7-alpha.3
-        // Specify pre-release label to publish the plugin in a custom Release Channel automatically. Read more:
+        // The pluginVersion is based on the SemVer (https://semver.org) and supports pre-release
+        // labels, like 2.1.7-alpha.3
+        // Specify pre-release label to publish the plugin in a custom Release Channel
+        // automatically. Read more:
         // https://plugins.jetbrains.com/docs/intellij/deployment.html#specifying-a-release-channel
-        channels = providers.gradleProperty("pluginVersion")
-            .map { listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" }) }
+        channels =
+            providers.gradleProperty("pluginVersion").map {
+                listOf(it.substringAfter('-', "").substringBefore('.').ifEmpty { "default" })
+            }
     }
 
     pluginVerification {
         // Our plugin id is "com.bandlab.intellij.plugin", lately jetbrains added a check that
         // plugin id and name don't contain the word intellij and treats it as error.
-        freeArgs = listOf(
-            "-mute",
-            "TemplateWordInPluginId,TemplateWordInPluginName,ExperimentalApiUsage"
-        )
+        freeArgs =
+            listOf(
+                "-mute",
+                "TemplateWordInPluginId,TemplateWordInPluginName,ExperimentalApiUsage",
+            )
 
         ides {
             recommended()
@@ -142,7 +159,8 @@ intellijPlatform {
     }
 }
 
-// Configure Gradle Changelog Plugin - read more: https://github.com/JetBrains/gradle-changelog-plugin
+// Configure Gradle Changelog Plugin - read more:
+// https://github.com/JetBrains/gradle-changelog-plugin
 changelog {
     groups.empty()
     repositoryUrl = providers.gradleProperty("pluginRepositoryUrl")
@@ -161,7 +179,8 @@ tasks {
     }
 
     register("patchReadme") {
-        description = "Updates the IntelliJ IDEA badge in README.md to match targetPlatformVersion in gradle.properties"
+        description =
+            "Updates the IntelliJ IDEA badge in README.md to match targetPlatformVersion in gradle.properties"
         group = "documentation"
 
         val targetVersion = providers.gradleProperty("targetPlatformVersion")
@@ -174,10 +193,11 @@ tasks {
         doLast {
             val content = readmeFile.readText()
             val version = targetVersion.get()
-            val updatedContent = content.replace(
-                Regex("""badge/IntelliJ%20IDEA%20Target-[A-Za-z0-9\.\-]+-red\.svg"""),
-                "badge/IntelliJ%20IDEA%20Target-$version-red.svg"
-            )
+            val updatedContent =
+                content.replace(
+                    Regex("""badge/IntelliJ%20IDEA%20Target-[A-Za-z0-9\.\-]+-red\.svg"""),
+                    "badge/IntelliJ%20IDEA%20Target-$version-red.svg",
+                )
             if (content != updatedContent) {
                 readmeFile.writeText(updatedContent)
             }
@@ -213,13 +233,16 @@ tasks {
         version.set(project.version.toString())
         repoType.set(PluginUploader.RepoType.REST_PUT)
         authentication.set(
-            "Basic " + String(
-                Base64.getEncoder().encode(
-                    "${
+            "Basic " +
+                String(
+                    Base64.getEncoder()
+                        .encode(
+                            "${
                         providers.environmentVariable("PUBLISH_USER").getOrElse("")
-                    }:${providers.environmentVariable("PUBLISH_PASSWORD").getOrElse("")}".encodeToByteArray()
+                    }:${providers.environmentVariable("PUBLISH_PASSWORD").getOrElse("")}"
+                                .encodeToByteArray()
+                        )
                 )
-            )
         )
         pluginDescription.set(
             providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
@@ -228,9 +251,13 @@ tasks {
 
                 with(it.lines()) {
                     if (!containsAll(listOf(start, end))) {
-                        throw GradleException("Plugin description section not found in README.md:\n$start ... $end")
+                        throw GradleException(
+                            "Plugin description section not found in README.md:\n$start ... $end"
+                        )
                     }
-                    subList(indexOf(start) + 1, indexOf(end)).joinToString("\n").let(::markdownToHTML)
+                    subList(indexOf(start) + 1, indexOf(end))
+                        .joinToString("\n")
+                        .let(::markdownToHTML)
                 }
             }
         )
@@ -252,7 +279,8 @@ tasks {
     }
 
     generateBlockMap.configure {
-        // Depend on either signPlugin or buildPlugin, depending on which task provides the file in the uploadPlugin
+        // Depend on either signPlugin or buildPlugin, depending on which task provides the file in
+        // the uploadPlugin
         dependsOn(project.tasks.named("signPlugin"))
     }
 }

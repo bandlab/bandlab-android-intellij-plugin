@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.utils
 
 import com.bandlab.intellij.plugin.utils.Const.ALL_PROJECTS_PATH
@@ -13,8 +15,8 @@ private const val ANDROID_LIBRARY_PLUGIN_ID = "bandlab.plugins.library.android"
 private const val COMPOSE_PLUGIN_ID = "bandlab.plugins.compose"
 
 /**
- * @returns `true` if the project is using Kotlin DSL. Default to 'false'
- * As of now this is only determined by checking if the root setting file is `settings.gradle.kts`.
+ * @returns `true` if the project is using Kotlin DSL. Default to 'false' As of now this is only
+ *   determined by checking if the root setting file is `settings.gradle.kts`.
  */
 internal fun Project.isUsingKts(): Boolean {
     val basePath = basePath ?: return false
@@ -32,12 +34,13 @@ internal fun isBuildScriptFile(fileName: String?): Boolean {
 
 internal fun Project.hasAllProjectsFile(): Boolean {
     val basePath = basePath ?: return false
-    return VirtualFileManager.getInstance().findFileByUrl("file://$basePath$ALL_PROJECTS_PATH") != null
+    return VirtualFileManager.getInstance().findFileByUrl("file://$basePath$ALL_PROJECTS_PATH") !=
+        null
 }
 
 /**
- * @returns `true` if the project is an Android module, `false` otherwise.
- * This is determined by checking if the build script contains the Android library plugin id.
+ * @returns `true` if the project is an Android module, `false` otherwise. This is determined by
+ *   checking if the build script contains the Android library plugin id.
  */
 internal fun Project.isAndroidModule(projectFolderPath: String): Boolean {
     val projectFolder = resolveProjectFolder(projectFolderPath)
@@ -47,11 +50,14 @@ internal fun Project.isAndroidModule(projectFolderPath: String): Boolean {
 }
 
 /**
- * @returns `true` if the nearest Gradle module containing [moduleDir] has the Compose plugin applied.
+ * @returns `true` if the nearest Gradle module containing [moduleDir] has the Compose plugin
+ *   applied.
  */
 internal fun Project.hasComposePlugin(moduleDir: VirtualFile): Boolean {
-    val projectRoot = basePath?.let { LocalFileSystem.getInstance().findFileByPath(it) } ?: return false
-    val gradleProjectDir = GradleProjectUtils.findNearestGradleProject(projectRoot, moduleDir) ?: return false
+    val projectRoot =
+        basePath?.let { LocalFileSystem.getInstance().findFileByPath(it) } ?: return false
+    val gradleProjectDir =
+        GradleProjectUtils.findNearestGradleProject(projectRoot, moduleDir) ?: return false
     val buildScript = File(gradleProjectDir.path, buildScriptName())
     if (!buildScript.exists()) return false
     return buildScript.readText().contains(COMPOSE_PLUGIN_ID)

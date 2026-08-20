@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
@@ -13,16 +15,12 @@ import com.intellij.psi.util.PsiModificationTracker
 import com.intellij.psi.util.PsiTreeUtil
 import kotlin.io.path.readText
 import org.jetbrains.kotlin.idea.references.mainReference
-import org.jetbrains.kotlin.psi.KtClassOrObject
-import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
-import org.jetbrains.kotlin.psi.KtExpression
-import org.jetbrains.kotlin.psi.KtNameReferenceExpression
-import org.jetbrains.kotlin.psi.KtTypeAlias
+import org.jetbrains.kotlin.psi.*
 
 /**
- * Detection of Android `R.string.X` / `R.plurals.X` references in Kotlin code, shared by the
- * "Add string" unresolved-reference quick fix ([AddStringUnresolvedQuickFixRegistrar]) and the
- * "Update String" intention ([UpdateStringIntention]).
+ * Detection of Android `R.string.X` / `R.plurals.X` references in Kotlin code, shared by the "Add
+ * string" unresolved-reference quick fix ([AddStringUnresolvedQuickFixRegistrar]) and the "Update
+ * String" intention ([UpdateStringIntention]).
  */
 
 /**
@@ -37,14 +35,19 @@ import org.jetbrains.kotlin.psi.KtTypeAlias
  * case). See [resStringRClassFqn] for how each form maps to its `R` class.
  */
 internal fun resStringKeyAt(psiFile: PsiFile, offset: Int): String? {
-    val element = psiFile.findElementAt(offset)
-        ?: (if (offset > 0) psiFile.findElementAt(offset - 1) else null)
-        ?: return null
-    val ref = PsiTreeUtil.getParentOfType(element, KtNameReferenceExpression::class.java, false) ?: return null
+    val element =
+        psiFile.findElementAt(offset)
+            ?: (if (offset > 0) psiFile.findElementAt(offset - 1) else null)
+            ?: return null
+    val ref =
+        PsiTreeUtil.getParentOfType(element, KtNameReferenceExpression::class.java, false)
+            ?: return null
     return resStringKey(ref)
 }
 
-/** Resource key of [ref] when it is the trailing name of an `R.string.X`/`R.plurals.X` reference. */
+/**
+ * Resource key of [ref] when it is the trailing name of an `R.string.X`/`R.plurals.X` reference.
+ */
 internal fun resStringKey(ref: KtNameReferenceExpression): String? =
     if (resStringRClassFqn(ref) != null) ref.getReferencedName() else null
 
@@ -54,9 +57,10 @@ internal fun resStringKey(ref: KtNameReferenceExpression): String? =
  * [resStringKey] (non-null ⇔ [ref] is a string/plurals key). Covers every form:
  * - bare `R.string.X` → `"R"` (won't match a module mapping, which is fine),
  * - package-qualified `com.app.R.string.X` → `"com.app.R"`,
- * - `R`-class alias `appR.string.X` (`import com.app.R as appR` / `typealias appR = com.app.R`) → resolved R FQN,
- * - **member alias** `Strings.X` (`typealias Strings = R.string` / `import com.app.R.string as Strings`) →
- *   resolved R FQN. This last form is the common one in bandlab-android.
+ * - `R`-class alias `appR.string.X` (`import com.app.R as appR` / `typealias appR = com.app.R`) →
+ *   resolved R FQN,
+ * - **member alias** `Strings.X` (`typealias Strings = R.string` / `import com.app.R.string as
+ *   Strings`) → resolved R FQN. This last form is the common one in bandlab-android.
  */
 internal fun resStringRClassFqn(ref: KtNameReferenceExpression): String? {
     val qualified = ref.parent as? KtDotQualifiedExpression ?: return null
@@ -65,27 +69,32 @@ internal fun resStringRClassFqn(ref: KtNameReferenceExpression): String? {
 }
 
 /**
- * R class FQN when [receiver] is the receiver of a string/plurals key access, else null. Two shapes:
+ * R class FQN when [receiver] is the receiver of a string/plurals key access, else null. Two
+ * shapes:
  * - `<R>.string` / `<R>.plurals` — bare/qualified text, or an alias head resolving to an `R` class;
- * - a plain name aliasing the `R.string`/`R.plurals` member itself (`typealias Strings = R.string`).
+ * - a plain name aliasing the `R.string`/`R.plurals` member itself (`typealias Strings =
+ *   R.string`).
  */
-private fun rClassFqnOfStringReceiver(receiver: KtExpression): String? = when (receiver) {
-    is KtDotQualifiedExpression -> {
-        val selector = (receiver.selectorExpression as? KtNameReferenceExpression)?.getReferencedName()
-        if (selector != "string" && selector != "plurals") null
-        else rClassFqnFromText(receiver.text) ?: aliasedRClassFqn(receiver)
+private fun rClassFqnOfStringReceiver(receiver: KtExpression): String? =
+    when (receiver) {
+        is KtDotQualifiedExpression -> {
+            val selector =
+                (receiver.selectorExpression as? KtNameReferenceExpression)?.getReferencedName()
+            if (selector != "string" && selector != "plurals") null
+            else rClassFqnFromText(receiver.text) ?: aliasedRClassFqn(receiver)
+        }
+        is KtNameReferenceExpression -> rClassFqnFromMemberAlias(receiver)
+        else -> null
     }
-    is KtNameReferenceExpression -> rClassFqnFromMemberAlias(receiver)
-    else -> null
-}
 
 /** R class FQN for a bare/package-qualified `R.string`/`R.plurals` receiver text, else null. */
-private fun rClassFqnFromText(receiver: String): String? = when {
-    receiver == "R.string" || receiver == "R.plurals" -> "R"
-    receiver.endsWith(".R.string") -> receiver.removeSuffix(".string")
-    receiver.endsWith(".R.plurals") -> receiver.removeSuffix(".plurals")
-    else -> null
-}
+private fun rClassFqnFromText(receiver: String): String? =
+    when {
+        receiver == "R.string" || receiver == "R.plurals" -> "R"
+        receiver.endsWith(".R.string") -> receiver.removeSuffix(".string")
+        receiver.endsWith(".R.plurals") -> receiver.removeSuffix(".plurals")
+        else -> null
+    }
 
 /**
  * R class FQN behind an aliased `<alias>.string`/`<alias>.plurals` receiver where `<alias>` stands
@@ -99,9 +108,9 @@ private fun aliasedRClassFqn(receiver: KtDotQualifiedExpression): String? {
 }
 
 /**
- * R class FQN for the bandlab convention where a strings module exposes `Strings` (= `R.string`) and
- * `Plurals` (= `R.plurals`) as siblings of `R` in the same package, referenced as `Strings.key`.
- * This is the dominant form in bandlab-android.
+ * R class FQN for the bandlab convention where a strings module exposes `Strings` (= `R.string`)
+ * and `Plurals` (= `R.plurals`) as siblings of `R` in the same package, referenced as
+ * `Strings.key`. This is the dominant form in bandlab-android.
  *
  * Resolved purely from the file's import (text only — no type resolution, so it holds without a
  * Gradle sync, when the other module isn't indexed): `import <pkg>.Strings` ⇒ R class `<pkg>.R`.
@@ -112,9 +121,12 @@ private fun aliasedRClassFqn(receiver: KtDotQualifiedExpression): String? {
 private fun rClassFqnFromMemberAlias(name: KtNameReferenceExpression): String? {
     val referenced = name.getReferencedName()
     if (referenced != STRINGS_ALIAS && referenced != PLURALS_ALIAS) return null
-    val imported = name.containingKtFile.importDirectives
-        .firstOrNull { (it.aliasName ?: it.importedFqName?.shortName()?.asString()) == referenced }
-        ?.importedFqName ?: return null
+    val imported =
+        name.containingKtFile.importDirectives
+            .firstOrNull {
+                (it.aliasName ?: it.importedFqName?.shortName()?.asString()) == referenced
+            }
+            ?.importedFqName ?: return null
     if (imported.shortName().asString() != referenced) return null // not `import <pkg>.Strings`
     return (imported.parent().asString() + ".R").takeIf(::isKnownRClass)
 }
@@ -122,13 +134,16 @@ private fun rClassFqnFromMemberAlias(name: KtNameReferenceExpression): String? {
 private const val STRINGS_ALIAS = "Strings"
 private const val PLURALS_ALIAS = "Plurals"
 
-/** FQN/text a resolved declaration stands for: a class/object FQN, or a type alias's target text. */
-private fun PsiElement.resolvedFqnText(): String? = when (this) {
-    is KtTypeAlias -> getTypeReference()?.text
-    is PsiClass -> qualifiedName
-    is KtClassOrObject -> fqName?.asString()
-    else -> null
-}
+/**
+ * FQN/text a resolved declaration stands for: a class/object FQN, or a type alias's target text.
+ */
+private fun PsiElement.resolvedFqnText(): String? =
+    when (this) {
+        is KtTypeAlias -> getTypeReference()?.text
+        is PsiClass -> qualifiedName
+        is KtClassOrObject -> fqName?.asString()
+        else -> null
+    }
 
 /**
  * Every `<string>`/`<plurals>` key already defined across the manifest's base files. Cached and
@@ -137,14 +152,19 @@ private fun PsiElement.resolvedFqnText(): String? = when (this) {
  */
 internal fun localBaseKeys(project: Project): Set<String> =
     CachedValuesManager.getManager(project).getCachedValue(project) {
-        // `name` is not necessarily the first attribute (e.g. `<string translatable="false" name="…">`),
+        // `name` is not necessarily the first attribute (e.g. `<string translatable="false"
+        // name="…">`),
         // so match it anywhere inside the opening tag.
         val regex = Regex("<(?:string|plurals)\\b[^>]*?\\bname\\s*=\\s*\"([^\"]+)\"")
-        val keys = project.service<LocalizerConfigService>().targets()
-            .flatMap { target ->
-                runCatching { target.baseFile.readText() }.getOrDefault("")
-                    .let { text -> regex.findAll(text).map { it.groupValues[1] }.toList() }
-            }
-            .toSet()
+        val keys =
+            project
+                .service<LocalizerConfigService>()
+                .targets()
+                .flatMap { target ->
+                    runCatching { target.baseFile.readText() }
+                        .getOrDefault("")
+                        .let { text -> regex.findAll(text).map { it.groupValues[1] }.toList() }
+                }
+                .toSet()
         CachedValueProvider.Result.create(keys, PsiModificationTracker.MODIFICATION_COUNT)
     }

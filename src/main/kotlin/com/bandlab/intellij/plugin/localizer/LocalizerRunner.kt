@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.localizer
 
 import com.intellij.execution.ExecutionException
@@ -35,45 +37,63 @@ object LocalizerRunner {
      * Runs `bandlab-localizer <args>`. On completion, refreshes [refresh] from disk so the editor
      * picks up what the CLI wrote.
      */
-    fun run(project: Project, title: String, args: List<String>, refresh: List<Path> = emptyList()) {
+    fun run(
+        project: Project,
+        title: String,
+        args: List<String>,
+        refresh: List<Path> = emptyList(),
+    ) {
         val basePath = project.basePath ?: return
         val wrapper = Path.of(basePath, "localizer", "bandlab-localizer").toString()
 
-        val commandLine = GeneralCommandLine(listOf(wrapper) + args)
-            .withWorkDirectory(basePath)
-            .withCharset(StandardCharsets.UTF_8)
-            .withEnvironment(EnvironmentUtil.getEnvironmentMap())
+        val commandLine =
+            GeneralCommandLine(listOf(wrapper) + args)
+                .withWorkDirectory(basePath)
+                .withCharset(StandardCharsets.UTF_8)
+                .withEnvironment(EnvironmentUtil.getEnvironmentMap())
 
-        val handler = try {
-            KillableColoredProcessHandler(commandLine)
-        } catch (e: ExecutionException) {
-            Messages.showErrorDialog(project, e.message ?: "Failed to run bandlab-localizer", "Localizer: $title")
-            return
-        }
+        val handler =
+            try {
+                KillableColoredProcessHandler(commandLine)
+            } catch (e: ExecutionException) {
+                Messages.showErrorDialog(
+                    project,
+                    e.message ?: "Failed to run bandlab-localizer",
+                    "Localizer: $title",
+                )
+                return
+            }
 
         val console = TextConsoleBuilderFactory.getInstance().createBuilder(project).console
         console.attachToProcess(handler)
 
         if (refresh.isNotEmpty()) {
-            handler.addProcessListener(object : ProcessListener {
-                override fun processTerminated(event: ProcessEvent) {
-                    ApplicationManager.getApplication().invokeLater {
-                        if (project.isDisposed) return@invokeLater
-                        val lfs = LocalFileSystem.getInstance()
-                        val files = refresh.mapNotNull { runCatching { lfs.refreshAndFindFileByNioFile(it) }.getOrNull() }
-                        if (files.isEmpty()) return@invokeLater
-                        // Re-stat + re-read from disk, then force open editors to reload the new
-                        // content (a plain VFS refresh updates the cache but doesn't reload the
-                        // editor's Document — reloadFiles does).
-                        VfsUtil.markDirtyAndRefresh(false, false, false, *files.toTypedArray())
-                        FileDocumentManager.getInstance().reloadFiles(*files.toTypedArray())
+            handler.addProcessListener(
+                object : ProcessListener {
+                    override fun processTerminated(event: ProcessEvent) {
+                        ApplicationManager.getApplication().invokeLater {
+                            if (project.isDisposed) return@invokeLater
+                            val lfs = LocalFileSystem.getInstance()
+                            val files = refresh.mapNotNull {
+                                runCatching { lfs.refreshAndFindFileByNioFile(it) }.getOrNull()
+                            }
+                            if (files.isEmpty()) return@invokeLater
+                            // Re-stat + re-read from disk, then force open editors to reload the
+                            // new
+                            // content (a plain VFS refresh updates the cache but doesn't reload the
+                            // editor's Document — reloadFiles does).
+                            VfsUtil.markDirtyAndRefresh(false, false, false, *files.toTypedArray())
+                            FileDocumentManager.getInstance().reloadFiles(*files.toTypedArray())
+                        }
                     }
                 }
-            })
+            )
         }
 
-        val descriptor = RunContentDescriptor(console, handler, console.component, "Localizer: $title")
-        RunContentManager.getInstance(project).showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor)
+        val descriptor =
+            RunContentDescriptor(console, handler, console.component, "Localizer: $title")
+        RunContentManager.getInstance(project)
+            .showRunContent(DefaultRunExecutor.getRunExecutorInstance(), descriptor)
         handler.startNotify()
     }
 }

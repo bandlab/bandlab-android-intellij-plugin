@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
@@ -22,10 +24,10 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 /**
  * Contributes "Localizer: Add string" to the **red** error-fix section on an *unresolved*
- * `R.string.X` / `R.plurals.X` reference in Kotlin code (incl. import-aliased / typealiased forms) —
- * i.e. when the key doesn't exist yet. By hooking the K2 `UNRESOLVED_REFERENCE` diagnostic the fix
- * sits beside Android's "Create string value resource", rather than buried in the yellow intention
- * list. Pulls the key from Tolgee via `update-strings --add-keys`.
+ * `R.string.X` / `R.plurals.X` reference in Kotlin code (incl. import-aliased / typealiased forms)
+ * — i.e. when the key doesn't exist yet. By hooking the K2 `UNRESOLVED_REFERENCE` diagnostic the
+ * fix sits beside Android's "Create string value resource", rather than buried in the yellow
+ * intention list. Pulls the key from Tolgee via `update-strings --add-keys`.
  *
  * Registered through the Kotlin plugin EP `org.jetbrains.kotlin.codeinsight.quickfix.registrar`.
  */
@@ -43,9 +45,10 @@ class AddStringUnresolvedQuickFixRegistrar : KotlinQuickFixRegistrar() {
 
 private fun addStringFixesFor(psi: PsiElement): List<IntentionAction> {
     if (!psi.project.service<LocalizerConfigService>().isConfigured()) return emptyList()
-    val ref = psi as? KtNameReferenceExpression
-        ?: PsiTreeUtil.getParentOfType(psi, KtNameReferenceExpression::class.java, false)
-        ?: return emptyList()
+    val ref =
+        psi as? KtNameReferenceExpression
+            ?: PsiTreeUtil.getParentOfType(psi, KtNameReferenceExpression::class.java, false)
+            ?: return emptyList()
     val key = resStringKey(ref) ?: return emptyList()
     return listOf(AddStringQuickFix(key, resStringRClassFqn(ref)))
 }

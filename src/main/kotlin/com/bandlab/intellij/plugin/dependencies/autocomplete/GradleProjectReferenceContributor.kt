@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2025 Slack Technologies, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// Copied and modified from
-// https://github.com/slackhq/foundry/blob/main/platforms/intellij/skate/src/main/kotlin/foundry/intellij/skate/gradle/GradleProjectReferenceProvider.kt
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
 import com.intellij.openapi.util.TextRange
@@ -37,7 +21,10 @@ class GradleProjectReferenceContributor : PsiReferenceContributor() {
                     PlatformPatterns.string()
                         .with(
                             object : PatternCondition<String>("gradle build file") {
-                                override fun accepts(t: String, context: ProcessingContext?): Boolean {
+                                override fun accepts(
+                                    t: String,
+                                    context: ProcessingContext?,
+                                ): Boolean {
                                     return t.endsWith(".gradle") || t.endsWith(".gradle.kts")
                                 }
                             }
@@ -46,7 +33,8 @@ class GradleProjectReferenceContributor : PsiReferenceContributor() {
 
         // For Kotlin Gradle files - target string template expressions
         registrar.registerReferenceProvider(
-            PlatformPatterns.psiElement(KtStringTemplateExpression::class.java).inFile(gradleFilePattern),
+            PlatformPatterns.psiElement(KtStringTemplateExpression::class.java)
+                .inFile(gradleFilePattern),
             GradleProjectReferenceProvider(),
         )
 
@@ -95,8 +83,8 @@ class GradleProjectReferenceProvider : PsiReferenceProvider() {
                     elementText.substring(1, elementText.length - 1) // Remove single quotes
                 }
                 elementText.startsWith(":") &&
-                        !elementText.contains("\"") &&
-                        !elementText.contains("'") -> {
+                    !elementText.contains("\"") &&
+                    !elementText.contains("'") -> {
                     elementText // Raw project path
                 }
                 else -> null

@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.intellij.execution.configurations.GeneralCommandLine
@@ -28,26 +30,28 @@ private fun currentBranchRemote(project: Project): String? =
 /** The owner segment of a GitHub remote URL (SSH or HTTPS), or null when it isn't a GitHub URL. */
 private fun gitHubOwner(remoteUrl: String): String? {
     if ("github.com" !in remoteUrl) return null
-    return remoteUrl.substringAfter("github.com")
-        .trimStart(':', '/')
-        .substringBefore('/')
-        .takeIf { it.isNotEmpty() }
+    return remoteUrl.substringAfter("github.com").trimStart(':', '/').substringBefore('/').takeIf {
+        it.isNotEmpty()
+    }
 }
 
 /**
- * Runs `git <args>` in the project root with the captured login-shell environment (mirroring how the
- * rest of the plugin runs external tools — see LocalizerRunner). Returns trimmed stdout, or null on
- * any error / empty output. Synchronous with a short timeout — keep it off latency-sensitive paths.
+ * Runs `git <args>` in the project root with the captured login-shell environment (mirroring how
+ * the rest of the plugin runs external tools — see LocalizerRunner). Returns trimmed stdout, or
+ * null on any error / empty output. Synchronous with a short timeout — keep it off
+ * latency-sensitive paths.
  */
 private fun runGit(project: Project, vararg args: String): String? {
     val basePath = project.basePath ?: return null
     return runCatching {
         // List constructor (as in LocalizerRunner) — the proven form in this codebase.
-        val commandLine = GeneralCommandLine(listOf("git", *args))
-            .withWorkDirectory(basePath)
-            .withCharset(StandardCharsets.UTF_8)
-            .withEnvironment(EnvironmentUtil.getEnvironmentMap())
+        val commandLine =
+            GeneralCommandLine(listOf("git", *args))
+                .withWorkDirectory(basePath)
+                .withCharset(StandardCharsets.UTF_8)
+                .withEnvironment(EnvironmentUtil.getEnvironmentMap())
         val output = CapturingProcessHandler(commandLine).runProcess(5_000)
         output.stdout.trim().takeIf { it.isNotEmpty() }
-    }.getOrNull()
+    }
+        .getOrNull()
 }

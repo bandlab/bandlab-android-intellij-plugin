@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.sort
 
 import com.bandlab.intellij.plugin.BandLabIcons
@@ -9,17 +11,16 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.DumbAwareAction
 
-class SortDependenciesAction : DumbAwareAction(
-    /* text = */ "Sort Dependencies",
-    /* description = */ "Sort dependencies in build.gradle.",
-    /* icon = */ BandLabIcons.logo
-) {
+class SortDependenciesAction :
+    DumbAwareAction(
+        /* text = */ "Sort Dependencies",
+        /* description = */ "Sort dependencies in build.gradle.",
+        /* icon = */ BandLabIcons.logo,
+    ) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    /**
-     *  Make the action available only when the menu is shown for the build.gradle.kts
-     */
+    /** Make the action available only when the menu is shown for the build.gradle.kts */
     override fun update(e: AnActionEvent) {
         e.presentation.isEnabledAndVisible = isBuildScriptFile(e.psiFileOrNull()?.name)
     }
@@ -34,7 +35,7 @@ class SortDependenciesAction : DumbAwareAction(
             /* groupID = */ null,
             /* runnable = */ {
                 project.sortDependencies(buildGradle.path)
-            }
+            },
         )
     }
 }

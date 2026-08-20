@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.google.common.truth.Truth.assertThat
@@ -7,7 +9,8 @@ class EligibilityTest {
 
     @Test
     fun acceptsKotlinFileUnderAndroidTest() {
-        assertThat(isAndroidTestKtPath("/p/feature/src/androidTest/kotlin/com/bandlab/FooTest.kt")).isTrue()
+        assertThat(isAndroidTestKtPath("/p/feature/src/androidTest/kotlin/com/bandlab/FooTest.kt"))
+            .isTrue()
     }
 
     @Test

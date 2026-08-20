@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.BandLabIcons
@@ -30,16 +32,21 @@ class LocalizerStringFileNotificationProvider : EditorNotificationProvider {
         if (!project.service<LocalizerConfigService>().isManagedStringFile(file)) return null
         return Function { fileEditor ->
             object : EditorNotificationPanel(fileEditor, Status.Warning) {
-                override fun getIntentionAction(): IntentionActionWithOptions? = null
-            }.apply {
-                icon(BandLabIcons.logo)
-                text = "Managed by bandlab-localizer — edit via the Localizer actions, not by hand."
-                createActionLabel("Update Strings") { LocalizerOps.update(project) }
-                createActionLabel("Add Strings") {
-                    LocalizerOps.add(project, project.service<LocalizerConfigService>().targetFor(file))
+                    override fun getIntentionAction(): IntentionActionWithOptions? = null
                 }
-                createActionLabel("Delete Strings") { LocalizerOps.delete(project) }
-            }
+                .apply {
+                    icon(BandLabIcons.logo)
+                    text =
+                        "Managed by bandlab-localizer — edit via the Localizer actions, not by hand."
+                    createActionLabel("Update Strings") { LocalizerOps.update(project) }
+                    createActionLabel("Add Strings") {
+                        LocalizerOps.add(
+                            project,
+                            project.service<LocalizerConfigService>().targetFor(file),
+                        )
+                    }
+                    createActionLabel("Delete Strings") { LocalizerOps.delete(project) }
+                }
         }
     }
 }

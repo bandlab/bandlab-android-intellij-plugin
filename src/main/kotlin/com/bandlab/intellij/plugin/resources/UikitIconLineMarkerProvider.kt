@@ -1,5 +1,8 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.resources
 
+import com.android.ide.common.vectordrawable.VdPreview
 import com.intellij.codeInsight.daemon.LineMarkerInfo
 import com.intellij.codeInsight.daemon.LineMarkerProvider
 import com.intellij.openapi.diagnostic.logger
@@ -10,19 +13,18 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafPsiElement
 import com.intellij.psi.search.FilenameIndex
 import com.intellij.psi.search.GlobalSearchScope
-import com.android.ide.common.vectordrawable.VdPreview
 import com.intellij.util.ImageLoader
+import java.awt.image.BufferedImage
+import java.util.*
+import java.util.concurrent.ConcurrentHashMap
+import javax.imageio.ImageIO
+import javax.swing.Icon
+import javax.swing.ImageIcon
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 import org.jetbrains.kotlin.psi.KtProperty
-import java.awt.image.BufferedImage
-import java.util.Optional
-import java.util.concurrent.ConcurrentHashMap
-import javax.imageio.ImageIO
-import javax.swing.Icon
-import javax.swing.ImageIcon
 
 private const val UIKIT_ICONS = "UikitIcons"
 private const val GUTTER_ICON_SIZE = 16
@@ -44,14 +46,18 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
         if (dotExpr.selectorExpression !== nameRef) return null
 
         val propertyName = nameRef.getReferencedName()
-        val drawableName = when {
-            dotExpr.receiverExpression.text == UIKIT_ICONS -> resolveDrawableName(nameRef)
-            else -> resolveViaExtensionDelegate(nameRef)
-        } ?: return null
+        val drawableName =
+            when {
+                dotExpr.receiverExpression.text == UIKIT_ICONS -> resolveDrawableName(nameRef)
+                else -> resolveViaExtensionDelegate(nameRef)
+            } ?: return null
 
-        val icon = iconCache.computeIfAbsent(drawableName) {
-            Optional.ofNullable(findIcon(element.project, drawableName))
-        }.orElse(null) ?: return null
+        val icon =
+            iconCache
+                .computeIfAbsent(drawableName) {
+                    Optional.ofNullable(findIcon(element.project, drawableName))
+                }
+                .orElse(null) ?: return null
 
         return LineMarkerInfo(
             /* element = */ element,
@@ -75,19 +81,21 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
         val resolved = nameRef.reference?.resolve() as? KtProperty ?: return null
         val getterBody = resolved.getter?.bodyExpression as? KtDotQualifiedExpression ?: return null
         if (getterBody.receiverExpression.text != UIKIT_ICONS) return null
-        val uikitNameRef = getterBody.selectorExpression as? KtNameReferenceExpression ?: return null
+        val uikitNameRef =
+            getterBody.selectorExpression as? KtNameReferenceExpression ?: return null
         return resolveDrawableName(uikitNameRef)
     }
 
     /**
-     * Reads the getter body to extract the drawable resource name.
-     * Handles: get() = ImageRes(resId = Icons.ic_something, ...)
+     * Reads the getter body to extract the drawable resource name. Handles: get() = ImageRes(resId
+     * = Icons.ic_something, ...)
      */
     private fun extractFromGetter(property: KtProperty): String? {
         val body = property.getter?.bodyExpression as? KtCallExpression ?: return null
-        val resIdArg = body.valueArguments.find {
-            it.getArgumentName()?.asName?.identifier == "resId"
-        } ?: body.valueArguments.firstOrNull() ?: return null
+        val resIdArg =
+            body.valueArguments.find {
+                it.getArgumentName()?.asName?.identifier == "resId"
+            } ?: body.valueArguments.firstOrNull() ?: return null
 
         return when (val expr = resIdArg.getArgumentExpression()) {
             is KtDotQualifiedExpression -> expr.selectorExpression?.text
@@ -112,19 +120,24 @@ class UikitIconLineMarkerProvider : LineMarkerProvider {
     }
 
     private fun loadIcon(file: VirtualFile): Icon? {
-        val image = when (file.extension?.lowercase()) {
-            "xml" -> {
-                val xmlContent = file.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
-                VdPreview.getPreviewFromVectorXml(
-                    VdPreview.TargetSize.createFromMaxDimension(GUTTER_ICON_SIZE),
-                    xmlContent,
-                    StringBuilder(),
-                )
-            }
-            "svg" -> ImageLoader.loadFromUrl(file.toNioPath().toUri().toURL())
-            "png", "jpg", "jpeg", "webp" -> file.inputStream.use { ImageIO.read(it) }
-            else -> return null
-        } ?: return null
+        val image =
+            when (file.extension?.lowercase()) {
+                "xml" -> {
+                    val xmlContent =
+                        file.inputStream.use { it.readBytes().toString(Charsets.UTF_8) }
+                    VdPreview.getPreviewFromVectorXml(
+                        VdPreview.TargetSize.createFromMaxDimension(GUTTER_ICON_SIZE),
+                        xmlContent,
+                        StringBuilder(),
+                    )
+                }
+                "svg" -> ImageLoader.loadFromUrl(file.toNioPath().toUri().toURL())
+                "png",
+                "jpg",
+                "jpeg",
+                "webp" -> file.inputStream.use { ImageIO.read(it) }
+                else -> return null
+            } ?: return null
 
         val scaled = BufferedImage(GUTTER_ICON_SIZE, GUTTER_ICON_SIZE, BufferedImage.TYPE_INT_ARGB)
         val g = scaled.createGraphics()

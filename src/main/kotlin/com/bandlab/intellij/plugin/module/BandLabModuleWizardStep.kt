@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module
 
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
@@ -11,12 +13,12 @@ import com.bandlab.intellij.plugin.utils.ComposePanelWithSwingBridgeTheme
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.command.WriteCommandAction
 import com.intellij.openapi.project.Project
+import javax.swing.JComponent
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import org.jetbrains.annotations.VisibleForTesting
-import javax.swing.JComponent
-import kotlin.coroutines.CoroutineContext
 
 class EmptyModel : WizardModel() {
     override fun handleFinished() = Unit
@@ -27,18 +29,18 @@ class BandLabModuleWizardStep(
     moduleParent: String,
     private val projectSyncInvoker: ProjectSyncInvoker,
     private val wizardScope: CoroutineScope = CoroutineScope(Dispatchers.Main),
-    private val ioDispatcher: CoroutineContext = Dispatchers.IO
+    private val ioDispatcher: CoroutineContext = Dispatchers.IO,
 ) : SkippableWizardStep<EmptyModel>(EmptyModel(), "BandLab Convention") {
 
-    private val viewModel = BandLabModuleWizardViewModel(
-        wizardScope = wizardScope,
-        ioDispatcher = ioDispatcher,
-        project = project,
-        moduleParent = moduleParent
-    )
+    private val viewModel =
+        BandLabModuleWizardViewModel(
+            wizardScope = wizardScope,
+            ioDispatcher = ioDispatcher,
+            project = project,
+            moduleParent = moduleParent,
+        )
 
-    @VisibleForTesting
-    internal val state = viewModel.state
+    @VisibleForTesting internal val state = viewModel.state
 
     override fun getComponent(): JComponent {
         return ComposePanelWithSwingBridgeTheme {
@@ -61,20 +63,21 @@ class BandLabModuleWizardStep(
 
         runWriteCommandAction {
             listOf(
-                state.apiConfig,
-                state.implConfig,
-                state.screenConfig,
-                state.uiConfig,
-            )
+                    state.apiConfig,
+                    state.implConfig,
+                    state.screenConfig,
+                    state.uiConfig,
+                )
                 .filter { it.value.isSelected }
                 .forEach { configState ->
                     val config = configState.value
-                    val moduleInfo = when (config) {
-                        is BandLabModuleConfig.Api -> apiModuleInfo
-                        is BandLabModuleConfig.Impl -> ModuleInfo("$modulePath/impl")
-                        is BandLabModuleConfig.Screen -> ModuleInfo("$modulePath/screen")
-                        is BandLabModuleConfig.Ui -> uiModuleInfo
-                    }
+                    val moduleInfo =
+                        when (config) {
+                            is BandLabModuleConfig.Api -> apiModuleInfo
+                            is BandLabModuleConfig.Impl -> ModuleInfo("$modulePath/impl")
+                            is BandLabModuleConfig.Screen -> ModuleInfo("$modulePath/screen")
+                            is BandLabModuleConfig.Ui -> uiModuleInfo
+                        }
                     val dependsOn = buildList {
                         if (config is BandLabModuleConfig.Screen) {
                             if (state.uiConfig.value.isSelected) {
@@ -88,20 +91,21 @@ class BandLabModuleWizardStep(
                                 add(
                                     Dependency(
                                         name = apiModuleInfo.projectAccessorReference,
-                                        config = DependencyConfiguration.Api
+                                        config = DependencyConfiguration.Api,
                                     )
                                 )
                             }
                         }
                     }
 
-                    val template = BandLabModuleTemplate(
-                        project = project,
-                        moduleInfo = moduleInfo,
-                        config = config,
-                        featureName = featureName,
-                        dependsOn = dependsOn
-                    )
+                    val template =
+                        BandLabModuleTemplate(
+                            project = project,
+                            moduleInfo = moduleInfo,
+                            config = config,
+                            featureName = featureName,
+                            dependsOn = dependsOn,
+                        )
                     template.create()
                 }
         }
@@ -109,14 +113,16 @@ class BandLabModuleWizardStep(
         if (!ApplicationManager.getApplication().isHeadlessEnvironment) {
             ApplicationManager.getApplication().invokeLater {
                 BandLabModuleFollowUpActionsDialog(
-                    project = project,
-                    viewModel = BandLabModuleFollowUpActionsViewModel(
                         project = project,
-                        modulePath = modulePath,
-                        state = state,
-                        projectSyncInvoker = projectSyncInvoker
+                        viewModel =
+                            BandLabModuleFollowUpActionsViewModel(
+                                project = project,
+                                modulePath = modulePath,
+                                state = state,
+                                projectSyncInvoker = projectSyncInvoker,
+                            ),
                     )
-                ).show()
+                    .show()
             }
         }
 
@@ -128,7 +134,7 @@ class BandLabModuleWizardStep(
             project,
             "Create Template",
             null,
-            block
+            block,
         )
     }
 }

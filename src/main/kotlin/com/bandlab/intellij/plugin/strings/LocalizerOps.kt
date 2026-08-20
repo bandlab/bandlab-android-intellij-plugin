@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
@@ -24,7 +26,11 @@ internal object LocalizerOps {
         } else {
             val keys = dialog.keys
             if (keys.isEmpty()) return
-            run(project, "Update Strings", listOf("update-strings", "--update-keys", keys.joinToString(",")))
+            run(
+                project,
+                "Update Strings",
+                listOf("update-strings", "--update-keys", keys.joinToString(",")),
+            )
         }
     }
 
@@ -39,9 +45,10 @@ internal object LocalizerOps {
     }
 
     /**
-     * Add strings for an unresolved `R.string.X`/`R.plurals.X` reference. Resolves candidate targets
-     * from the reference's R class FQN: exactly one → run immediately; none → dialog over the full
-     * list (forced pick); several → dialog over just the candidates (forced pick). [key] pre-fills.
+     * Add strings for an unresolved `R.string.X`/`R.plurals.X` reference. Resolves candidate
+     * targets from the reference's R class FQN: exactly one → run immediately; none → dialog over
+     * the full list (forced pick); several → dialog over just the candidates (forced pick). [key]
+     * pre-fills.
      */
     fun addForReference(project: Project, key: String, rClassFqn: String?) {
         val service = project.service<LocalizerConfigService>()
@@ -60,7 +67,12 @@ internal object LocalizerOps {
         runAdd(project, keys, target)
     }
 
-    private fun addWithDialog(project: Project, dialogTargets: List<Target>, preselected: Target?, initialKeys: String) {
+    private fun addWithDialog(
+        project: Project,
+        dialogTargets: List<Target>,
+        preselected: Target?,
+        initialKeys: String,
+    ) {
         val dialog = AddStringsDialog(project, dialogTargets, preselected, initialKeys)
         if (!dialog.showAndGet()) return
         val keys = dialog.keys
@@ -70,21 +82,36 @@ internal object LocalizerOps {
 
     private fun runAdd(project: Project, keys: List<String>, target: Target) {
         run(
-            project, "Add Strings",
-            listOf("update-strings", "--add-keys", keys.joinToString(","), "--target-file", target.addKeysToFile),
+            project,
+            "Add Strings",
+            listOf(
+                "update-strings",
+                "--add-keys",
+                keys.joinToString(","),
+                "--target-file",
+                target.addKeysToFile,
+            ),
         )
     }
 
     /** Delete dialog (paste keys to remove from the base + every translation). */
     fun delete(project: Project) {
-        val input = Messages.showMultilineInputDialog(
-            project,
-            "Keys to delete — comma, space, or newline separated.\nRemoved from the base file and every translation.",
-            "Delete Localization Keys", null, Messages.getWarningIcon(), null,
-        ) ?: return
+        val input =
+            Messages.showMultilineInputDialog(
+                project,
+                "Keys to delete — comma, space, or newline separated.\nRemoved from the base file and every translation.",
+                "Delete Localization Keys",
+                null,
+                Messages.getWarningIcon(),
+                null,
+            ) ?: return
         val keys = parseKeyList(input)
         if (keys.isEmpty()) return
-        run(project, "Delete Strings", listOf("update-strings", "--delete-keys", keys.joinToString(",")))
+        run(
+            project,
+            "Delete Strings",
+            listOf("update-strings", "--delete-keys", keys.joinToString(",")),
+        )
     }
 
     fun deleteKey(project: Project, key: String) =
@@ -94,6 +121,11 @@ internal object LocalizerOps {
         run(project, "Update String", listOf("update-strings", "--update-keys", key))
 
     private fun run(project: Project, title: String, args: List<String>) {
-        LocalizerRunner.run(project, title, args, project.service<LocalizerConfigService>().managedFilePaths())
+        LocalizerRunner.run(
+            project,
+            title,
+            args,
+            project.service<LocalizerConfigService>().managedFilePaths(),
+        )
     }
 }

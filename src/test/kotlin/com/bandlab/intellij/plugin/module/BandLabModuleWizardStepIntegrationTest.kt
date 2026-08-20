@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module
 
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
@@ -11,11 +13,11 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.testFramework.runInEdtAndWait
+import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
-import java.io.File
 
 class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
@@ -30,11 +32,13 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         // Select all module types
         (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value =
             BandLabModuleConfig.Api(isSelected = true)
-        (state.implConfig as MutableStateFlow<BandLabModuleConfig.Impl>).value = BandLabModuleConfig.Impl(
-            isSelected = true,
-            typeSelection = ModuleTypeSelection.RequireSelection(BandLabModuleType.Android)
-        )
-        (state.uiConfig as MutableStateFlow<BandLabModuleConfig.Ui>).value = BandLabModuleConfig.Ui(isSelected = true)
+        (state.implConfig as MutableStateFlow<BandLabModuleConfig.Impl>).value =
+            BandLabModuleConfig.Impl(
+                isSelected = true,
+                typeSelection = ModuleTypeSelection.RequireSelection(BandLabModuleType.Android),
+            )
+        (state.uiConfig as MutableStateFlow<BandLabModuleConfig.Ui>).value =
+            BandLabModuleConfig.Ui(isSelected = true)
         (state.screenConfig as MutableStateFlow<BandLabModuleConfig.Screen>).value =
             BandLabModuleConfig.Screen(isSelected = true)
 
@@ -47,8 +51,14 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertExists("$modulePath/screen/build.gradle")
 
         val screenGradle = File(project.basePath, "$modulePath/screen/build.gradle").readText()
-        assertTrue("Screen should depend on UI", screenGradle.contains("project(\":features:profile:ui\")"))
-        assertTrue("Screen should depend on API", screenGradle.contains("api(project(\":features:profile:api\"))"))
+        assertTrue(
+            "Screen should depend on UI",
+            screenGradle.contains("project(\":features:profile:ui\")"),
+        )
+        assertTrue(
+            "Screen should depend on API",
+            screenGradle.contains("api(project(\":features:profile:api\"))"),
+        )
     }
 
     fun `test selecting screen module automatically selects ui module`() = runTest {
@@ -56,7 +66,8 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         val wizardStep = createWizardStep(moduleParent)
         val state = wizardStep.state
 
-        (state.uiConfig as MutableStateFlow<BandLabModuleConfig.Ui>).value = BandLabModuleConfig.Ui(isSelected = false)
+        (state.uiConfig as MutableStateFlow<BandLabModuleConfig.Ui>).value =
+            BandLabModuleConfig.Ui(isSelected = false)
         (state.screenConfig as MutableStateFlow<BandLabModuleConfig.Screen>).value =
             BandLabModuleConfig.Screen(isSelected = false)
 
@@ -76,7 +87,8 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
             assertThat(awaitItem()).containsExactly(ModuleValidationError.ModuleNameEmpty)
 
             state.setModuleRoot("no-colon")
-            assertThat(awaitItem()).containsExactly(ModuleValidationError.ModuleNameShouldStartWithColon)
+            assertThat(awaitItem())
+                .containsExactly(ModuleValidationError.ModuleNameShouldStartWithColon)
 
             state.setModuleRoot(":ends-with:")
             assertThat(awaitItem()).containsExactly(ModuleValidationError.ModuleNameEndsWithColon)
@@ -97,7 +109,8 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
                 val allProjectsFile = File(basePath, "gradle/all-projects.txt")
                 allProjectsFile.appendText(":existing:module:api\n")
             }
-            VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)?.refresh(false, false)
+            VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)
+                ?.refresh(false, false)
         }
 
         val wizardStep = createWizardStep(":existing:module")
@@ -114,15 +127,16 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         val wizardStep = createWizardStep(":")
         val state = wizardStep.state
 
-        snapshotFlow { state.featureName.text }.test {
-            assertThat(awaitItem()).isEqualTo("")
+        snapshotFlow { state.featureName.text }
+            .test {
+                assertThat(awaitItem()).isEqualTo("")
 
-            state.setModuleRoot(":features:user-profile")
-            assertThat(awaitItem()).isEqualTo("FeaturesUserProfile")
+                state.setModuleRoot(":features:user-profile")
+                assertThat(awaitItem()).isEqualTo("FeaturesUserProfile")
 
-            state.setModuleRoot(":auth")
-            assertThat(awaitItem()).isEqualTo("Auth")
-        }
+                state.setModuleRoot(":auth")
+                assertThat(awaitItem()).isEqualTo("Auth")
+            }
     }
 
     fun `test onWizardFinished with Kotlin Impl and plugins`() = runTest {
@@ -130,15 +144,17 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         val wizardStep = createWizardStep(":features:auth")
         val state = wizardStep.state
 
-        (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value = BandLabModuleConfig.Api(
-            isSelected = true,
-            selectedPlugins = setOf(ModulePlugin.RestApi)
-        )
-        (state.implConfig as MutableStateFlow<BandLabModuleConfig.Impl>).value = BandLabModuleConfig.Impl(
-            isSelected = true,
-            typeSelection = ModuleTypeSelection.RequireSelection(BandLabModuleType.Kotlin),
-            selectedPlugins = setOf(ModulePlugin.Database)
-        )
+        (state.apiConfig as MutableStateFlow<BandLabModuleConfig.Api>).value =
+            BandLabModuleConfig.Api(
+                isSelected = true,
+                selectedPlugins = setOf(ModulePlugin.RestApi),
+            )
+        (state.implConfig as MutableStateFlow<BandLabModuleConfig.Impl>).value =
+            BandLabModuleConfig.Impl(
+                isSelected = true,
+                typeSelection = ModuleTypeSelection.RequireSelection(BandLabModuleType.Kotlin),
+                selectedPlugins = setOf(ModulePlugin.Database),
+            )
 
         wizardStep.onWizardFinished()
 
@@ -147,16 +163,28 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertExists("$modulePath/impl/build.gradle")
 
         val apiGradle = File(project.basePath, "$modulePath/api/build.gradle").readText()
-        assertTrue("API should have restApi plugin", apiGradle.contains("alias(bandlab.plugins.restApi)"))
-        assertTrue("API should have library.kotlin plugin", apiGradle.contains("alias(bandlab.plugins.library.kotlin)"))
+        assertTrue(
+            "API should have restApi plugin",
+            apiGradle.contains("alias(bandlab.plugins.restApi)"),
+        )
+        assertTrue(
+            "API should have library.kotlin plugin",
+            apiGradle.contains("alias(bandlab.plugins.library.kotlin)"),
+        )
 
         val implGradle = File(project.basePath, "$modulePath/impl/build.gradle").readText()
-        assertTrue("Impl should have database plugin", implGradle.contains("alias(bandlab.plugins.database)"))
+        assertTrue(
+            "Impl should have database plugin",
+            implGradle.contains("alias(bandlab.plugins.database)"),
+        )
         assertTrue(
             "Impl should have library.kotlin plugin",
-            implGradle.contains("alias(bandlab.plugins.library.kotlin)")
+            implGradle.contains("alias(bandlab.plugins.library.kotlin)"),
         )
-        assertTrue("Impl should depend on API", implGradle.contains("api(project(\":features:auth:api\"))"))
+        assertTrue(
+            "Impl should depend on API",
+            implGradle.contains("api(project(\":features:auth:api\"))"),
+        )
     }
 
     fun `test module plugin toggling`() = runTest {
@@ -167,13 +195,13 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         state.onPluginClick(state.apiConfig.value, ModulePlugin.RestApi)
         assertTrue(
             "RestApi plugin should be selected",
-            state.apiConfig.value.selectedPlugins.contains(ModulePlugin.RestApi)
+            state.apiConfig.value.selectedPlugins.contains(ModulePlugin.RestApi),
         )
 
         state.onPluginClick(state.apiConfig.value, ModulePlugin.RestApi)
         assertFalse(
             "RestApi plugin should be deselected",
-            state.apiConfig.value.selectedPlugins.contains(ModulePlugin.RestApi)
+            state.apiConfig.value.selectedPlugins.contains(ModulePlugin.RestApi),
         )
     }
 
@@ -185,11 +213,15 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertEquals(
             "Impl exposure should be MixEditorGraph",
             ModuleExposure.MixEditorGraph,
-            state.implConfig.value.exposure
+            state.implConfig.value.exposure,
         )
 
         state.onExposureClick(state.screenConfig.value, ModuleExposure.None)
-        assertEquals("Screen exposure should be None", ModuleExposure.None, state.screenConfig.value.exposure)
+        assertEquals(
+            "Screen exposure should be None",
+            ModuleExposure.None,
+            state.screenConfig.value.exposure,
+        )
     }
 
     fun `test screen template toggling`() = runTest {
@@ -200,14 +232,14 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         assertEquals(
             "Template should be Page",
             BandLabModuleConfig.Screen.Template.Page,
-            state.screenConfig.value.template
+            state.screenConfig.value.template,
         )
 
         state.onTemplateSelection(BandLabModuleConfig.Screen.Template.PageWithNavKey)
         assertEquals(
             "Template should be change to PageWithNavKey",
             BandLabModuleConfig.Screen.Template.PageWithNavKey,
-            state.screenConfig.value.template
+            state.screenConfig.value.template,
         )
 
         state.onTemplateSelection(BandLabModuleConfig.Screen.Template.PageWithNavKey)
@@ -219,13 +251,17 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         val state = wizardStep.state
 
         state.onModuleTypeClick(state.implConfig.value, BandLabModuleType.Kotlin)
-        assertEquals("Impl type should be Kotlin", BandLabModuleType.Kotlin, state.implConfig.value.typeSelection.type)
+        assertEquals(
+            "Impl type should be Kotlin",
+            BandLabModuleType.Kotlin,
+            state.implConfig.value.typeSelection.type,
+        )
 
         state.onModuleTypeClick(state.implConfig.value, BandLabModuleType.Android)
         assertEquals(
             "Impl type should be Android",
             BandLabModuleType.Android,
-            state.implConfig.value.typeSelection.type
+            state.implConfig.value.typeSelection.type,
         )
     }
 
@@ -239,7 +275,8 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
                 allProjectsFile.appendText(":foo:ui\n")
                 allProjectsFile.appendText(":foo:screen\n")
             }
-            VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)?.refresh(false, false)
+            VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)
+                ?.refresh(false, false)
         }
 
         val wizardStep = createWizardStep(":foo")
@@ -247,11 +284,12 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
         state.validationErrors.test {
             awaitItem()
-            assertThat(awaitItem()).containsExactly(
-                ModuleValidationError.ImplModuleExist,
-                ModuleValidationError.UiModuleExist,
-                ModuleValidationError.ScreenModuleExist
-            )
+            assertThat(awaitItem())
+                .containsExactly(
+                    ModuleValidationError.ImplModuleExist,
+                    ModuleValidationError.UiModuleExist,
+                    ModuleValidationError.ScreenModuleExist,
+                )
         }
     }
 
@@ -259,11 +297,12 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
         return BandLabModuleWizardStep(
             project = project,
             moduleParent = moduleParent,
-            projectSyncInvoker = object : ProjectSyncInvoker {
-                override fun syncProject(project: Project) {}
-            },
+            projectSyncInvoker =
+                object : ProjectSyncInvoker {
+                    override fun syncProject(project: Project) {}
+                },
             wizardScope = backgroundScope,
-            ioDispatcher = testScheduler
+            ioDispatcher = testScheduler,
         )
     }
 
@@ -292,7 +331,9 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
                 }
                 if (!appBuildGradle.exists()) {
                     appBuildGradle.parentFile.mkdirs()
-                    appBuildGradle.writeText("dependencies {\n    implementation(\"some-lib\")\n}\n")
+                    appBuildGradle.writeText(
+                        "dependencies {\n    implementation(\"some-lib\")\n}\n"
+                    )
                 }
                 if (!rootBuildGradle.exists()) {
                     rootBuildGradle.parentFile.mkdirs()

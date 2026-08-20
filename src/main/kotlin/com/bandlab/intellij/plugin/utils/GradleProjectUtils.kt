@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2025 Slack Technologies, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// Copied and modified from
-// https://github.com/slackhq/foundry/blob/main/platforms/intellij/skate/src/main/kotlin/foundry/intellij/skate/gradle/GradleProjectUtils.kt
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.utils
 
 import com.google.common.base.CaseFormat
@@ -36,8 +20,8 @@ object GradleProjectUtils {
     }
 
     /**
-     * Finds the nearest parent Gradle project directory for the given file or directory. Returns the
-     * file itself if it's a Gradle project directory, or null if no Gradle project is found.
+     * Finds the nearest parent Gradle project directory for the given file or directory. Returns
+     * the file itself if it's a Gradle project directory, or null if no Gradle project is found.
      */
     fun findNearestGradleProject(root: VirtualFile, file: VirtualFile): VirtualFile? {
         var current: VirtualFile? = file
@@ -53,8 +37,8 @@ object GradleProjectUtils {
     }
 
     /**
-     * Gets the Gradle project path for the given directory in the format ":path:to:project". Returns
-     * null if the directory is not part of a Gradle project.
+     * Gets the Gradle project path for the given directory in the format ":path:to:project".
+     * Returns null if the directory is not part of a Gradle project.
      */
     fun getGradleProjectPath(project: Project, directory: VirtualFile): String? {
         val projectBasePath = project.basePath ?: return null
@@ -107,13 +91,14 @@ object GradleProjectUtils {
             .toSet()
     }
 
-    private val moduleTypePluginIds = listOf(
-        "bandlab.plugins.app",
-        "bandlab.plugins.library",
-        "bandlab.plugins.android.benchmark",
-        "bandlab.plugins.android.baseline.generator",
-        "bandlab.plugins.base",
-    )
+    private val moduleTypePluginIds =
+        listOf(
+            "bandlab.plugins.app",
+            "bandlab.plugins.library",
+            "bandlab.plugins.android.benchmark",
+            "bandlab.plugins.android.baseline.generator",
+            "bandlab.plugins.base",
+        )
 
     fun Project.sortDependencies(fileAbsolutePath: String) {
         editFile(filePath = fileAbsolutePath, isAbsolute = true) {
@@ -126,34 +111,42 @@ object GradleProjectUtils {
             val pluginsToSortStartIndex = indexOf(Const.NEW_LINE, pluginsStartIndex) + 1
             val pluginsToSortEndIndex = indexOf(Const.PLUGINS_END, pluginsToSortStartIndex) - 1
 
-            val sortedPlugins = substring(pluginsToSortStartIndex, pluginsToSortEndIndex)
-                .split(Const.NEW_LINE)
-                .filter { it.isNotBlank() }
-                .distinct()
-                .sorted()
+            val sortedPlugins =
+                substring(pluginsToSortStartIndex, pluginsToSortEndIndex)
+                    .split(Const.NEW_LINE)
+                    .filter { it.isNotBlank() }
+                    .distinct()
+                    .sorted()
             // Always append module type plugin at the beginning
             val moduleTypePlugin = sortedPlugins.first { plugin ->
                 moduleTypePluginIds.any { id -> id in plugin }
             }
-            val plugins = (listOf(moduleTypePlugin) + (sortedPlugins - moduleTypePlugin)).joinToString(Const.NEW_LINE)
+            val plugins =
+                (listOf(moduleTypePlugin) + (sortedPlugins - moduleTypePlugin)).joinToString(
+                    Const.NEW_LINE
+                )
 
             replace(pluginsToSortStartIndex, pluginsToSortEndIndex, plugins)
 
             // Sort dependencies
             val dependenciesStartIndex = indexOf(Const.DEPENDENCIES_START)
             if (dependenciesStartIndex == -1) {
-                throw RuntimeException("Can't find ${Const.DEPENDENCIES_START} in $fileAbsolutePath.")
+                throw RuntimeException(
+                    "Can't find ${Const.DEPENDENCIES_START} in $fileAbsolutePath."
+                )
             }
 
             val dependenciesToSortStartIndex = indexOf(Const.NEW_LINE, dependenciesStartIndex) + 1
-            val dependenciesToSortEndIndex = indexOf(Const.DEPENDENCIES_END, dependenciesToSortStartIndex) - 1
+            val dependenciesToSortEndIndex =
+                indexOf(Const.DEPENDENCIES_END, dependenciesToSortStartIndex) - 1
 
-            val sortedDependencies = substring(dependenciesToSortStartIndex, dependenciesToSortEndIndex)
-                .split(Const.NEW_LINE)
-                .filter { it.isNotBlank() }
-                .distinct()
-                .sorted()
-                .joinToString(Const.NEW_LINE)
+            val sortedDependencies =
+                substring(dependenciesToSortStartIndex, dependenciesToSortEndIndex)
+                    .split(Const.NEW_LINE)
+                    .filter { it.isNotBlank() }
+                    .distinct()
+                    .sorted()
+                    .joinToString(Const.NEW_LINE)
 
             replace(dependenciesToSortStartIndex, dependenciesToSortEndIndex, sortedDependencies)
         }

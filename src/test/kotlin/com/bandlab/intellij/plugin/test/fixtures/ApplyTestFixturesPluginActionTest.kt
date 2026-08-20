@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.test.fixtures
 
 import com.bandlab.intellij.plugin.module.ModuleInfo
@@ -38,10 +40,11 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
 
     fun testActionPerformedAddsPluginSortsEntriesAndCreatesTestFixturesFolder() {
         val action = ApplyTestFixturesPluginAction()
-        val buildFile = createProjectFile(
-            "feature-profile/edit-screen/build.gradle.kts",
-            buildGradleContent()
-        )
+        val buildFile =
+            createProjectFile(
+                "feature-profile/edit-screen/build.gradle.kts",
+                buildGradleContent(),
+            )
 
         action.actionPerformed(createEvent(action, buildFile))
 
@@ -49,16 +52,18 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
             .isEqualTo(expectedBuildGradleContent().withTrailingNewline())
 
         val moduleInfo = ModuleInfo(path = "/feature-profile/edit-screen")
-        val testFixturesFolder = File(requireNotNull(project.basePath) + moduleInfo.testFixturesPath)
+        val testFixturesFolder =
+            File(requireNotNull(project.basePath) + moduleInfo.testFixturesPath)
         assertThat(testFixturesFolder.isDirectory).isTrue()
     }
 
     fun testActionPerformedIsIdempotent() {
         val action = ApplyTestFixturesPluginAction()
-        val buildFile = createProjectFile(
-            "feature-profile/edit-screen/build.gradle.kts",
-            buildGradleContent()
-        )
+        val buildFile =
+            createProjectFile(
+                "feature-profile/edit-screen/build.gradle.kts",
+                buildGradleContent(),
+            )
 
         action.actionPerformed(createEvent(action, buildFile))
         val contentAfterFirstRun = project.readFile(buildFile.path, isAbsolute = true)
@@ -74,7 +79,7 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
 
     private fun createEvent(
         action: ApplyTestFixturesPluginAction,
-        file: VirtualFile
+        file: VirtualFile,
     ): AnActionEvent {
         val psiFile = requireNotNull(PsiManager.getInstance(project).findFile(file))
         return TestActionEvent.createTestEvent(
@@ -84,7 +89,7 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
                 .add(CommonDataKeys.PSI_ELEMENT, psiFile)
                 .add(CommonDataKeys.PSI_FILE, psiFile)
                 .add(CommonDataKeys.VIRTUAL_FILE, file)
-                .build()
+                .build(),
         )
     }
 
@@ -107,7 +112,8 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
             implementation(project(":zeta"))
             api(project(":alpha"))
         }
-        """.trimIndent()
+        """
+            .trimIndent()
 
     private fun expectedBuildGradleContent(): String =
         """
@@ -121,7 +127,8 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
             api(project(":alpha"))
             implementation(project(":zeta"))
         }
-        """.trimIndent()
+        """
+            .trimIndent()
 
     private fun String.withTrailingNewline(): String = "$this\n"
 }
