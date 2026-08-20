@@ -22,20 +22,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  format-check:
-    name: Code format check
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'zulu'
-          java-version-file: .github/workflows/.java-version
-
-      - uses: ZacSweers/kempt@v0.3.1
-        with:
-          cache: true
 
   # Prepare environment and build the plugin
   build:
@@ -59,7 +45,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: zulu
-          java-version-file: .github/workflows/.java-version
+          java-version: 21
 
       # Setup Gradle
       - name: Setup Gradle
@@ -75,7 +61,7 @@ jobs:
           PROPERTIES="$(./gradlew properties --console=plain -q)"
           VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
           CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
-          
+
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
           
@@ -95,7 +81,7 @@ jobs:
           cd ${{ github.workspace }}/build/distributions
           FILENAME=`ls *.zip`
           unzip "$FILENAME" -d content
-          
+
           echo "filename=${FILENAME:0:-4}" >> $GITHUB_OUTPUT
 
       # Store already-built plugin as an artifact for downloading
@@ -121,7 +107,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: zulu
-          java-version-file: .github/workflows/.java-version
+          java-version: 21
 
       # Setup Gradle
       - name: Setup Gradle
@@ -170,7 +156,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: zulu
-          java-version-file: .github/workflows/.java-version
+          java-version: 21
 
       # Setup Gradle
       - name: Setup Gradle
