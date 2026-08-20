@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.google.common.truth.Truth.assertThat
@@ -7,7 +9,8 @@ class ResStringKeyAtTest : BasePlatformTestCase() {
 
     fun testKeyOnRStringReference() {
         val file = myFixture.configureByText("R.kt", "val x = R.string.welcome_title")
-        assertThat(resStringKeyAt(file, file.text.indexOf("welcome_title"))).isEqualTo("welcome_title")
+        assertThat(resStringKeyAt(file, file.text.indexOf("welcome_title")))
+            .isEqualTo("welcome_title")
     }
 
     fun testKeyOnRPluralsReference() {
@@ -26,13 +29,17 @@ class ResStringKeyAtTest : BasePlatformTestCase() {
             """
             package com.app
             object R { object string { const val foo = 0 } }
-            """.trimIndent(),
+            """
+                .trimIndent(),
         )
-        val file = myFixture.configureByText(
-            "Usage.kt",
-            "import com.app.R as appR\nval x = appR.string.foo",
-        )
-        assertThat(resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length))
+        val file =
+            myFixture.configureByText(
+                "Usage.kt",
+                "import com.app.R as appR\nval x = appR.string.foo",
+            )
+        assertThat(
+                resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length)
+            )
             .isEqualTo("foo")
     }
 
@@ -43,10 +50,14 @@ class ResStringKeyAtTest : BasePlatformTestCase() {
             package com.app
             object R { object string { const val foo = 0 } }
             typealias appR = com.app.R
-            """.trimIndent(),
+            """
+                .trimIndent(),
         )
-        val file = myFixture.configureByText("Usage.kt", "import com.app.appR\nval x = appR.string.foo")
-        assertThat(resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length))
+        val file =
+            myFixture.configureByText("Usage.kt", "import com.app.appR\nval x = appR.string.foo")
+        assertThat(
+                resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length)
+            )
             .isEqualTo("foo")
     }
 
@@ -57,10 +68,20 @@ class ResStringKeyAtTest : BasePlatformTestCase() {
             package com.app
             object Other { object string { const val foo = 0 } }
             typealias appOther = com.app.Other
-            """.trimIndent(),
+            """
+                .trimIndent(),
         )
-        val file = myFixture.configureByText("Usage.kt", "import com.app.appOther\nval x = appOther.string.foo")
-        assertThat(resStringKeyAt(file, file.text.indexOf("appOther.string.foo") + "appOther.string.".length))
+        val file =
+            myFixture.configureByText(
+                "Usage.kt",
+                "import com.app.appOther\nval x = appOther.string.foo",
+            )
+        assertThat(
+                resStringKeyAt(
+                    file,
+                    file.text.indexOf("appOther.string.foo") + "appOther.string.".length,
+                )
+            )
             .isNull()
     }
 

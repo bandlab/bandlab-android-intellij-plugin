@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.intellij.credentialStore.CredentialAttributes
@@ -10,13 +12,13 @@ import com.intellij.openapi.components.Service
  * Holds the Jenkins credentials for the (single, fixed) UI-test job.
  *
  * Jenkins' Google SSO only guards the web UI — the REST API authenticates with a personal **API
- * token** over HTTP Basic, independent of the security realm. So the plugin never runs an OAuth flow:
- * the user generates an API token once (in their browser, already logged in via Google) and pastes it
- * into the Connect dialog.
+ * token** over HTTP Basic, independent of the security realm. So the plugin never runs an OAuth
+ * flow: the user generates an API token once (in their browser, already logged in via Google) and
+ * pastes it into the Connect dialog.
  *
- * The instance and job are constants ([BASE_URL] / [UI_TESTS_PATH]). The username and token are stored
- * together as a single [Credentials] entry in [PasswordSafe] (the IDE's encrypted store) — nothing is
- * persisted in plain settings, so there is no mutable state component to maintain.
+ * The instance and job are constants ([BASE_URL] / [UI_TESTS_PATH]). The username and token are
+ * stored together as a single [Credentials] entry in [PasswordSafe] (the IDE's encrypted store) —
+ * nothing is persisted in plain settings, so there is no mutable state component to maintain.
  *
  * App-level: the Jenkins instance is the same across projects, so one set of credentials is shared.
  */
@@ -29,7 +31,9 @@ class JenkinsAuthService {
     /** The saved API token, or null when not connected yet. */
     fun token(): String? = credentials()?.getPasswordAsString()?.takeIf { it.isNotBlank() }
 
-    /** True when a token is present — the gate for triggering a build without prompting to connect. */
+    /**
+     * True when a token is present — the gate for triggering a build without prompting to connect.
+     */
     fun hasToken(): Boolean = token() != null
 
     /** Stores [username] + [token] in PasswordSafe (overwriting any previous entry). */
@@ -59,11 +63,13 @@ class JenkinsAuthService {
 
         const val JOBS_URL = "${BASE_URL}job/$UI_TESTS_PATH/"
 
-        private val CREDENTIAL_ATTRIBUTES = CredentialAttributes(
-            serviceName = generateServiceName(
-                subsystem = "BandLab Jenkins",
-                key = "credentials"
+        private val CREDENTIAL_ATTRIBUTES =
+            CredentialAttributes(
+                serviceName =
+                    generateServiceName(
+                        subsystem = "BandLab Jenkins",
+                        key = "credentials",
+                    )
             )
-        )
     }
 }

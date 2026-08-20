@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.analysis
 
 import com.bandlab.intellij.plugin.BandLabIcons
@@ -15,23 +17,22 @@ import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.roots.ModuleRootManager
 
-class ModuleAnalysisAction : DumbAwareAction(
-    /* text = */ "Analyze Module",
-    /* description = */ "Invoke DAGP and JVM module conversion analysis.",
-    /* icon = */ BandLabIcons.logo
-) {
+class ModuleAnalysisAction :
+    DumbAwareAction(
+        /* text = */ "Analyze Module",
+        /* description = */ "Invoke DAGP and JVM module conversion analysis.",
+        /* icon = */ BandLabIcons.logo,
+    ) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    /**
-     *  Make the action available only when the menu is shown for the module root.
-     */
+    /** Make the action available only when the menu is shown for the module root. */
     override fun update(e: AnActionEvent) {
         val selectedFile = e.getData(CommonDataKeys.VIRTUAL_FILE) ?: return
         val project = e.project ?: return
         val isGradleProject = GradleProjectUtils.isGradleProject(selectedFile)
-        e.presentation.isEnabledAndVisible = isGradleProject &&
-            GradleProjectUtils.getGradleProjectPath(project, selectedFile) != ":"
+        e.presentation.isEnabledAndVisible =
+            isGradleProject && GradleProjectUtils.getGradleProjectPath(project, selectedFile) != ":"
     }
 
     override fun actionPerformed(e: AnActionEvent) {
@@ -39,24 +40,30 @@ class ModuleAnalysisAction : DumbAwareAction(
         val selectedFolder = e.getData(CommonDataKeys.VIRTUAL_FILE)
         val module = e.getData(LangDataKeys.MODULE) ?: return
         val contentRoot = ModuleRootManager.getInstance(module).contentRoots.firstOrNull() ?: return
-        val gradleProjectFolder = selectedFolder?.takeIf(GradleProjectUtils::isGradleProject) ?: contentRoot
-        val gradlePath = GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) ?: return
+        val gradleProjectFolder =
+            selectedFolder?.takeIf(GradleProjectUtils::isGradleProject) ?: contentRoot
+        val gradlePath =
+            GradleProjectUtils.getGradleProjectPath(project, gradleProjectFolder) ?: return
 
         val systemId = ProjectSystemId("GRADLE")
-        val settings = ExternalSystemTaskExecutionSettings().apply {
-            executionName = "Module Analysis ($gradlePath)"
-            externalSystemIdString = systemId.id
-            externalProjectPath = project.basePath
-            taskNames = if (project.isAndroidModule(gradleProjectFolder.path) &&
-                // :ui and :screen must be Android modules, so we skip JVM conversion scoring for them.
-                !gradlePath.endsWith(":ui") &&
-                !gradlePath.endsWith(":screen")
-            ) {
-                listOf("$gradlePath:analyzeModule")
-            } else {
-                listOf("$gradlePath:projectHealth")
+        val settings =
+            ExternalSystemTaskExecutionSettings().apply {
+                executionName = "Module Analysis ($gradlePath)"
+                externalSystemIdString = systemId.id
+                externalProjectPath = project.basePath
+                taskNames =
+                    if (
+                        project.isAndroidModule(gradleProjectFolder.path) &&
+                            // :ui and :screen must be Android modules, so we skip JVM conversion
+                            // scoring for them.
+                            !gradlePath.endsWith(":ui") &&
+                            !gradlePath.endsWith(":screen")
+                    ) {
+                        listOf("$gradlePath:analyzeModule")
+                    } else {
+                        listOf("$gradlePath:projectHealth")
+                    }
             }
-        }
 
         ExternalSystemUtil.runTask(
             /* taskSettings = */ settings,
@@ -65,7 +72,7 @@ class ModuleAnalysisAction : DumbAwareAction(
             /* externalSystemId = */ systemId,
             /* callback = */ null,
             /* progressExecutionMode = */ ProgressExecutionMode.IN_BACKGROUND_ASYNC,
-            /* activateToolWindowBeforeRun = */ true
+            /* activateToolWindowBeforeRun = */ true,
         )
     }
 }

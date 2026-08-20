@@ -1,10 +1,13 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.template
 
 class ComposableTemplateBuilder(
     private val name: String,
     private val filePackage: String,
 ) {
-    fun buildFile(): String = """
+    fun buildFile(): String =
+        """
         package $filePackage
 
         import androidx.compose.runtime.Composable
@@ -32,7 +35,7 @@ class ComposableTemplateBuilder(
             state: ${name}State,
             modifier: Modifier = Modifier,
         ) {
-            
+
         }
 
         @PreviewDayNight
@@ -42,7 +45,7 @@ class ComposableTemplateBuilder(
                 state = ${name}State.preview(),
             )
         }
-        
-    """.trimIndent()
 
+    """
+            .trimIndent()
 }

@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module.ui
 
 import androidx.compose.foundation.background
@@ -34,7 +36,7 @@ internal fun AutoCompleteTextField(
     state: TextFieldState,
     suggestionsFlow: Flow<Set<String>>,
     outline: Outline,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var showSuggestions by remember { mutableStateOf(false) }
     var filteredSuggestions by remember { mutableStateOf(emptyList<String>()) }
@@ -57,45 +59,47 @@ internal fun AutoCompleteTextField(
         TextField(
             state = state,
             outline = outline,
-            modifier = Modifier
-                .width(300.dp)
-                .focusRequester(focusRequester)
-                .onFocusChanged { focusState ->
-                    showSuggestions = if (focusState.isFocused) {
-                        state.text.isNotEmpty()
-                    } else {
-                        false
+            modifier =
+                Modifier.width(300.dp)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged { focusState ->
+                        showSuggestions =
+                            if (focusState.isFocused) {
+                                state.text.isNotEmpty()
+                            } else {
+                                false
+                            }
                     }
-                }
-                .onSizeChanged { textFieldSize = it }
+                    .onSizeChanged { textFieldSize = it },
         )
 
         if (showSuggestions && filteredSuggestions.isNotEmpty()) {
             Popup(
                 alignment = Alignment.TopStart,
-                offset = IntOffset(0, textFieldSize.height), // Adjust offset to be right below TextField
+                offset =
+                    IntOffset(0, textFieldSize.height), // Adjust offset to be right below TextField
                 onDismissRequest = { showSuggestions = false },
             ) {
                 LazyColumn(
-                    modifier = Modifier
-                        .background(
-                            color = Color(red = 53, green = 55, blue = 59),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .width(300.dp),
+                    modifier =
+                        Modifier.background(
+                                color = Color(red = 53, green = 55, blue = 59),
+                                shape = RoundedCornerShape(4.dp),
+                            )
+                            .width(300.dp)
                 ) {
                     items(filteredSuggestions) { suggestion ->
                         Text(
                             text = suggestion,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    state.setTextAndPlaceCursorAtEnd(suggestion)
-                                    showSuggestions = false
-                                    // Request focus back to TextField after selection
-                                    focusRequester.requestFocus()
-                                }
-                                .padding(vertical = 4.dp, horizontal = 8.dp)
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .clickable {
+                                        state.setTextAndPlaceCursorAtEnd(suggestion)
+                                        showSuggestions = false
+                                        // Request focus back to TextField after selection
+                                        focusRequester.requestFocus()
+                                    }
+                                    .padding(vertical = 4.dp, horizontal = 8.dp),
                         )
                     }
                 }

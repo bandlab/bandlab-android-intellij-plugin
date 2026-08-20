@@ -1,12 +1,14 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.utils
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.mock.MockProject
 import com.intellij.openapi.util.Disposer
+import java.io.File
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.io.File
 
 class BuildScriptUtilsTest {
 
@@ -15,7 +17,8 @@ class BuildScriptUtilsTest {
     @Test
     fun `isAndroidModule returns true when groovy build script contains Android plugin`() {
         val projectDir = tmpFolder.newFolder("groovy-module")
-        File(projectDir, "build.gradle").writeText("plugins { id(\"bandlab.plugins.library.android\") }")
+        File(projectDir, "build.gradle")
+            .writeText("plugins { id(\"bandlab.plugins.library.android\") }")
 
         val project = createProject(projectDir.absolutePath)
 
@@ -26,7 +29,8 @@ class BuildScriptUtilsTest {
     fun `isAndroidModule returns true when kotlin build script contains Android plugin`() {
         val projectDir = tmpFolder.newFolder("kts-module")
         File(projectDir, "settings.gradle.kts").writeText("rootProject.name = \"kts-module\"")
-        File(projectDir, "build.gradle.kts").writeText("plugins { id(\"bandlab.plugins.library.android\") }")
+        File(projectDir, "build.gradle.kts")
+            .writeText("plugins { id(\"bandlab.plugins.library.android\") }")
 
         val project = createProject(projectDir.absolutePath)
 

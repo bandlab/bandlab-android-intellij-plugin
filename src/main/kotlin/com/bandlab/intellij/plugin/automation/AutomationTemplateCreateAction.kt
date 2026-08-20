@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.automation
 
 import com.bandlab.intellij.plugin.BandLabIcons
@@ -14,19 +16,20 @@ import com.intellij.psi.PsiElement
 import java.awt.event.InputEvent
 import java.util.function.Consumer
 
-class AutomationTemplateCreateAction : CreateFileAction(
-    { "Automation Template" },
-    { "Create template files for automation testing." },
-    { BandLabIcons.logo },
-), DumbAware {
+class AutomationTemplateCreateAction :
+    CreateFileAction(
+        { "Automation Template" },
+        { "Create template files for automation testing." },
+        { BandLabIcons.logo },
+    ),
+    DumbAware {
 
-    /**
-     * Make the action only available for androidTest source set.
-     */
+    /** Make the action only available for androidTest source set. */
     override fun isAvailable(dataContext: DataContext): Boolean {
         if (!super.isAvailable(dataContext)) return false
 
-        val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
+        val targetPath =
+            CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
         return targetPath.contains("/src/androidTest/")
     }
 
@@ -35,23 +38,29 @@ class AutomationTemplateCreateAction : CreateFileAction(
     override fun invokeDialog(
         project: Project,
         directory: PsiDirectory,
-        elementsConsumer: Consumer<in Array<PsiElement>>
+        elementsConsumer: Consumer<in Array<PsiElement>>,
     ) {
         val validator = MyValidator(project, directory)
         val contentPanel = NewItemSimplePopupPanel()
         val nameField = contentPanel.textField
-        val popup = NewItemPopupUtil.createNewItemPopup("Feature Name (Ex: UserLibrary)", contentPanel, nameField)
+        val popup =
+            NewItemPopupUtil.createNewItemPopup(
+                "Feature Name (Ex: UserLibrary)",
+                contentPanel,
+                nameField,
+            )
 
-        contentPanel.applyAction = com.intellij.util.Consumer { event: InputEvent? ->
-            val name = nameField.text
-            if (validator.checkInput(name) && validator.canClose(name)) {
-                popup.closeOk(event)
-                elementsConsumer.accept(validator.createdElements)
-            } else {
-                val errorMessage = validator.getErrorText(name)
-                contentPanel.setError(errorMessage)
+        contentPanel.applyAction =
+            com.intellij.util.Consumer { event: InputEvent? ->
+                val name = nameField.text
+                if (validator.checkInput(name) && validator.canClose(name)) {
+                    popup.closeOk(event)
+                    elementsConsumer.accept(validator.createdElements)
+                } else {
+                    val errorMessage = validator.getErrorText(name)
+                    contentPanel.setError(errorMessage)
+                }
             }
-        }
 
         popup.showCenteredInCurrentWindow(project)
     }
@@ -68,5 +77,4 @@ class AutomationTemplateCreateAction : CreateFileAction(
     override fun hashCode(): Int = 3452
 
     override fun equals(other: Any?): Boolean = other is AutomationTemplateCreateAction
-
 }

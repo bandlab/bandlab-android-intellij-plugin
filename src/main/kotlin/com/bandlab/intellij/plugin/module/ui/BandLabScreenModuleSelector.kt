@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module.ui
 
 import androidx.compose.foundation.layout.*
@@ -23,12 +25,12 @@ internal fun BandLabScreenModuleSelector(
             RadioButtonRow(
                 text = "Page",
                 selected = state.template == Template.Page,
-                onClick = { onTemplateSelection(Template.Page) }
+                onClick = { onTemplateSelection(Template.Page) },
             )
             RadioButtonRow(
                 text = "Page + Nav Key",
                 selected = state.template == Template.PageWithNavKey,
-                onClick = { onTemplateSelection(Template.PageWithNavKey) }
+                onClick = { onTemplateSelection(Template.PageWithNavKey) },
             )
         }
     }
@@ -39,7 +41,7 @@ internal fun BandLabScreenModuleSelector(
         Row {
             Text(
                 text = "Feature Name",
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = 4.dp),
             )
 
             Spacer(Modifier.width(16.dp))

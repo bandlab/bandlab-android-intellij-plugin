@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.module
 
 import com.bandlab.intellij.plugin.template.NavKeyTemplateBuilder
@@ -24,7 +26,7 @@ class BandLabModuleTemplate(
     private val moduleInfo: ModuleInfo,
     private val config: BandLabModuleConfig,
     private val featureName: String,
-    private val dependsOn: List<Dependency>
+    private val dependsOn: List<Dependency>,
 ) {
 
     private val psiDirectorFactory = PsiDirectoryFactory.getInstance(project)
@@ -41,51 +43,53 @@ class BandLabModuleTemplate(
         }
 
         val plugins = config.selectedPlugins
-        psiFileFactory.createFileFromText(
-            buildScriptName,
-            KotlinFileType.INSTANCE,
-            buildString {
-                appendLine(PLUGINS_START)
-                when (config.typeSelection.type) {
-                    BandLabModuleType.Kotlin -> appendPlugin("library.kotlin")
-                    BandLabModuleType.Android -> appendPlugin("library.android")
-                    null -> error("Module type isn't selected, it should not be possible.")
-                }
-                if (ModulePlugin.Compose in plugins) appendPlugin("compose")
-                if (ModulePlugin.Database in plugins) appendPlugin("database")
-                if (ModulePlugin.Metro in plugins) appendPlugin("metro")
-                if (ModulePlugin.PreferenceConfig in plugins) appendPlugin("preferenceConfig")
-                if (ModulePlugin.RemoteConfig in plugins) appendPlugin("remoteConfig")
-                if (ModulePlugin.RestApi in plugins) appendPlugin("restApi")
-                if (ModulePlugin.Screen in plugins) appendPlugin("screen")
-                if (ModulePlugin.TestFixtures in plugins) {
-                    appendPlugin("testFixtures")
-                    // Create an empty folder for testFixtures
-                    File(project.basePath + moduleInfo.testFixturesPath).mkdirs()
-                }
+        psiFileFactory
+            .createFileFromText(
+                buildScriptName,
+                KotlinFileType.INSTANCE,
+                buildString {
+                    appendLine(PLUGINS_START)
+                    when (config.typeSelection.type) {
+                        BandLabModuleType.Kotlin -> appendPlugin("library.kotlin")
+                        BandLabModuleType.Android -> appendPlugin("library.android")
+                        null -> error("Module type isn't selected, it should not be possible.")
+                    }
+                    if (ModulePlugin.Compose in plugins) appendPlugin("compose")
+                    if (ModulePlugin.Database in plugins) appendPlugin("database")
+                    if (ModulePlugin.Metro in plugins) appendPlugin("metro")
+                    if (ModulePlugin.PreferenceConfig in plugins) appendPlugin("preferenceConfig")
+                    if (ModulePlugin.RemoteConfig in plugins) appendPlugin("remoteConfig")
+                    if (ModulePlugin.RestApi in plugins) appendPlugin("restApi")
+                    if (ModulePlugin.Screen in plugins) appendPlugin("screen")
+                    if (ModulePlugin.TestFixtures in plugins) {
+                        appendPlugin("testFixtures")
+                        // Create an empty folder for testFixtures
+                        File(project.basePath + moduleInfo.testFixturesPath).mkdirs()
+                    }
 
-                appendLine(PLUGINS_END)
-                appendLine()
-                appendLine(DEPENDENCIES_START)
-                if (dependsOn.isEmpty()) {
-                    // Append indent
-                    appendLine("    ")
-                } else {
-                    dependsOn.forEach { dependency ->
-                        when (dependency.config) {
-                            DependencyConfiguration.Implementation -> {
-                                appendLine("    implementation(${dependency.name})")
-                            }
+                    appendLine(PLUGINS_END)
+                    appendLine()
+                    appendLine(DEPENDENCIES_START)
+                    if (dependsOn.isEmpty()) {
+                        // Append indent
+                        appendLine("    ")
+                    } else {
+                        dependsOn.forEach { dependency ->
+                            when (dependency.config) {
+                                DependencyConfiguration.Implementation -> {
+                                    appendLine("    implementation(${dependency.name})")
+                                }
 
-                            DependencyConfiguration.Api -> {
-                                appendLine("    api(${dependency.name})")
+                                DependencyConfiguration.Api -> {
+                                    appendLine("    api(${dependency.name})")
+                                }
                             }
                         }
                     }
-                }
-                appendLine(DEPENDENCIES_END)
-            }
-        ).addToPath(moduleInfo.path)
+                    appendLine(DEPENDENCIES_END)
+                },
+            )
+            .addToPath(moduleInfo.path)
 
         // Modify module declaration list file (all-projects.txt or settings.gradle[.kts])
         modifyModulesListFile(moduleInfo)
@@ -100,13 +104,15 @@ class BandLabModuleTemplate(
                 exposeModule(moduleInfo, destinationModule = "/mixeditor/legacy")
             }
 
-            ModuleExposure.None, null -> Unit
+            ModuleExposure.None,
+            null -> Unit
         }
 
         // Create the screen template
         if (config is BandLabModuleConfig.Screen) {
             val generateTemplate = config.template != null
-            val generateNavKey = config.template == BandLabModuleConfig.Screen.Template.PageWithNavKey
+            val generateNavKey =
+                config.template == BandLabModuleConfig.Screen.Template.PageWithNavKey
             if (generateTemplate) {
                 generatePageTemplate(
                     moduleInfo = moduleInfo,
@@ -118,10 +124,10 @@ class BandLabModuleTemplate(
     }
 
     /**
-     *  Insert the new module in module declaration file, and sort the modules alphabetically.
+     * Insert the new module in module declaration file, and sort the modules alphabetically.
      *
-     *  If project is using spotlight, the declaration is in /gradle/all-projects.txt
-     *  otherwise, it will use /settings.gradle[.kts]
+     * If project is using spotlight, the declaration is in /gradle/all-projects.txt otherwise, it
+     * will use /settings.gradle[.kts]
      */
     private fun modifyModulesListFile(moduleInfo: ModuleInfo) {
         val spec = ModuleListSpecification.from(project)
@@ -135,30 +141,33 @@ class BandLabModuleTemplate(
         moduleInfo: ModuleInfo,
         spec: ModuleListSpecification,
     ) {
-        val tagName = when {
-            moduleInfo.reference.startsWith(":audiostretch:") -> "AudioStretch standalone app"
-            moduleInfo.reference.startsWith(":edu:") -> "EDU app"
-            else -> "All Modules"
-        }
+        val tagName =
+            when {
+                moduleInfo.reference.startsWith(":audiostretch:") -> "AudioStretch standalone app"
+                moduleInfo.reference.startsWith(":edu:") -> "EDU app"
+                else -> "All Modules"
+            }
         val modulesSectionTag = "${spec.sectionIdentifier} $tagName"
         val modulesSectionTagIndex = indexOf(modulesSectionTag)
         if (modulesSectionTagIndex == -1) {
             throw RuntimeException("Can't find $modulesSectionTag in ${spec.filePath}")
         }
 
-        val modulesStartIndex = indexOf(NEW_LINE, modulesSectionTagIndex + modulesSectionTag.length) + 1
+        val modulesStartIndex =
+            indexOf(NEW_LINE, modulesSectionTagIndex + modulesSectionTag.length) + 1
         // Insert the new module
         insert(modulesStartIndex, spec.newModuleStatement(moduleInfo))
         // Try to find the end of the module declaration, return null if it's the end of the file
-        val modulesEndIndex = indexOf(NEW_LINE + NEW_LINE, modulesStartIndex)
-            .takeUnless { it == -1 } ?: length
+        val modulesEndIndex =
+            indexOf(NEW_LINE + NEW_LINE, modulesStartIndex).takeUnless { it == -1 } ?: length
         // Sort all modules alphabetically
-        val sortedModules = substring(startIndex = modulesStartIndex, endIndex = modulesEndIndex)
-            .split(NEW_LINE)
-            .filter { it.isNotBlank() }
-            .distinct()
-            .sorted()
-            .joinToString(NEW_LINE)
+        val sortedModules =
+            substring(startIndex = modulesStartIndex, endIndex = modulesEndIndex)
+                .split(NEW_LINE)
+                .filter { it.isNotBlank() }
+                .distinct()
+                .sorted()
+                .joinToString(NEW_LINE)
 
         replace(modulesStartIndex, modulesEndIndex, sortedModules)
     }
@@ -170,20 +179,23 @@ class BandLabModuleTemplate(
         project.editFile(filePath = "$destinationModule/$buildScriptName", isAbsolute = false) {
             val dependenciesIndex = indexOf(DEPENDENCIES_START)
             if (dependenciesIndex == -1) {
-                throw RuntimeException("Can't find $DEPENDENCIES_START in $destinationModule/$buildScriptName.")
+                throw RuntimeException(
+                    "Can't find $DEPENDENCIES_START in $destinationModule/$buildScriptName."
+                )
             }
 
             // Sort modules in /app/build.gradle.kts alphabetically
             val modulesToSortStartIndex = indexOf(NEW_LINE, dependenciesIndex) + 1
             val modulesToSortEndIndex = indexOf(DEPENDENCIES_END, modulesToSortStartIndex) - 1
-            val sortedModules = substring(modulesToSortStartIndex, modulesToSortEndIndex)
-                .split(NEW_LINE)
-                .filter { it.isNotBlank() }
-                .toMutableList()
-                .apply { add("    implementation(${moduleInfo.projectAccessorReference})") }
-                .distinct()
-                .sorted()
-                .joinToString(NEW_LINE)
+            val sortedModules =
+                substring(modulesToSortStartIndex, modulesToSortEndIndex)
+                    .split(NEW_LINE)
+                    .filter { it.isNotBlank() }
+                    .toMutableList()
+                    .apply { add("    implementation(${moduleInfo.projectAccessorReference})") }
+                    .distinct()
+                    .sorted()
+                    .joinToString(NEW_LINE)
 
             replace(modulesToSortStartIndex, modulesToSortEndIndex, sortedModules)
         }
@@ -194,35 +206,43 @@ class BandLabModuleTemplate(
         name: String,
         generateNavKey: Boolean,
     ) {
-        val pageTemplateBuilder = PageTemplateBuilder(
-            name = name,
-            filePackage = moduleInfo.packageToImport,
-            includeNavKey = generateNavKey,
-        )
-
-        psiFileFactory.createFileFromText(
-            "${name}Page.kt",
-            KotlinFileType.INSTANCE,
-            pageTemplateBuilder.createPage()
-        ).addToPath(moduleInfo.filesPath)
-
-        psiFileFactory.createFileFromText(
-            "${name}ViewModel.kt",
-            KotlinFileType.INSTANCE,
-            pageTemplateBuilder.createViewModel()
-        ).addToPath(moduleInfo.filesPath)
-
-        if (generateNavKey) {
-            val navKeyBuilder = NavKeyTemplateBuilder(
+        val pageTemplateBuilder =
+            PageTemplateBuilder(
                 name = name,
                 filePackage = moduleInfo.packageToImport,
+                includeNavKey = generateNavKey,
             )
 
-            psiFileFactory.createFileFromText(
-                "${name}Key.kt",
+        psiFileFactory
+            .createFileFromText(
+                "${name}Page.kt",
                 KotlinFileType.INSTANCE,
-                navKeyBuilder.createNavKey()
-            ).addToPath(moduleInfo.filesPath)
+                pageTemplateBuilder.createPage(),
+            )
+            .addToPath(moduleInfo.filesPath)
+
+        psiFileFactory
+            .createFileFromText(
+                "${name}ViewModel.kt",
+                KotlinFileType.INSTANCE,
+                pageTemplateBuilder.createViewModel(),
+            )
+            .addToPath(moduleInfo.filesPath)
+
+        if (generateNavKey) {
+            val navKeyBuilder =
+                NavKeyTemplateBuilder(
+                    name = name,
+                    filePackage = moduleInfo.packageToImport,
+                )
+
+            psiFileFactory
+                .createFileFromText(
+                    "${name}Key.kt",
+                    KotlinFileType.INSTANCE,
+                    navKeyBuilder.createNavKey(),
+                )
+                .addToPath(moduleInfo.filesPath)
         }
     }
 
@@ -243,7 +263,8 @@ class BandLabModuleTemplate(
         val newModuleStatement: (ModuleInfo) -> String
 
         class SettingsGradle(isUsingKts: Boolean) : ModuleListSpecification {
-            override val filePath: String = if (isUsingKts) "/settings.gradle.kts" else "/settings.gradle"
+            override val filePath: String =
+                if (isUsingKts) "/settings.gradle.kts" else "/settings.gradle"
             override val sectionIdentifier: String = "//"
             override val newModuleStatement: (ModuleInfo) -> String = {
                 "include(\"${it.reference}\")\n"
@@ -258,18 +279,21 @@ class BandLabModuleTemplate(
 
         companion object {
             fun from(project: Project): ModuleListSpecification {
-                val useSpotlight = project.basePath?.let { File(it, ALL_PROJECTS_PATH) }?.exists == true
-                return if (useSpotlight) SpotlightAllProject() else SettingsGradle(project.isUsingKts())
+                val useSpotlight =
+                    project.basePath?.let { File(it, ALL_PROJECTS_PATH) }?.exists == true
+                return if (useSpotlight) SpotlightAllProject()
+                else SettingsGradle(project.isUsingKts())
             }
         }
     }
 }
 
 enum class DependencyConfiguration {
-    Implementation, Api
+    Implementation,
+    Api,
 }
 
 data class Dependency(
     val name: String,
-    val config: DependencyConfiguration = DependencyConfiguration.Implementation
+    val config: DependencyConfiguration = DependencyConfiguration.Implementation,
 )

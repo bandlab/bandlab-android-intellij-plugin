@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.intellij.psi.util.PsiTreeUtil
@@ -13,25 +15,29 @@ import org.jetbrains.kotlin.psi.KtNamedFunction
  * group), since IntelliJ resolves them through the same [KtClassOrObject] traversal.
  *
  * "Test method" detection is annotation-name based: any function annotated with `@Test` (JUnit 4,
- * JUnit 5, or any `*.Test`) qualifies. We match on the annotation's short name so it works without a
- * resolved Gradle/test classpath — consistent with how the rest of this plugin reads PSI.
+ * JUnit 5, or any `*.Test`) qualifies. We match on the annotation's short name so it works without
+ * a resolved Gradle/test classpath — consistent with how the rest of this plugin reads PSI.
  */
 object TestFileParser {
 
     private const val TEST_ANNOTATION_SHORT_NAME = "Test"
 
-    /** All test classes (each with at least one `@Test` method) declared in [file], in source order. */
+    /**
+     * All test classes (each with at least one `@Test` method) declared in [file], in source order.
+     */
     fun parse(file: KtFile): List<TestClass> =
-        PsiTreeUtil.findChildrenOfType(file, KtClassOrObject::class.java)
-            .mapNotNull { it.toTestClassOrNull() }
+        PsiTreeUtil.findChildrenOfType(file, KtClassOrObject::class.java).mapNotNull {
+            it.toTestClassOrNull()
+        }
 
     private fun KtClassOrObject.toTestClassOrNull(): TestClass? {
         val fqName = fqName?.asString() ?: return null
-        val methods = declarations
-            .filterIsInstance<KtNamedFunction>()
-            .filter { it.isTestFunction() }
-            .mapNotNull { it.name }
-            .map(::TestMethod)
+        val methods =
+            declarations
+                .filterIsInstance<KtNamedFunction>()
+                .filter { it.isTestFunction() }
+                .mapNotNull { it.name }
+                .map(::TestMethod)
 
         if (methods.isEmpty()) return null
 
@@ -42,6 +48,7 @@ object TestFileParser {
         )
     }
 
-    private fun KtNamedFunction.isTestFunction(): Boolean =
-        annotationEntries.any { it.shortName?.asString() == TEST_ANNOTATION_SHORT_NAME }
+    private fun KtNamedFunction.isTestFunction(): Boolean = annotationEntries.any {
+        it.shortName?.asString() == TEST_ANNOTATION_SHORT_NAME
+    }
 }

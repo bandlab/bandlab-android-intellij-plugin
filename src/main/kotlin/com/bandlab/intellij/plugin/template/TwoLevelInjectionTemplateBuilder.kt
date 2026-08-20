@@ -1,12 +1,15 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.template
 
 class TwoLevelInjectionTemplateBuilder(
     private val name: String,
     private val filePackage: String,
 ) {
-    fun buildInterface(): String = """
+    fun buildInterface(): String =
+        """
         package $filePackage
-        
+
         import dev.zacsweers.metro.Inject
         import kotlinx.coroutines.CoroutineScope
 
@@ -33,12 +36,14 @@ class TwoLevelInjectionTemplateBuilder(
                 ): $name
             }
         }
-        
-    """.trimIndent()
 
-    fun buildImpl(): String = """
+    """
+            .trimIndent()
+
+    fun buildImpl(): String =
+        """
         package $filePackage
-        
+
         import dev.zacsweers.metro.AppScope
         import dev.zacsweers.metro.Assisted
         import dev.zacsweers.metro.AssistedFactory
@@ -62,6 +67,7 @@ class TwoLevelInjectionTemplateBuilder(
                 ): ${name}Impl
             }
         }
-        
-    """.trimIndent()
+
+    """
+            .trimIndent()
 }

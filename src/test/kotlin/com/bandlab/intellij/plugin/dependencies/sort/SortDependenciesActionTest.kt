@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.sort
 
 import com.bandlab.intellij.plugin.utils.readFile
@@ -34,10 +36,11 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
 
     fun testActionPerformedSortsPluginsAndDependenciesAndRemovesDuplicates() {
         val action = SortDependenciesAction()
-        val buildFile = createProjectFile(
-            "feature-profile/screen/build.gradle.kts",
-            unsortedBuildGradleContent()
-        )
+        val buildFile =
+            createProjectFile(
+                "feature-profile/screen/build.gradle.kts",
+                unsortedBuildGradleContent(),
+            )
         action.actionPerformed(createEvent(action, buildFile))
         assertThat(project.readFile(buildFile.path, isAbsolute = true))
             .isEqualTo(expectedBuildGradleContent().withTrailingNewline())
@@ -45,7 +48,7 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
 
     private fun createEvent(
         action: SortDependenciesAction,
-        file: VirtualFile
+        file: VirtualFile,
     ): AnActionEvent {
         val psiFile = requireNotNull(PsiManager.getInstance(project).findFile(file))
         return TestActionEvent.createTestEvent(
@@ -55,7 +58,7 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
                 .add(CommonDataKeys.PSI_ELEMENT, psiFile)
                 .add(CommonDataKeys.PSI_FILE, psiFile)
                 .add(CommonDataKeys.VIRTUAL_FILE, file)
-                .build()
+                .build(),
         )
     }
 
@@ -80,7 +83,8 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
             implementation(project(":zeta"))
             compileOnly(project(":beta"))
         }
-        """.trimIndent()
+        """
+            .trimIndent()
 
     private fun expectedBuildGradleContent(): String =
         """
@@ -94,7 +98,8 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
             compileOnly(project(":beta"))
             implementation(project(":zeta"))
         }
-        """.trimIndent()
+        """
+            .trimIndent()
 
     private fun String.withTrailingNewline(): String = "$this\n"
 }

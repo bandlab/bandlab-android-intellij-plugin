@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.utils
 
 import com.bandlab.intellij.plugin.utils.Const.NEW_LINE
@@ -30,19 +32,19 @@ fun Project.requireVirtualFile(path: String, isAbsolute: Boolean): VirtualFile {
 fun Project.editFile(
     filePath: String,
     isAbsolute: Boolean,
-    editBlock: StringBuilder.() -> Unit
+    editBlock: StringBuilder.() -> Unit,
 ) {
     val file = requireVirtualFile(filePath, isAbsolute)
     editFile(file, editBlock)
 }
 
 /**
- * Edit a given [file] in the project, [editBlock] provides you a callback with [StringBuilder]
- * by helping you to fill in the existing content.
+ * Edit a given [file] in the project, [editBlock] provides you a callback with [StringBuilder] by
+ * helping you to fill in the existing content.
  */
 fun Project.editFile(
     file: VirtualFile,
-    editBlock: StringBuilder.() -> Unit
+    editBlock: StringBuilder.() -> Unit,
 ) {
     val filePsi = requireNotNull(file.toPsiFile(this))
 
@@ -60,12 +62,10 @@ fun Project.editFile(
     documentManager.commitDocument(document)
 }
 
-/**
- * Read a given [filePath] in the project.
- */
+/** Read a given [filePath] in the project. */
 fun Project.readFile(
     filePath: String,
-    isAbsolute: Boolean
+    isAbsolute: Boolean,
 ): String {
     val file = requireVirtualFile(filePath, isAbsolute)
     val filePsi = requireNotNull(file.toPsiFile(this))
@@ -74,27 +74,26 @@ fun Project.readFile(
     return document.text
 }
 
-/**
- * Write a file given the [fileName] and [content] in the PsiDirectory.
- */
+/** Write a file given the [fileName] and [content] in the PsiDirectory. */
 fun PsiDirectory.writeFile(
     fileName: String,
-    content: String
+    content: String,
 ): PsiElement {
-    val psiFile = PsiFileFactory
-        .getInstance(project)
-        .createFileFromText(fileName, KotlinFileType.INSTANCE, content)
+    val psiFile =
+        PsiFileFactory.getInstance(project)
+            .createFileFromText(fileName, KotlinFileType.INSTANCE, content)
 
     return add(psiFile)
 }
 
 val PsiDirectory.filePackage: String
-    get() = requireNotNull(resolvePath()) { "Directory path is null" }
-        .run {
-            when {
-                contains("kotlin/") -> substringAfter("kotlin/")
-                contains("java/") -> substringAfter("java/")
-                else -> this
+    get() =
+        requireNotNull(resolvePath()) { "Directory path is null" }
+            .run {
+                when {
+                    contains("kotlin/") -> substringAfter("kotlin/")
+                    contains("java/") -> substringAfter("java/")
+                    else -> this
+                }
             }
-        }
-        .replace('/', '.')
+            .replace('/', '.')

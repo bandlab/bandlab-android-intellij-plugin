@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.automation
 
 import com.bandlab.intellij.plugin.utils.filePackage
@@ -7,13 +9,14 @@ import com.intellij.psi.PsiElement
 
 class AutomationTemplateBuilder(
     private val name: String,
-    private val directory: PsiDirectory
+    private val directory: PsiDirectory,
 ) {
 
     private val filePackage = directory.filePackage
 
     fun createRobot(): PsiElement {
-        val robotPattern = """
+        val robotPattern =
+            """
             package $filePackage
 
             import com.bandlab.bandlab.screens.AnyAndroidComposeCompositeRule
@@ -29,13 +32,15 @@ class AutomationTemplateBuilder(
                 }
             }
 
-        """.trimIndent()
+        """
+                .trimIndent()
 
         return directory.writeFile("${name}Robot.kt", robotPattern)
     }
 
     fun createSemantics(): PsiElement {
-        val semanticsPattern = """
+        val semanticsPattern =
+            """
             package $filePackage
 
             import com.bandlab.bandlab.screens.AnyAndroidComposeCompositeRule
@@ -43,16 +48,18 @@ class AutomationTemplateBuilder(
             class ${name}Semantics(
                 private val rule: AnyAndroidComposeCompositeRule,
             ) {
-                
+
             }
 
-        """.trimIndent()
+        """
+                .trimIndent()
 
         return directory.writeFile("${name}Semantics.kt", semanticsPattern)
     }
 
     fun createVerifier(): PsiElement {
-        val verifierPattern = """
+        val verifierPattern =
+            """
             package $filePackage
 
             import com.bandlab.bandlab.screens.AnyAndroidComposeCompositeRule
@@ -61,10 +68,11 @@ class AutomationTemplateBuilder(
                 private val rule: AnyAndroidComposeCompositeRule,
                 private val semantics: ${name}Semantics,
             ) {
-                
+
             }
 
-        """.trimIndent()
+        """
+                .trimIndent()
 
         return directory.writeFile("${name}Verifier.kt", verifierPattern)
     }

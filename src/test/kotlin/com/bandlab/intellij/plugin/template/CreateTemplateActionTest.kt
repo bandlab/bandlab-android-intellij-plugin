@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.template
 
 import com.intellij.ide.IdeView
@@ -45,25 +47,34 @@ abstract class CreateTemplateActionTest : BasePlatformTestCase() {
     }
 
     protected fun Any.invokeIsAvailable(dataContext: DataContext): Boolean {
-        val method = try {
-            this::class.java.getDeclaredMethod("isAvailable", DataContext::class.java)
-        } catch (e: NoSuchMethodException) {
-            this::class.java.superclass.getDeclaredMethod("isAvailable", DataContext::class.java)
-        }
+        val method =
+            try {
+                this::class.java.getDeclaredMethod("isAvailable", DataContext::class.java)
+            } catch (e: NoSuchMethodException) {
+                this::class
+                    .java
+                    .superclass
+                    .getDeclaredMethod("isAvailable", DataContext::class.java)
+            }
         method.isAccessible = true
         return method.invoke(this, dataContext) as Boolean
     }
 
     @Suppress("UNCHECKED_CAST")
     protected fun Any.invokeCreate(newName: String, directory: PsiDirectory): Array<PsiElement> {
-        val method = this::class.java.getDeclaredMethod("create", String::class.java, PsiDirectory::class.java)
+        val method =
+            this::class
+                .java
+                .getDeclaredMethod("create", String::class.java, PsiDirectory::class.java)
         method.isAccessible = true
         return method.invoke(this, newName, directory) as Array<PsiElement>
     }
 
     protected class TestIdeView(private val directory: PsiDirectory) : IdeView {
         override fun getDirectories(): Array<PsiDirectory> = arrayOf(directory)
+
         override fun getOrChooseDirectory(): PsiDirectory = directory
+
         override fun selectElement(element: PsiElement) = Unit
     }
 }

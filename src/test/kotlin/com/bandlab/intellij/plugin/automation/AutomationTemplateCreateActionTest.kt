@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.automation
 
 import com.bandlab.intellij.plugin.template.CreateTemplateActionTest
@@ -10,8 +12,10 @@ class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
 
     fun testIsAvailableOnlyForAndroidTestDirectories() {
         val action = AutomationTemplateCreateAction()
-        val androidTestDirectory = createProjectDirectory("feature/src/androidTest/kotlin/com/bandlab/feature/profile")
-        val mainDirectory = createProjectDirectory("feature/src/main/kotlin/com/bandlab/feature/profile")
+        val androidTestDirectory =
+            createProjectDirectory("feature/src/androidTest/kotlin/com/bandlab/feature/profile")
+        val mainDirectory =
+            createProjectDirectory("feature/src/main/kotlin/com/bandlab/feature/profile")
         val nonSourceDirectory = createProjectDirectory("docs")
 
         assertThat(action.invokeIsAvailable(createDataContext(androidTestDirectory))).isTrue()
@@ -21,7 +25,8 @@ class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
 
     fun testCreateGeneratesRobotSemanticsAndVerifierFilesWithExpectedContent() {
         val action = AutomationTemplateCreateAction()
-        val targetDirectory = createProjectDirectory("feature/src/androidTest/kotlin/com/bandlab/feature/profile")
+        val targetDirectory =
+            createProjectDirectory("feature/src/androidTest/kotlin/com/bandlab/feature/profile")
 
         lateinit var createdElements: Array<PsiElement>
         WriteCommandAction.runWriteCommandAction(project) {
@@ -36,14 +41,28 @@ class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
             )
             .inOrder()
 
-        assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryRobot.kt")!!.path, isAbsolute = true))
+        assertThat(
+                project.readFile(
+                    targetDirectory.virtualFile.findChild("UserLibraryRobot.kt")!!.path,
+                    isAbsolute = true,
+                )
+            )
             .isEqualTo(expectedRobotFile().withTrailingNewline())
-        assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibrarySemantics.kt")!!.path, isAbsolute = true))
+        assertThat(
+                project.readFile(
+                    targetDirectory.virtualFile.findChild("UserLibrarySemantics.kt")!!.path,
+                    isAbsolute = true,
+                )
+            )
             .isEqualTo(expectedSemanticsFile().withTrailingNewline())
-        assertThat(project.readFile(targetDirectory.virtualFile.findChild("UserLibraryVerifier.kt")!!.path, isAbsolute = true))
+        assertThat(
+                project.readFile(
+                    targetDirectory.virtualFile.findChild("UserLibraryVerifier.kt")!!.path,
+                    isAbsolute = true,
+                )
+            )
             .isEqualTo(expectedVerifierFile().withTrailingNewline())
     }
-
 
     private fun expectedRobotFile(): String =
         """
@@ -61,7 +80,8 @@ class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
                 UserLibraryVerifier(rule, semantics).block()
             }
         }
-        """.trimIndent()
+        """
+            .trimIndent()
 
     private fun expectedSemanticsFile(): String =
         """
@@ -72,9 +92,10 @@ class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
         class UserLibrarySemantics(
             private val rule: AnyAndroidComposeCompositeRule,
         ) {
-            
+
         }
-        """.trimIndent()
+        """
+            .trimIndent()
 
     private fun expectedVerifierFile(): String =
         """
@@ -86,13 +107,10 @@ class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
             private val rule: AnyAndroidComposeCompositeRule,
             private val semantics: UserLibrarySemantics,
         ) {
-            
-        }
-        """.trimIndent()
 
+        }
+        """
+            .trimIndent()
 
     private fun String.withTrailingNewline(): String = "$this\n"
 }
-
-
-

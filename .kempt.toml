@@ -1,0 +1,17 @@
+[ktfmt]
+version = "0.64"
+style = "kotlinlang"
+
+[gradle-dependencies-sorter]
+version = "0.21.0"
+insert-blank-lines = false
+
+[license-header]
+file = "config/license-header.txt"
+
+[whitespace]
+strip-trailing = true
+final-newline = true
+
+[hook]
+mode = "format"

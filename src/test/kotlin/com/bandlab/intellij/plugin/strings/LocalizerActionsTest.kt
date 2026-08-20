@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerAction
@@ -32,7 +34,8 @@ class LocalizerActionsTest : BasePlatformTestCase() {
             """
             api-key = "k"
             timeout = "5 parsecs"
-            """.trimIndent(),
+            """
+                .trimIndent()
         )
         actions().forEach { assertThat(visibilityOf(it)).isFalse() }
     }
@@ -41,10 +44,11 @@ class LocalizerActionsTest : BasePlatformTestCase() {
         listOf(UpdateStringsAction(), AddStringsAction(), DeleteStringsAction())
 
     private fun visibilityOf(action: LocalizerAction): Boolean {
-        val event = TestActionEvent.createTestEvent(
-            action,
-            SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build(),
-        )
+        val event =
+            TestActionEvent.createTestEvent(
+                action,
+                SimpleDataContext.builder().add(CommonDataKeys.PROJECT, project).build(),
+            )
         action.update(event)
         return event.presentation.isEnabledAndVisible
     }
@@ -57,13 +61,15 @@ class LocalizerActionsTest : BasePlatformTestCase() {
     }
 
     private companion object {
-        val VALID_MANIFEST = """
+        val VALID_MANIFEST =
+            """
             api-key = "k"
             project-id = "1"
 
             [[file]]
             locale = "en"
             path = "app/src/main/res/values/strings.xml"
-        """.trimIndent()
+            """
+                .trimIndent()
     }
 }

@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService.Target
@@ -18,10 +20,10 @@ import javax.swing.JPanel
  * Single dialog for "Add Localization Key" — pick the target `[[file]]` and paste the keys. One
  * dialog instead of a chooser + input, so the target is always explicit and visible.
  *
- * When [preselected] is null the user must pick a target explicitly: a placeholder entry sits at the
- * top of the combo (selected initially) and OK stays disabled until a real target is chosen. When
- * [preselected] is non-null it is preselected and there is no placeholder. [initialKeys] pre-fills
- * the keys text area (e.g. the key from an unresolved-reference quick fix).
+ * When [preselected] is null the user must pick a target explicitly: a placeholder entry sits at
+ * the top of the combo (selected initially) and OK stays disabled until a real target is chosen.
+ * When [preselected] is non-null it is preselected and there is no placeholder. [initialKeys]
+ * pre-fills the keys text area (e.g. the key from an unresolved-reference quick fix).
  */
 class AddStringsDialog(
     project: Project,
@@ -32,14 +34,17 @@ class AddStringsDialog(
 
     private val showPlaceholder = preselected == null
 
-    private val targetCombo = ComboBox(comboItems().toTypedArray()).apply {
-        selectedIndex = if (showPlaceholder) 0 else targets.indexOf(preselected).coerceAtLeast(0)
-    }
+    private val targetCombo =
+        ComboBox(comboItems().toTypedArray()).apply {
+            selectedIndex =
+                if (showPlaceholder) 0 else targets.indexOf(preselected).coerceAtLeast(0)
+        }
 
-    private val keysArea = JBTextArea(6, 48).apply {
-        lineWrap = true
-        text = initialKeys
-    }
+    private val keysArea =
+        JBTextArea(6, 48).apply {
+            lineWrap = true
+            text = initialKeys
+        }
 
     init {
         title = "Add Localization Keys"
@@ -47,14 +52,21 @@ class AddStringsDialog(
     }
 
     override fun createCenterPanel(): JComponent {
-        val targetRow = JPanel(BorderLayout(8, 0)).apply {
-            add(JBLabel("Target file:"), BorderLayout.WEST)
-            add(targetCombo, BorderLayout.CENTER)
-        }
-        val keysRow = JPanel(BorderLayout(0, 4)).apply {
-            add(JBLabel("Keys (comma, space, or newline separated; each must already exist on Tolgee):"), BorderLayout.NORTH)
-            add(JBScrollPane(keysArea), BorderLayout.CENTER)
-        }
+        val targetRow =
+            JPanel(BorderLayout(8, 0)).apply {
+                add(JBLabel("Target file:"), BorderLayout.WEST)
+                add(targetCombo, BorderLayout.CENTER)
+            }
+        val keysRow =
+            JPanel(BorderLayout(0, 4)).apply {
+                add(
+                    JBLabel(
+                        "Keys (comma, space, or newline separated; each must already exist on Tolgee):"
+                    ),
+                    BorderLayout.NORTH,
+                )
+                add(JBScrollPane(keysArea), BorderLayout.CENTER)
+            }
         return JPanel(BorderLayout(0, 10)).apply {
             add(targetRow, BorderLayout.NORTH)
             add(keysRow, BorderLayout.CENTER)
@@ -74,9 +86,11 @@ class AddStringsDialog(
     val selectedTarget: Target
         get() = targets[targetCombo.selectedIndex - placeholderOffset]
 
-    val keys: List<String> get() = parseKeyList(keysArea.text)
+    val keys: List<String>
+        get() = parseKeyList(keysArea.text)
 
-    private val placeholderOffset: Int get() = if (showPlaceholder) 1 else 0
+    private val placeholderOffset: Int
+        get() = if (showPlaceholder) 1 else 0
 
     private fun comboItems(): List<String> {
         val labels = targets.map { it.addKeysToFile }

@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.template
 
 import com.bandlab.intellij.plugin.utils.readFile
@@ -12,8 +14,10 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
 
     fun testIsAvailableOnlyForMainDirectoriesWithComposePlugin() {
         val action = PageTemplateCreateAction()
-        val mainDirectory = createProjectDirectory("compose-module/src/main/kotlin/com/bandlab/page")
-        val androidTestDirectory = createProjectDirectory("compose-module/src/androidTest/kotlin/com/bandlab/page")
+        val mainDirectory =
+            createProjectDirectory("compose-module/src/main/kotlin/com/bandlab/page")
+        val androidTestDirectory =
+            createProjectDirectory("compose-module/src/androidTest/kotlin/com/bandlab/page")
         val nonSourceDirectory = createProjectDirectory("compose-module/docs")
         createBuildGradle("compose-module", withCompose = true)
 
@@ -24,7 +28,8 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
 
     fun testIsNotAvailableForModuleWithoutComposePlugin() {
         val action = PageTemplateCreateAction()
-        val mainDirectory = createProjectDirectory("no-compose-module/src/main/kotlin/com/bandlab/page")
+        val mainDirectory =
+            createProjectDirectory("no-compose-module/src/main/kotlin/com/bandlab/page")
         createBuildGradle("no-compose-module", withCompose = false)
 
         assertThat(action.invokeIsAvailable(createDataContext(mainDirectory))).isFalse()
@@ -57,8 +62,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
 
         targetDirectory.virtualFile.refresh(false, true)
 
-        assertThat(targetDirectory.readFile("UserLibraryPage.kt"))
-            .isEqualTo(builder.createPage())
+        assertThat(targetDirectory.readFile("UserLibraryPage.kt")).isEqualTo(builder.createPage())
 
         assertThat(targetDirectory.readFile("UserLibraryViewModel.kt"))
             .isEqualTo(builder.createViewModel())
@@ -81,7 +85,8 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             )
             .inOrder()
 
-        val builder = PageTemplateBuilder("UserLibraryWithNav", "com.bandlab.page", includeNavKey = true)
+        val builder =
+            PageTemplateBuilder("UserLibraryWithNav", "com.bandlab.page", includeNavKey = true)
         val navKeyBuilder = NavKeyTemplateBuilder("UserLibraryWithNav", "com.bandlab.page")
 
         targetDirectory.virtualFile.refresh(false, true)
@@ -98,7 +103,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
 
     private fun PageTemplateCreateAction.invokeCreateWithNav(
         newName: String,
-        directory: PsiDirectory
+        directory: PsiDirectory,
     ): Array<PsiElement> {
         return create(newName, directory, includeNav = true)
     }
@@ -111,23 +116,27 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
     private fun createBuildGradle(moduleDir: String, withCompose: Boolean) {
         val baseFile = File(requireNotNull(project.basePath))
         val buildGradle = File(baseFile, "$moduleDir/build.gradle")
-        val content = if (withCompose) {
-            """
-            plugins {
-                alias(bandlab.plugins.library.android)
-                alias(bandlab.plugins.compose)
+        val content =
+            if (withCompose) {
+                """
+                plugins {
+                    alias(bandlab.plugins.library.android)
+                    alias(bandlab.plugins.compose)
+                }
+                """
+                    .trimIndent()
+            } else {
+                """
+                plugins {
+                    alias(bandlab.plugins.library.android)
+                }
+                """
+                    .trimIndent()
             }
-            """.trimIndent()
-        } else {
-            """
-            plugins {
-                alias(bandlab.plugins.library.android)
-            }
-            """.trimIndent()
-        }
         buildGradle.writeText(content)
 
-        val moduleVirtualDir = LocalFileSystem.getInstance().refreshAndFindFileByIoFile(File(baseFile, moduleDir))
+        val moduleVirtualDir =
+            LocalFileSystem.getInstance().refreshAndFindFileByIoFile(File(baseFile, moduleDir))
         moduleVirtualDir?.refresh(false, true)
     }
 }

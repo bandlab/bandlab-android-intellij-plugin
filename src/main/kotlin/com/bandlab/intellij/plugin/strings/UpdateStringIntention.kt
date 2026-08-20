@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
@@ -12,8 +14,8 @@ import com.intellij.psi.PsiFile
 import javax.swing.Icon
 
 /**
- * Alt+Enter intention to re-fetch a string fresh from Tolgee and overwrite it in place (base + every
- * translation), via `update-strings --update-keys`. Available from two caret positions:
+ * Alt+Enter intention to re-fetch a string fresh from Tolgee and overwrite it in place (base +
+ * every translation), via `update-strings --update-keys`. Available from two caret positions:
  * - on a `<string>`/`<plurals>` element in a manifest string file, and
  * - on an `R.string.X` / `R.plurals.X` reference whose key **is** already defined locally.
  *

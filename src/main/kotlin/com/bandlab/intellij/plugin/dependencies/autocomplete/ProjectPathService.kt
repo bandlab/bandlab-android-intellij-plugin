@@ -1,21 +1,5 @@
-/*
- * Copyright (C) 2025 Slack Technologies, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-// Copied and modified from
-// https://github.com/slackhq/foundry/blob/main/platforms/intellij/skate/src/main/kotlin/foundry/intellij/skate/gradle/ProjectPathService.kt
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
 import com.bandlab.intellij.plugin.utils.GradleProjectUtils.parseProjectPaths
@@ -41,21 +25,22 @@ class ProjectPathService(private val project: Project) : Disposable {
     private var connection: MessageBusConnection?
 
     init {
-        connection = project.messageBus.connect().apply {
-            subscribe(
-                VirtualFileManager.VFS_CHANGES,
-                object : BulkFileListener {
-                    override fun after(events: List<VFileEvent>) {
-                        events.forEach { event ->
-                            val eventPath = event.file?.path
-                            if (eventPath != null && eventPath.endsWith(ALL_PROJECTS_PATH)) {
-                                invalidateCache()
+        connection =
+            project.messageBus.connect().apply {
+                subscribe(
+                    VirtualFileManager.VFS_CHANGES,
+                    object : BulkFileListener {
+                        override fun after(events: List<VFileEvent>) {
+                            events.forEach { event ->
+                                val eventPath = event.file?.path
+                                if (eventPath != null && eventPath.endsWith(ALL_PROJECTS_PATH)) {
+                                    invalidateCache()
+                                }
                             }
                         }
-                    }
-                },
-            )
-        }
+                    },
+                )
+            }
     }
 
     /**
@@ -82,13 +67,15 @@ class ProjectPathService(private val project: Project) : Disposable {
 
     private fun hasAllProjectsFile(): Boolean {
         val basePath = project.basePath ?: return false
-        return VirtualFileManager.getInstance().findFileByUrl("file://$basePath/$ALL_PROJECTS_PATH") != null
+        return VirtualFileManager.getInstance()
+            .findFileByUrl("file://$basePath/$ALL_PROJECTS_PATH") != null
     }
 
     private fun loadProjectPathsFromFile(): Set<String> {
         val basePath = project.basePath ?: return emptySet()
-        val allProjectsFile = VirtualFileManager.getInstance().findFileByUrl("file://$basePath/$ALL_PROJECTS_PATH")
-            ?: return emptySet()
+        val allProjectsFile =
+            VirtualFileManager.getInstance().findFileByUrl("file://$basePath/$ALL_PROJECTS_PATH")
+                ?: return emptySet()
 
         return try {
             val content = String(allProjectsFile.contentsToByteArray(), Charsets.UTF_8)

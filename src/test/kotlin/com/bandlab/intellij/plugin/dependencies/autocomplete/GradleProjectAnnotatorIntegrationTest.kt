@@ -1,18 +1,5 @@
-/*
- * Copyright (C) 2025 Slack Technologies, LLC
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
 import com.bandlab.intellij.plugin.utils.GradleProjectUtils.parseProjectPaths
@@ -25,13 +12,13 @@ class GradleProjectAnnotatorIntegrationTest {
     fun `PROJECT_CALL_PATTERN correctly extracts project paths`() {
         val gradleContent =
             """
-      dependencies {
-        implementation(project(":platforms:intellij:skate"))
-        testImplementation(project(':tools:cli'))
-        api(project( ":tools:foundry-common" ))
-        runtimeOnly project(':platforms:gradle:foundry-gradle-plugin')
-      }
-    """
+            dependencies {
+              implementation(project(":platforms:intellij:skate"))
+              testImplementation(project(':tools:cli'))
+              api(project( ":tools:foundry-common" ))
+              runtimeOnly project(':platforms:gradle:foundry-gradle-plugin')
+            }
+            """
                 .trimIndent()
 
         val matcher = PROJECT_CALL_PATTERN.matcher(gradleContent)
@@ -83,7 +70,8 @@ class GradleProjectAnnotatorIntegrationTest {
 
         // Should skip: contains project() but has children with project()
         val parentElement = "implementation(project(\":tools:cli\"))"
-        assertThat(shouldAnnotatorProcessElement(parentElement, hasProjectChildren = true)).isFalse()
+        assertThat(shouldAnnotatorProcessElement(parentElement, hasProjectChildren = true))
+            .isFalse()
 
         // Should skip: doesn't contain project()
         val nonProjectElement = "implementation(libs.someLibrary)"
@@ -96,14 +84,14 @@ class GradleProjectAnnotatorIntegrationTest {
         // Needs to skip blank lines and comments
         val testContent =
             """
-      # This is a comment
-      :platforms:intellij:skate
+            # This is a comment
+            :platforms:intellij:skate
 
-      :tools:cli
-      # Another comment
-      :tools:foundry-common
+            :tools:cli
+            # Another comment
+            :tools:foundry-common
 
-    """
+            """
                 .trimIndent()
 
         val parsedPaths = parseProjectPaths(testContent)
@@ -114,9 +102,7 @@ class GradleProjectAnnotatorIntegrationTest {
         assertThat(parsedPaths).doesNotContain("")
     }
 
-    /**
-     * Internal function to check if an element should be processed by the annotator.
-     */
+    /** Internal function to check if an element should be processed by the annotator. */
     private fun shouldAnnotatorProcessElement(
         elementText: String,
         hasProjectChildren: Boolean,

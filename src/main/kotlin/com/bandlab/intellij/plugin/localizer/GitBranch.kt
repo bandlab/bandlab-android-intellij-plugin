@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.localizer
 
 import com.intellij.openapi.project.Project
@@ -24,7 +26,8 @@ internal fun currentGitBranchFromRoot(root: Path): String? = runCatching {
     val headFile = resolveHeadFile(root)
     val firstLine = if (headFile != null) Files.readAllLines(headFile).firstOrNull() else null
     if (firstLine != null) parseRefLine(firstLine) else null
-}.getOrNull()
+}
+    .getOrNull()
 
 private fun resolveHeadFile(root: Path): Path? {
     val dotGit = root.resolve(".git")
@@ -36,9 +39,10 @@ private fun resolveHeadFile(root: Path): Path? {
             val prefix = "gitdir:"
             if (!line.startsWith(prefix)) return null
             val gitDirStr = line.removePrefix(prefix).trim()
-            val gitDirPath = Path.of(gitDirStr).let { p ->
-                if (p.isAbsolute) p else root.resolve(p).normalize()
-            }
+            val gitDirPath =
+                Path.of(gitDirStr).let { p ->
+                    if (p.isAbsolute) p else root.resolve(p).normalize()
+                }
             gitDirPath.resolve("HEAD")
         }
         else -> null

@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.localizer
 
 import com.intellij.openapi.actionSystem.ActionPlaces
@@ -27,11 +29,12 @@ abstract class LocalizerAction(text: String, description: String, icon: Icon) :
             e.presentation.isEnabledAndVisible = false
             return
         }
-        e.presentation.isEnabledAndVisible = if (isPopupPlace(e.place)) {
-            e.getData(CommonDataKeys.VIRTUAL_FILE)?.let(service::isManagedStringFile) == true
-        } else {
-            true
-        }
+        e.presentation.isEnabledAndVisible =
+            if (isPopupPlace(e.place)) {
+                e.getData(CommonDataKeys.VIRTUAL_FILE)?.let(service::isManagedStringFile) == true
+            } else {
+                true
+            }
     }
 }
 

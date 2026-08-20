@@ -1,15 +1,16 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.localizer
 
 import com.google.common.truth.Truth.assertThat
+import java.nio.file.Files
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import java.nio.file.Files
 
 class GitBranchTest {
 
-    @get:Rule
-    val tmp = TemporaryFolder()
+    @get:Rule val tmp = TemporaryFolder()
 
     @Test
     fun regularGitDir_featureBranch() {

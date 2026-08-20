@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.template
 
 import com.bandlab.intellij.plugin.utils.readFile
@@ -10,7 +12,8 @@ class TwoLevelInjectionTemplateCreateActionTest : CreateTemplateActionTest() {
     fun testIsAvailableOnlyForMainDirectories() {
         val action = TwoLevelInjectionTemplateCreateAction()
         val mainDirectory = createProjectDirectory("src/main/kotlin/com/bandlab/injection")
-        val androidTestDirectory = createProjectDirectory("src/androidTest/kotlin/com/bandlab/injection")
+        val androidTestDirectory =
+            createProjectDirectory("src/androidTest/kotlin/com/bandlab/injection")
         val nonSourceDirectory = createProjectDirectory("docs")
 
         assertThat(action.invokeIsAvailable(createDataContext(mainDirectory))).isTrue()
@@ -35,12 +38,21 @@ class TwoLevelInjectionTemplateCreateActionTest : CreateTemplateActionTest() {
             .inOrder()
 
         val builder = TwoLevelInjectionTemplateBuilder("InvertedViewModel", "com.bandlab.injection")
-        
+
         targetDirectory.virtualFile.refresh(false, true)
-        assertThat(project.readFile(targetDirectory.virtualFile.findChild("InvertedViewModel.kt")!!.path, isAbsolute = true))
+        assertThat(
+                project.readFile(
+                    targetDirectory.virtualFile.findChild("InvertedViewModel.kt")!!.path,
+                    isAbsolute = true,
+                )
+            )
             .isEqualTo(builder.buildInterface())
-        assertThat(project.readFile(targetDirectory.virtualFile.findChild("InvertedViewModelImpl.kt")!!.path, isAbsolute = true))
+        assertThat(
+                project.readFile(
+                    targetDirectory.virtualFile.findChild("InvertedViewModelImpl.kt")!!.path,
+                    isAbsolute = true,
+                )
+            )
             .isEqualTo(builder.buildImpl())
     }
-
 }

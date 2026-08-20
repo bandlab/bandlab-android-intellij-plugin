@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.google.common.truth.Truth.assertThat
@@ -8,14 +10,16 @@ class TargetsTest {
     @Test
     fun collapsesToClassWhenAllMethodsSelected() {
         val testClass = testClass("com.bandlab.FooTest", "a", "b")
-        val targets = JenkinsTargets.build(
-            selections = listOf(
-                JenkinsTargets.Selection(
-                    testClass = testClass,
-                    selectedMethods = testClass.methods
-                )
+        val targets =
+            JenkinsTargets.build(
+                selections =
+                    listOf(
+                        JenkinsTargets.Selection(
+                            testClass = testClass,
+                            selectedMethods = testClass.methods,
+                        )
+                    )
             )
-        )
 
         assertThat(targets).containsExactly("class com.bandlab.FooTest")
     }
@@ -23,14 +27,16 @@ class TargetsTest {
     @Test
     fun emitsPerMethodWhenSubsetSelected() {
         val testClass = testClass("com.bandlab.FooTest", "a", "b")
-        val targets = JenkinsTargets.build(
-            selections = listOf(
-                JenkinsTargets.Selection(
-                    testClass,
-                    selectedMethods = listOf(testClass.methods[0])
-                )
+        val targets =
+            JenkinsTargets.build(
+                selections =
+                    listOf(
+                        JenkinsTargets.Selection(
+                            testClass,
+                            selectedMethods = listOf(testClass.methods[0]),
+                        )
+                    )
             )
-        )
 
         assertThat(targets).containsExactly("class com.bandlab.FooTest#a")
     }
@@ -40,20 +46,25 @@ class TargetsTest {
         val testClass = testClass("com.bandlab.FooTest", "a")
 
         assertThat(
-            JenkinsTargets.build(
-                selections = listOf(
-                    JenkinsTargets.Selection(
-                        testClass,
-                        selectedMethods = emptyList()
-                    )
+                JenkinsTargets.build(
+                    selections =
+                        listOf(
+                            JenkinsTargets.Selection(
+                                testClass,
+                                selectedMethods = emptyList(),
+                            )
+                        )
                 )
             )
-        ).isEmpty()
+            .isEmpty()
     }
 
     @Test
     fun toJsonProducesAStringArray() {
-        val json = JenkinsTargets.toJson(listOf("class com.bandlab.FooTest#a", "class com.bandlab.BarTest"))
+        val json =
+            JenkinsTargets.toJson(
+                listOf("class com.bandlab.FooTest#a", "class com.bandlab.BarTest")
+            )
 
         assertThat(json.trim()).startsWith("[")
         assertThat(json.trim()).endsWith("]")
@@ -63,7 +74,8 @@ class TargetsTest {
 
     @Test
     fun toJsonOfEmptyListIsEmptyArray() {
-        assertThat(JenkinsTargets.toJson(emptyList()).filterNot { it.isWhitespace() }).isEqualTo("[]")
+        assertThat(JenkinsTargets.toJson(emptyList()).filterNot { it.isWhitespace() })
+            .isEqualTo("[]")
     }
 
     private fun testClass(fqName: String, vararg methods: String) =

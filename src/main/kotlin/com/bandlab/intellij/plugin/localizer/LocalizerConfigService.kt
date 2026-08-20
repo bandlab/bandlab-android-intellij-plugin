@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.localizer
 
 import com.bandlab.localizer.config.LocalizerConfig
@@ -30,13 +32,17 @@ class LocalizerConfigService(private val project: Project) {
 
     private var cache: Pair<Long, LocalizerConfig?>? = null
 
-    /** True when a localizer manifest is present and parses — the gate for the Localizer actions. */
+    /**
+     * True when a localizer manifest is present and parses — the gate for the Localizer actions.
+     */
     fun isConfigured(): Boolean = config() != null
 
     /** Every target base file, in manifest order (the first is the CLI's default). */
     fun targets(): List<Target> = groups().map { it.toTarget() }
 
-    /** Targets whose base file lives under the module mapped from [rClassFqn]; empty when unmapped. */
+    /**
+     * Targets whose base file lives under the module mapped from [rClassFqn]; empty when unmapped.
+     */
     fun targetsForRClass(rClassFqn: String): List<Target> {
         val prefix = R_CLASS_TO_MODULE[rClassFqn] ?: return emptyList()
         return targets().filter { it.addKeysToFile.startsWith("$prefix/") }
@@ -45,50 +51,65 @@ class LocalizerConfigService(private val project: Project) {
     /** The target owning [file] when it's a manifest base or translation string file, else null. */
     fun targetFor(file: VirtualFile): Target? {
         val path = file.toNioPathOrNull() ?: return null
-        return groups().firstOrNull { path == it.baseFile || path in it.translations.values }?.toTarget()
+        return groups()
+            .firstOrNull { path == it.baseFile || path in it.translations.values }
+            ?.toTarget()
     }
 
-    /** True when [file] is a manifest base or translation string file (gates the context actions). */
+    /**
+     * True when [file] is a manifest base or translation string file (gates the context actions).
+     */
     fun isManagedStringFile(file: VirtualFile): Boolean = targetFor(file) != null
 
     /** Every base + translation file the manifest manages — the set to refresh after a CLI run. */
-    fun managedFilePaths(): List<Path> = groups().flatMap { listOf(it.baseFile) + it.translations.values }
+    fun managedFilePaths(): List<Path> =
+        groups().flatMap { listOf(it.baseFile) + it.translations.values }
 
-    private fun groups() = config()?.let { config ->
-        projectRoot()?.let { root -> config.toFileGroups(root) }
-    }.orEmpty()
+    private fun groups() =
+        config()
+            ?.let { config ->
+                projectRoot()?.let { root -> config.toFileGroups(root) }
+            }
+            .orEmpty()
 
     private fun com.bandlab.localizer.config.FileGroup.toTarget(): Target {
         val root = projectRoot()!!
-        return Target(addKeysToFile = root.relativize(baseFile).joinToString("/"), baseFile = baseFile)
+        return Target(
+            addKeysToFile = root.relativize(baseFile).joinToString("/"),
+            baseFile = baseFile,
+        )
     }
 
     private fun projectRoot(): Path? = project.basePath?.let(Path::of)
 
     private fun config(): LocalizerConfig? {
-        val manifest = projectRoot()?.resolve("localizer")?.resolve(LocalizerConfigLoader.DEFAULT_CONFIG_FILENAME)
+        val manifest =
+            projectRoot()
+                ?.resolve("localizer")
+                ?.resolve(LocalizerConfigLoader.DEFAULT_CONFIG_FILENAME)
         if (manifest == null || !manifest.exists()) {
             cache = null
             return null
         }
         val stamp = manifest.getLastModifiedTime().toMillis()
         cache?.let { (cachedStamp, cfg) -> if (cachedStamp == stamp) return cfg }
-        return runCatching { LocalizerConfigLoader.load(manifest) }.getOrNull()
+        return runCatching { LocalizerConfigLoader.load(manifest) }
+            .getOrNull()
             .also { cache = stamp to it }
     }
-
 }
 
 /**
- * R class FQN -> module base_path prefix (matches the `addKeysToFile` path prefix). Hardcoded — devs
- * are not expected to customize it. Single source of truth for "which strings modules we know": both
- * target resolution ([LocalizerConfigService.targetsForRClass]) and the bare-name `Strings`/`Plurals`
- * reference detection ([isKnownRClass]) key off it.
+ * R class FQN -> module base_path prefix (matches the `addKeysToFile` path prefix). Hardcoded —
+ * devs are not expected to customize it. Single source of truth for "which strings modules we
+ * know": both target resolution ([LocalizerConfigService.targetsForRClass]) and the bare-name
+ * `Strings`/`Plurals` reference detection ([isKnownRClass]) key off it.
  */
-internal val R_CLASS_TO_MODULE = mapOf(
-    "com.bandlab.audiostretch.common.strings.R" to "audiostretch/common-strings",
-    "com.bandlab.common.strings.R" to "common/android/strings",
-)
+internal val R_CLASS_TO_MODULE =
+    mapOf(
+        "com.bandlab.audiostretch.common.strings.R" to "audiostretch/common-strings",
+        "com.bandlab.common.strings.R" to "common/android/strings",
+    )
 
 /** True when [rClassFqn] is one of our known strings modules' `R` classes. */
 internal fun isKnownRClass(rClassFqn: String): Boolean = rClassFqn in R_CLASS_TO_MODULE

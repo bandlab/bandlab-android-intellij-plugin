@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.jenkins
 
 import com.google.common.truth.Truth.assertThat
@@ -10,52 +12,58 @@ import com.intellij.testFramework.fixtures.BasePlatformTestCase
 class ConfigureJenkinsTestRunActionTest : BasePlatformTestCase() {
 
     fun testVisibleForAndroidTestFileWithTests() {
-        val file = addKotlin(
-            "feature/src/androidTest/kotlin/com/bandlab/feature/FooTest.kt",
-            """
-            package com.bandlab.feature
+        val file =
+            addKotlin(
+                "feature/src/androidTest/kotlin/com/bandlab/feature/FooTest.kt",
+                """
+                package com.bandlab.feature
 
-            import org.junit.Test
+                import org.junit.Test
 
-            class FooTest {
-                @Test
-                fun doesThing() {}
-            }
-            """.trimIndent(),
-        )
+                class FooTest {
+                    @Test
+                    fun doesThing() {}
+                }
+                """
+                    .trimIndent(),
+            )
 
         assertThat(isActionVisible(file)).isTrue()
     }
 
     fun testHiddenForAndroidTestFileWithoutTests() {
-        val file = addKotlin(
-            "feature/src/androidTest/kotlin/com/bandlab/feature/Helpers.kt",
-            """
-            package com.bandlab.feature
+        val file =
+            addKotlin(
+                "feature/src/androidTest/kotlin/com/bandlab/feature/Helpers.kt",
+                """
+                package com.bandlab.feature
 
-            class Helpers {
-                fun helper() {}
-            }
-            """.trimIndent(),
-        )
+                class Helpers {
+                    fun helper() {}
+                }
+                """
+                    .trimIndent(),
+            )
 
         assertThat(isActionVisible(file)).isFalse()
     }
 
     fun testHiddenForMainSourceFileEvenWithTests() {
-        val file = addKotlin(
-            "feature/src/main/kotlin/com/bandlab/feature/Foo.kt",
-            """
-            package com.bandlab.feature
+        val file =
+            addKotlin(
+                "feature/src/main/kotlin/com/bandlab/feature/Foo.kt",
+                """
+                package com.bandlab.feature
 
-            import org.junit.Test
+                import org.junit.Test
 
-            class Foo {
-                @Test
-                fun doesThing() {}
-            }
-            """.trimIndent(),
-        )
+                class Foo {
+                    @Test
+                    fun doesThing() {}
+                }
+                """
+                    .trimIndent(),
+            )
 
         assertThat(isActionVisible(file)).isFalse()
     }
@@ -64,10 +72,11 @@ class ConfigureJenkinsTestRunActionTest : BasePlatformTestCase() {
         myFixture.addFileToProject(path, content).virtualFile
 
     private fun isActionVisible(file: VirtualFile): Boolean {
-        val dataContext = SimpleDataContext.builder()
-            .add(CommonDataKeys.PROJECT, project)
-            .add(CommonDataKeys.VIRTUAL_FILE, file)
-            .build()
+        val dataContext =
+            SimpleDataContext.builder()
+                .add(CommonDataKeys.PROJECT, project)
+                .add(CommonDataKeys.VIRTUAL_FILE, file)
+                .build()
         val action = ConfigureJenkinsTestRunAction()
         val event = TestActionEvent.createTestEvent(action, dataContext)
 

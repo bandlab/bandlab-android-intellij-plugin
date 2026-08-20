@@ -1,3 +1,5 @@
+// Copyright 2026 BandLab Singapore Pte Ltd
+// SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.template
 
 import com.bandlab.intellij.plugin.BandLabIcons
@@ -18,22 +20,25 @@ abstract class CreateSimpleFileAction(
     text: String,
     description: String,
     protected val inputHint: String,
-    private val availability: Availability
-) : CreateFileAction(
-    { text },
-    { description },
-    { BandLabIcons.logo },
-) {
+    private val availability: Availability,
+) :
+    CreateFileAction(
+        { text },
+        { description },
+        { BandLabIcons.logo },
+    ) {
     override fun isAvailable(dataContext: DataContext): Boolean {
         return when (availability) {
             Availability.Always -> true
             Availability.MainOnly -> {
-                val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
+                val targetPath =
+                    CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
                 targetPath.contains("/src/main/")
             }
 
             Availability.ComposeOnly -> {
-                val targetPath = CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
+                val targetPath =
+                    CommonDataKeys.PSI_ELEMENT.getData(dataContext)?.resolvePath() ?: return false
                 if (!targetPath.contains("/src/main/")) return false
                 val project = CommonDataKeys.PROJECT.getData(dataContext) ?: return false
                 val virtualFile = CommonDataKeys.VIRTUAL_FILE.getData(dataContext) ?: return false
@@ -47,7 +52,7 @@ abstract class CreateSimpleFileAction(
     override fun invokeDialog(
         project: Project,
         directory: PsiDirectory,
-        elementsConsumer: Consumer<in Array<PsiElement>>
+        elementsConsumer: Consumer<in Array<PsiElement>>,
     ) {
         val validator = MyValidator(project, directory)
         val contentPanel = NewItemSimplePopupPanel()
@@ -56,16 +61,17 @@ abstract class CreateSimpleFileAction(
 
         onContentPanelCreated(contentPanel)
 
-        contentPanel.applyAction = com.intellij.util.Consumer { event: InputEvent? ->
-            val name = nameField.text
-            if (validator.checkInput(name) && validator.canClose(name)) {
-                popup.closeOk(event)
-                elementsConsumer.accept(validator.createdElements)
-            } else {
-                val errorMessage = validator.getErrorText(name)
-                contentPanel.setError(errorMessage)
+        contentPanel.applyAction =
+            com.intellij.util.Consumer { event: InputEvent? ->
+                val name = nameField.text
+                if (validator.checkInput(name) && validator.canClose(name)) {
+                    popup.closeOk(event)
+                    elementsConsumer.accept(validator.createdElements)
+                } else {
+                    val errorMessage = validator.getErrorText(name)
+                    contentPanel.setError(errorMessage)
+                }
             }
-        }
 
         popup.showCenteredInCurrentWindow(project)
     }
@@ -75,6 +81,8 @@ abstract class CreateSimpleFileAction(
     }
 
     enum class Availability {
-        Always, MainOnly, ComposeOnly
+        Always,
+        MainOnly,
+        ComposeOnly,
     }
 }
