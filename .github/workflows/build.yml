@@ -31,7 +31,7 @@ jobs:
       - uses: actions/setup-java@v5
         with:
           distribution: 'zulu'
-          java-version: 21
+          java-version-file: .github/workflows/.java-version
 
       - uses: ZacSweers/kempt@v0.3.1
         with:
@@ -39,7 +39,7 @@ jobs:
 
   # Prepare environment and build the plugin
   build:
-    name: Build
+    name: CI
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.properties.outputs.version }}
@@ -59,7 +59,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: zulu
-          java-version: 21
+          java-version-file: .github/workflows/.java-version
 
       # Setup Gradle
       - name: Setup Gradle
@@ -121,7 +121,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: zulu
-          java-version: 21
+          java-version-file: .github/workflows/.java-version
 
       # Setup Gradle
       - name: Setup Gradle
@@ -170,7 +170,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: zulu
-          java-version: 21
+          java-version-file: .github/workflows/.java-version
 
       # Setup Gradle
       - name: Setup Gradle
