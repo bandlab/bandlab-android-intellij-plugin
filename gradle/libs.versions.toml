@@ -11,7 +11,7 @@ coroutines = "1.10.2"
 opentest4j = "1.3.0"
 # Runtime deps of the vendored bandlab-localizer config.jar (libs/).
 # app.gildor ktoml fork — https://github.com/gildor/ktoml/releases
-ktoml = "0.8.1"
+ktoml = "0.9.0"
 serialization = "1.11.0"
 
 # plugins
