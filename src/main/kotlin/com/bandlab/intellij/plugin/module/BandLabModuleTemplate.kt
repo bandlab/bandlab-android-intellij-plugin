@@ -18,8 +18,8 @@ import com.intellij.openapi.project.Project
 import com.intellij.psi.PsiFile
 import com.intellij.psi.PsiFileFactory
 import com.intellij.psi.impl.file.PsiDirectoryFactory
+import java.io.File
 import org.jetbrains.kotlin.idea.KotlinFileType
-import org.jetbrains.kotlin.konan.file.File
 
 class BandLabModuleTemplate(
     private val project: Project,
@@ -280,7 +280,7 @@ class BandLabModuleTemplate(
         companion object {
             fun from(project: Project): ModuleListSpecification {
                 val useSpotlight =
-                    project.basePath?.let { File(it, ALL_PROJECTS_PATH) }?.exists == true
+                    project.basePath?.let { File(it, ALL_PROJECTS_PATH) }?.exists() == true
                 return if (useSpotlight) SpotlightAllProject()
                 else SettingsGradle(project.isUsingKts())
             }
