@@ -36,20 +36,14 @@ internal fun BandLabScreenModuleSelector(
     }
 
     if (state.template != null) {
-        Spacer(Modifier.height(16.dp))
+        Column(modifier = Modifier.padding(start = 32.dp, top = 16.dp)) {
+            Text(text = "Feature Name")
 
-        Row {
-            Text(
-                text = "Feature Name",
-                modifier = Modifier.padding(top = 4.dp),
-            )
+            Spacer(Modifier.height(4.dp))
 
-            Spacer(Modifier.width(16.dp))
+            TextField(state = featureName)
 
-            Column {
-                TextField(state = featureName)
-                HintText("ex: UserProfile, don't include Activity or Page")
-            }
+            HintText("ex: UserProfile, don't include Activity or Page")
         }
     }
 }
