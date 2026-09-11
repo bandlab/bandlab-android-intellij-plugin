@@ -11,7 +11,7 @@ This plugin offers a suite of features to help developers work more efficiently 
 Please note that this plugin is not available for external use; we've open-sourced it solely to demonstrate our approach to improving develop experience through IDE integration.
 
 ## Module Creation
-![Module Creation Wizard][module-creation-wizard]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/module-creation-wizard.png" alt="Module Creation Wizard" width="720" />
 
 **The UI is implemented using [Jewel][jewel] (Compose Desktop)!** 🔮
 
@@ -25,7 +25,7 @@ Please note that this plugin is not available for external use; we've open-sourc
 ---
 
 ## Templates
-![Templates][file-templates]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/file-templates.png" alt="Templates" width="600" />
 
 ### Page Template
 Generates Page and ViewModel.
@@ -107,14 +107,14 @@ interface FeatureViewModel {
 ```
 
 ### Automation Templates
-![Automation Templates][automation-template]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/automation-template.png" alt="Automation Templates" width="660" />
 
 Generate Robot, Semantics, and Verifier templates following our automation conventions. Available only under the `androidTest` source set.
 
 ---
 
 ## Module Analyzer
-![module analyzer][module-analyzer]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/module-analyzer.png" alt="module analyzer" width="480" />
 
 Right-click a module to analyze it using [DAGP][dagp] and our internal scoring plugin (predicts JVM module compatibility).
 
@@ -130,11 +130,11 @@ Trigger the Jenkins UI test build straight from the IDE, instead of opening Jenk
 
 Right-click a Kotlin file under an Android test directory (`src/androidTest/`) that contains tests, and choose **Configure Jenkins Test Run**. A dialog opens where you build the run and send it.
 
-![Jenkins test run entry point][configure-test-entry-point]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/configure-test-entry-point.png" alt="Jenkins test run entry point" width="520" />
 
 - **Pick tests with checkboxes.** Test classes and their methods are shown as a tree — select a whole class or individual methods. The resulting `targets` JSON is shown live and can be copied.
 
-![Jenkins test selection and run setup][configure-test-dialog]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/configure-test-dialog.png" alt="Jenkins test selection and run setup" width="520" />
 
 - **Select across multiple files.** Your selection is kept when you close the dialog, so you can open another test file and add more tests; everything accumulates into one `targets` list. Use **Clear** to reset it.
 - **Smart defaults.** `branch` and `user` are pre-filled from your local git config.
@@ -142,7 +142,7 @@ Right-click a Kotlin file under an Android test directory (`src/androidTest/`) t
 
 **First-time setup.** The first time you press **Send to Jenkins**, you're asked to connect: use **Open token page…** to generate a Jenkins API token (you're already signed in there via Google), paste it, and click **Save**. The username is pre-filled from your git config — update it if it doesn't match your Jenkins account. The token is stored securely in the IDE's password storage, so this is a one-time step.
 
-![Connect to Jenkins dialog][jenkins-connection-dialog]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/jenkins-connection-dialog.png" alt="Connect to Jenkins dialog" width="520" />
 
 After sending, a notification with an **Open in Jenkins** link points to the job page, where your new build appears at the top.
 
@@ -154,23 +154,23 @@ Add, update, and delete localization keys without hand-editing string resources 
 
 **Add a key that doesn't exist yet.** On an unresolved reference (`Strings.foo` / `R.string.foo`), Alt+Enter → **Localizer: Add string** pulls it from Tolgee into the right module's file.
 
-![Add string from a new reference][localization-add-reference]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-add-reference.png" alt="Add string from a new reference" width="520" />
 
 **Update an existing key in place.** On a defined `Strings.foo` / `R.string.foo` reference, Alt+Enter → **Localizer: Update** re-fetches just that key — no full re-sync.
 
-![Update an existing reference][localization-update-reference]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-update-reference.png" alt="Update an existing reference" width="520" />
 
 **Work from the string file.** Open a managed `strings.xml` / `strings-plurals.xml`: a banner links to the actions, and Alt+Enter on a `<string>` offers **Update** / **Delete** for that one key.
 
-![Managed string file — banner and context actions][localization-strings-file]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-strings-file.png" alt="Managed string file — banner and context actions" width="640" />
 
 **Run an action from anywhere.** Find Action (or the Localizer menu) → **Update / Add / Delete Strings**, choosing the target file.
 
-![Localizer global actions][localization-global-actions]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-global-actions.png" alt="Localizer global actions" width="440" />
 
 **Hand-editing is gated, not blocked.** Typing into a managed file prompts you to use the actions instead; choose *Edit on this branch* to proceed anyway (remembered per Git branch — e.g. a feature branch with un-finalized strings).
 
-![Edit-warning dialog][localization-edit-warning]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-edit-warning.png" alt="Edit-warning dialog" width="460" />
 
 ---
 
@@ -178,12 +178,12 @@ Add, update, and delete localization keys without hand-editing string resources 
 
 Shows the drawable icon inline in the editor gutter when referencing `UikitIcons` properties, including extension properties that delegate to `UikitIcons`.
 
-![UikitIcons gutter preview][uikit-icons-gutter-preview]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/uikit-icons-gutter-preview.png" alt="UikitIcons gutter preview" width="640" />
 
 ---
 
 ## build.gradle Actions
-![build.gradle actions][build-gradle-actions]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/build-gradle-actions.png" alt="build.gradle actions" width="500" />
 
 ### Dependency Sorting
 Right-click `build.gradle` to sort plugins and dependencies alphabetically.
@@ -192,7 +192,7 @@ Right-click `build.gradle` to sort plugins and dependencies alphabetically.
 Right-click `build.gradle` to apply the Test Fixtures plugin and automatically create the required folders.
 
 ### Project Path Autocomplete
-![auto-complete project path][project-path-autocomplete]
+<img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/project-path-autocomplete.png" alt="auto-complete project path" width="640" />
 
 Since we avoid Gradle [type-safe accessors][avoid-type-safe-accessors], this plugin provides autocomplete and validation for project paths. Invalid paths are highlighted with a red underline.
 
@@ -231,24 +231,6 @@ License
     limitations under the License.
 
 Plugin based on the [IntelliJ Platform Plugin Template][template].
-
-[//]: # (Images)
-
-[automation-template]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/automation-template.png
-[build-gradle-actions]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/build-gradle-actions.png
-[configure-test-dialog]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/configure-test-dialog.png
-[configure-test-entry-point]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/configure-test-entry-point.png
-[file-templates]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/file-templates.png
-[jenkins-connection-dialog]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/jenkins-connection-dialog.png
-[localization-add-reference]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-add-reference.png
-[localization-edit-warning]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-edit-warning.png
-[localization-global-actions]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-global-actions.png
-[localization-strings-file]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-strings-file.png
-[localization-update-reference]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/localization-update-reference.png
-[module-analyzer]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/module-analyzer.png
-[module-creation-wizard]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/module-creation-wizard.png
-[project-path-autocomplete]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/project-path-autocomplete.png
-[uikit-icons-gutter-preview]: https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/uikit-icons-gutter-preview.png
 
 [//]: # (Links)
 
