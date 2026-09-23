@@ -5,6 +5,8 @@
 ## Unreleased
 ### Changed
 - Update Page with NavKey template
+- Module Creation Wizard: Improve feature name input UI
+- Remove @Inject on the Page template
 
 ## [2.7.0] - 2026-08-12
 ### Added

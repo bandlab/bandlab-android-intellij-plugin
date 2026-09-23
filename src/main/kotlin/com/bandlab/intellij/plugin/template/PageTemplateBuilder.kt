@@ -31,10 +31,8 @@ class PageTemplateBuilder(
         import androidx.compose.runtime.Composable
         import com.bandlab.metro.station.MetroStation
         import $pageImport
-        import dev.zacsweers.metro.Inject
 
         @MetroStation(appDependencies = ${name}Page.ServiceProvider::class)
-        @Inject
         class ${name}Page : $pageType {
 
             @Composable
