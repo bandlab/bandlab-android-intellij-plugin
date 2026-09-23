@@ -5,6 +5,7 @@
 ## Unreleased
 ### Changed
 - Update Page with NavKey template
+- Remove @Inject on the Page template
 
 ## [2.7.0] - 2026-08-12
 ### Added
