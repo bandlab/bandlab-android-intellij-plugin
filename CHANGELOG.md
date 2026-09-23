@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.7.1] - 2026-09-23
 ### Changed
 - Update Page with NavKey template
 - Module Creation Wizard: Improve feature name input UI
