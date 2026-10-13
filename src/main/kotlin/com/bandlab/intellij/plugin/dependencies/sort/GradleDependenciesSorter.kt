@@ -5,11 +5,10 @@ package com.bandlab.intellij.plugin.dependencies.sort
 import com.intellij.execution.configurations.GeneralCommandLine
 import com.intellij.execution.process.CapturingProcessHandler
 import com.intellij.execution.process.ProcessOutput
-import com.intellij.ide.plugins.PluginManagerCore
 import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.diagnostic.thisLogger
-import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.Task
@@ -38,7 +37,8 @@ object GradleDependenciesSorter {
 
     const val NOTIFICATION_GROUP = "BandLab Sort Dependencies"
 
-    private const val PLUGIN_ID = "com.bandlab.intellij.plugin"
+    /** Directory name of the installed plugin: `pluginName` in `gradle.properties`. */
+    private const val PLUGIN_DIR = "bandlab-android-intellij-plugin"
     private const val CLI_JAR = "cli/sort-gradle-dependencies.jar"
     private const val PROCESS_TIMEOUT_MS = 60_000
 
@@ -98,13 +98,11 @@ object GradleDependenciesSorter {
         return CapturingProcessHandler(commandLine).runProcess(PROCESS_TIMEOUT_MS)
     }
 
-    private fun cliJar(): Path {
-        val plugin =
-            checkNotNull(PluginManagerCore.getPlugin(PluginId.getId(PLUGIN_ID))) {
-                "Plugin $PLUGIN_ID is not loaded"
-            }
-        return plugin.pluginPath.resolve(CLI_JAR)
-    }
+    /**
+     * `<plugins dir>/<plugin>/cli/sort-gradle-dependencies.jar`. The plugins dir is the user's
+     * plugin folder in the IDE and the sandbox in `runIde` and unit tests.
+     */
+    private fun cliJar(): Path = Path.of(PathManager.getPluginsPath(), PLUGIN_DIR, CLI_JAR)
 
     /** The JRE the IDE itself runs on: always present, no PATH lookup needed. */
     private fun javaExecutable(): Path {
