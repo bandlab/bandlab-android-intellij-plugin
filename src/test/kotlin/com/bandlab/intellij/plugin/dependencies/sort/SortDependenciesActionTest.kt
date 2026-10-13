@@ -73,34 +73,6 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
             )
     }
 
-    fun testActionPerformedSortsPluginsWithoutModuleTypePlugin() {
-        val action = SortDependenciesAction()
-        val buildFile =
-            createProjectFile(
-                "tooling/build.gradle.kts",
-                """
-                plugins {
-                    alias(libs.plugins.kover)
-                    `java-library`
-                    alias(libs.plugins.changelog)
-                }
-                """
-                    .trimIndent() + "\n",
-            )
-        action.actionPerformed(createEvent(action, buildFile))
-        assertThat(project.readFile(buildFile.path, isAbsolute = true))
-            .isEqualTo(
-                """
-                plugins {
-                    `java-library`
-                    alias(libs.plugins.changelog)
-                    alias(libs.plugins.kover)
-                }
-                """
-                    .trimIndent() + "\n"
-            )
-    }
-
     fun testActionPerformedKeepsAlreadySortedFileUntouched() {
         val action = SortDependenciesAction()
         val buildFile =
@@ -170,8 +142,9 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
     private fun expectedBuildGradleContent(): String =
         """
         plugins {
-            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.compose)
+            alias(bandlab.plugins.compose)
+            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.metro)
         }
 

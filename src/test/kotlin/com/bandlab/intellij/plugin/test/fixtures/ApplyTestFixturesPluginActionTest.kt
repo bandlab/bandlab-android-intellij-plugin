@@ -122,8 +122,8 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
     private fun expectedBuildGradleContent(): String =
         """
         plugins {
-            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.compose)
+            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.testFixtures)
         }
 

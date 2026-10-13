@@ -188,6 +188,7 @@ Shows the drawable icon inline in the editor gutter when referencing `UikitIcons
 ### Dependency Sorting
 Right-click `build.gradle` to sort `plugins` and `dependencies` alphabetically.
 `dependencies` grouped by configuration (`api`, `implementation`, `testImplementation`, ...).
+Using a CLI [gradle-dependencies-sorter](https://github.com/square/gradle-dependencies-sorter)
 
 ### Test Fixtures Plugin
 Right-click `build.gradle` to apply the Test Fixtures plugin and automatically create the required folders.

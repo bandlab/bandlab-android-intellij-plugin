@@ -41,7 +41,8 @@ repositories {
     }
 }
 
-// The square/gradle-dependencies-sorter CLI fat jar. It is NOT on the plugin classpath: it bundles its
+// The square/gradle-dependencies-sorter CLI fat jar. It is NOT on the plugin classpath: it bundles
+// its
 // own Kotlin stdlib, ANTLR, etc. and would clash with the IDE. It is shipped under `<plugin>/cli/`
 // and launched as an external `java -jar` process by SortDependenciesAction.
 val sortDependenciesCli: Configuration =
@@ -74,7 +75,6 @@ dependencies {
     implementation(files("libs/config.jar"))
     implementation(libs.ktoml.file)
     implementation(libs.serialization.json)
-    sortDependenciesCli(libs.sort.gradle.dependencies.cli)
     testImplementation(kotlin("stdlib"))
     testImplementation(libs.coroutines.test) {
         // To avoid conflicts with IntelliJ embedded coroutines
@@ -89,6 +89,7 @@ dependencies {
         // To avoid conflicts with IntelliJ embedded coroutines
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
     }
+    sortDependenciesCli(libs.sort.gradle.dependencies.cli)
 }
 
 // Configure IntelliJ Platform Gradle Plugin - read more:
@@ -219,7 +220,8 @@ tasks {
         dependsOn("patchReadme")
     }
 
-    // Ship the sorter CLI jar next to the plugin's `lib/` (not inside it, so it is not loaded by the
+    // Ship the sorter CLI jar next to the plugin's `lib/` (not inside it, so it is not loaded by
+    // the
     // plugin classloader). Applies to every sandbox: runIde, tests, and the distribution zip.
     withType<PrepareSandboxTask>().configureEach {
         from(sortDependenciesCli) {
