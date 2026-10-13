@@ -13,6 +13,8 @@ opentest4j = "1.3.0"
 # app.gildor ktoml fork — https://github.com/gildor/ktoml/releases
 ktoml = "0.9.0"
 serialization = "1.11.0"
+# https://github.com/square/gradle-dependencies-sorter/releases
+sort-gradle-dependencies = "0.21.0"
 
 # plugins
 changelog = "2.5.0"
@@ -33,6 +35,7 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 ktoml-file = { group = "app.gildor", name = "ktoml-file", version.ref = "ktoml" }
 serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "serialization" }
+sort-gradle-dependencies-cli = { group = "com.squareup", name = "sort-gradle-dependencies-app", version.ref = "sort-gradle-dependencies" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }

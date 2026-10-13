@@ -3,10 +3,10 @@
 package com.bandlab.intellij.plugin.test.fixtures
 
 import com.bandlab.intellij.plugin.BandLabIcons
+import com.bandlab.intellij.plugin.dependencies.sort.GradleDependenciesSorter
 import com.bandlab.intellij.plugin.module.ModuleInfo
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
-import com.bandlab.intellij.plugin.utils.GradleProjectUtils.sortDependencies
 import com.bandlab.intellij.plugin.utils.editFile
 import com.bandlab.intellij.plugin.utils.isBuildScriptFile
 import com.bandlab.intellij.plugin.utils.psiFileOrNull
@@ -44,9 +44,10 @@ class ApplyTestFixturesPluginAction :
             /* runnable = */ {
                 project.addTestFixturesPlugin(buildGradle.path)
                 project.createTestFixturesFolder(buildGradle)
-                project.sortDependencies(buildGradle.path)
             },
         )
+        // Runs outside the write action: it saves the edited document and shells out to the CLI.
+        GradleDependenciesSorter.sort(project, buildGradle)
     }
 
     private fun Project.addTestFixturesPlugin(fileAbsolutePath: String) {
