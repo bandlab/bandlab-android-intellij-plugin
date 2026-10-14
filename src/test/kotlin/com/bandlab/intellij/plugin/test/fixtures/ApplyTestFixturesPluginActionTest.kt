@@ -9,6 +9,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.TestActionEvent
@@ -97,8 +98,11 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
         val ioFile = File(requireNotNull(project.basePath), relativePath)
         ioFile.parentFile.mkdirs()
         ioFile.writeText(content)
-
-        return requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile))
+        val file = requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile))
+        // The light project is shared between tests, so the file (and its Document) may already be
+        // cached from an earlier test: force the VFS to pick up what was just written to disk.
+        VfsUtil.markDirtyAndRefresh(false, false, false, file)
+        return file
     }
 
     private fun buildGradleContent(): String =
@@ -118,8 +122,8 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
     private fun expectedBuildGradleContent(): String =
         """
         plugins {
-            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.compose)
+            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.testFixtures)
         }
 

@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- Sort Dependencies: use the bundled [square/gradle-dependencies-sorter](https://github.com/square/gradle-dependencies-sorter) CLI instead of the home-grown sorter. Comments are now preserved; `plugins {}` is sorted alphabetically (the module-type plugin is no longer pinned first).
 
 ## [2.7.1] - 2026-09-23
 ### Changed

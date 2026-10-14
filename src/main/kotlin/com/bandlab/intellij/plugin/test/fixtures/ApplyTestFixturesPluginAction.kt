@@ -3,10 +3,10 @@
 package com.bandlab.intellij.plugin.test.fixtures
 
 import com.bandlab.intellij.plugin.BandLabIcons
+import com.bandlab.intellij.plugin.dependencies.sort.GradleDependenciesSorter
 import com.bandlab.intellij.plugin.module.ModuleInfo
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
-import com.bandlab.intellij.plugin.utils.GradleProjectUtils.sortDependencies
 import com.bandlab.intellij.plugin.utils.editFile
 import com.bandlab.intellij.plugin.utils.isBuildScriptFile
 import com.bandlab.intellij.plugin.utils.psiFileOrNull
@@ -44,9 +44,12 @@ class ApplyTestFixturesPluginAction :
             /* runnable = */ {
                 project.addTestFixturesPlugin(buildGradle.path)
                 project.createTestFixturesFolder(buildGradle)
-                project.sortDependencies(buildGradle.path)
             },
         )
+        // Sequential, not parallel: runWriteCommandAction has already returned, so the plugin is in
+        // the Document. sort() first saves that Document to disk synchronously and only then runs
+        // the CLI in the background, so the sorter sees the added plugin.
+        GradleDependenciesSorter.sort(project, buildGradle)
     }
 
     private fun Project.addTestFixturesPlugin(fileAbsolutePath: String) {

@@ -8,6 +8,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
 import com.intellij.testFramework.TestActionEvent
@@ -34,7 +35,7 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
         assertThat(regularEvent.presentation.isEnabledAndVisible).isFalse()
     }
 
-    fun testActionPerformedSortsPluginsAndDependenciesAndRemovesDuplicates() {
+    fun testActionPerformedSortsPluginsAndDependenciesAndKeepsComments() {
         val action = SortDependenciesAction()
         val buildFile =
             createProjectFile(
@@ -43,7 +44,53 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
             )
         action.actionPerformed(createEvent(action, buildFile))
         assertThat(project.readFile(buildFile.path, isAbsolute = true))
-            .isEqualTo(expectedBuildGradleContent().withTrailingNewline())
+            .isEqualTo(expectedBuildGradleContent())
+    }
+
+    fun testActionPerformedSortsGroovyBuildScript() {
+        val action = SortDependenciesAction()
+        val buildFile =
+            createProjectFile(
+                "legacy/build.gradle",
+                """
+                dependencies {
+                    implementation project(':zeta')
+                    api project(':alpha')
+                }
+                """
+                    .trimIndent() + "\n",
+            )
+        action.actionPerformed(createEvent(action, buildFile))
+        assertThat(project.readFile(buildFile.path, isAbsolute = true))
+            .isEqualTo(
+                """
+                dependencies {
+                    api project(':alpha')
+                    implementation project(':zeta')
+                }
+                """
+                    .trimIndent() + "\n"
+            )
+    }
+
+    fun testActionPerformedKeepsAlreadySortedFileUntouched() {
+        val action = SortDependenciesAction()
+        val buildFile =
+            createProjectFile(
+                "feature-profile/screen/build.gradle.kts",
+                expectedBuildGradleContent(),
+            )
+        action.actionPerformed(createEvent(action, buildFile))
+        assertThat(project.readFile(buildFile.path, isAbsolute = true))
+            .isEqualTo(expectedBuildGradleContent())
+    }
+
+    fun testActionPerformedLeavesUnparsableFileUntouched() {
+        val action = SortDependenciesAction()
+        val content = "dependencies {\n    implementation(\n"
+        val buildFile = createProjectFile("broken/build.gradle.kts", content)
+        action.actionPerformed(createEvent(action, buildFile))
+        assertThat(project.readFile(buildFile.path, isAbsolute = true)).isEqualTo(content)
     }
 
     private fun createEvent(
@@ -66,7 +113,11 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
         val ioFile = File(requireNotNull(project.basePath), relativePath)
         ioFile.parentFile.mkdirs()
         ioFile.writeText(content)
-        return requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile))
+        val file = requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile))
+        // The light project is shared between tests, so the file (and its Document) may already be
+        // cached from an earlier test: force the VFS to pick up what was just written to disk.
+        VfsUtil.markDirtyAndRefresh(false, false, false, file)
+        return file
     }
 
     private fun unsortedBuildGradleContent(): String =
@@ -77,29 +128,33 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
             alias(bandlab.plugins.metro)
             alias(bandlab.plugins.compose)
         }
+
         dependencies {
+            // zeta is needed for X
             implementation(project(":zeta"))
             api(project(":alpha"))
-            implementation(project(":zeta"))
             compileOnly(project(":beta"))
+            testImplementation(libs.junit)
         }
         """
-            .trimIndent()
+            .trimIndent() + "\n"
 
     private fun expectedBuildGradleContent(): String =
         """
         plugins {
-            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.compose)
+            alias(bandlab.plugins.compose)
+            alias(bandlab.plugins.library.kotlin)
             alias(bandlab.plugins.metro)
         }
+
         dependencies {
             api(project(":alpha"))
-            compileOnly(project(":beta"))
+            // zeta is needed for X
             implementation(project(":zeta"))
+            compileOnly(project(":beta"))
+            testImplementation(libs.junit)
         }
         """
-            .trimIndent()
-
-    private fun String.withTrailingNewline(): String = "$this\n"
+            .trimIndent() + "\n"
 }
