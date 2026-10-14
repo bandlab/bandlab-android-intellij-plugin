@@ -46,7 +46,9 @@ class ApplyTestFixturesPluginAction :
                 project.createTestFixturesFolder(buildGradle)
             },
         )
-        // Runs outside the write action: it saves the edited document and shells out to the CLI.
+        // Sequential, not parallel: runWriteCommandAction has already returned, so the plugin is in
+        // the Document. sort() first saves that Document to disk synchronously and only then runs
+        // the CLI in the background, so the sorter sees the added plugin.
         GradleDependenciesSorter.sort(project, buildGradle)
     }
 

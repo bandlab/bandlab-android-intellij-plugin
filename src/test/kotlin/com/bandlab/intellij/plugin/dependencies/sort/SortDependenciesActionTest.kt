@@ -123,9 +123,9 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
     private fun unsortedBuildGradleContent(): String =
         """
         plugins {
-            alias(bandlab.plugins.metro)
             alias(bandlab.plugins.compose)
             alias(bandlab.plugins.library.kotlin)
+            alias(bandlab.plugins.metro)
             alias(bandlab.plugins.compose)
         }
 
