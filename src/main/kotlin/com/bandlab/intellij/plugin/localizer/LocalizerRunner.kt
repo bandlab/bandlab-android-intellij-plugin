@@ -86,7 +86,7 @@ object LocalizerRunner {
                             FileDocumentManager.getInstance().reloadFiles(*files.toTypedArray())
                         }
                     }
-                }
+                },
             )
         }
 

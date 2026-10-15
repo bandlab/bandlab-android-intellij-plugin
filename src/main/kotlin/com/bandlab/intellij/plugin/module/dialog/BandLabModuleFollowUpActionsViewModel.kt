@@ -84,7 +84,7 @@ internal class BandLabModuleFollowUpActionsViewModel(
             FollowUpActionState(
                 text = "Sync Project",
                 onClick = ::syncProject,
-            )
+            ),
         )
     }
 

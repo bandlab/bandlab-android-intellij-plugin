@@ -119,7 +119,7 @@ internal class BandLabModuleWizardViewModel(
                 featureName.setTextAndPlaceCursorAtEnd(
                     name.split(':', '-').joinToString("") {
                         it.replaceFirstChar { c -> c.uppercaseChar() }
-                    }
+                    },
                 )
             }
             .launchIn(wizardScope)

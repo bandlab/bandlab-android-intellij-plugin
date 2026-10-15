@@ -180,7 +180,7 @@ class BandLabModuleTemplate(
             val dependenciesIndex = indexOf(DEPENDENCIES_START)
             if (dependenciesIndex == -1) {
                 throw RuntimeException(
-                    "Can't find $DEPENDENCIES_START in $destinationModule/$buildScriptName."
+                    "Can't find $DEPENDENCIES_START in $destinationModule/$buildScriptName.",
                 )
             }
 

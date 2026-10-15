@@ -34,9 +34,9 @@ class GradleProjectCompletionContributor : CompletionContributor() {
                                     ): Boolean {
                                         return t.endsWith(".gradle") || t.endsWith(".gradle.kts")
                                     }
-                                }
-                            )
-                    )
+                                },
+                            ),
+                    ),
             )
     }
 

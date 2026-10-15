@@ -17,8 +17,8 @@ class TargetsTest {
                         JenkinsTargets.Selection(
                             testClass = testClass,
                             selectedMethods = testClass.methods,
-                        )
-                    )
+                        ),
+                    ),
             )
 
         assertThat(targets).containsExactly("class com.bandlab.FooTest")
@@ -34,8 +34,8 @@ class TargetsTest {
                         JenkinsTargets.Selection(
                             testClass,
                             selectedMethods = listOf(testClass.methods[0]),
-                        )
-                    )
+                        ),
+                    ),
             )
 
         assertThat(targets).containsExactly("class com.bandlab.FooTest#a")
@@ -52,9 +52,9 @@ class TargetsTest {
                             JenkinsTargets.Selection(
                                 testClass,
                                 selectedMethods = emptyList(),
-                            )
-                        )
-                )
+                            ),
+                        ),
+                ),
             )
             .isEmpty()
     }
@@ -63,7 +63,7 @@ class TargetsTest {
     fun toJsonProducesAStringArray() {
         val json =
             JenkinsTargets.toJson(
-                listOf("class com.bandlab.FooTest#a", "class com.bandlab.BarTest")
+                listOf("class com.bandlab.FooTest#a", "class com.bandlab.BarTest"),
             )
 
         assertThat(json.trim()).startsWith("[")

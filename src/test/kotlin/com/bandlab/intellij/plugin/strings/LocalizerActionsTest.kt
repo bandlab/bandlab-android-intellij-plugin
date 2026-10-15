@@ -35,7 +35,7 @@ class LocalizerActionsTest : BasePlatformTestCase() {
             api-key = "k"
             timeout = "5 parsecs"
             """
-                .trimIndent()
+                .trimIndent(),
         )
         actions().forEach { assertThat(visibilityOf(it)).isFalse() }
     }

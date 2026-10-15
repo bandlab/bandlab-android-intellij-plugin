@@ -61,7 +61,7 @@ class AddStringsDialog(
             JPanel(BorderLayout(0, 4)).apply {
                 add(
                     JBLabel(
-                        "Keys (comma, space, or newline separated; each must already exist on Tolgee):"
+                        "Keys (comma, space, or newline separated; each must already exist on Tolgee):",
                     ),
                     BorderLayout.NORTH,
                 )

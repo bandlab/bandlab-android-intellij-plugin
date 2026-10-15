@@ -69,7 +69,7 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
                     implementation project(':zeta')
                 }
                 """
-                    .trimIndent() + "\n"
+                    .trimIndent() + "\n",
             )
     }
 

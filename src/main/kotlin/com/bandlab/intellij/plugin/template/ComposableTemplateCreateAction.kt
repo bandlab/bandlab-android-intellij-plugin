@@ -21,7 +21,7 @@ class ComposableTemplateCreateAction :
                 filePackage = directory.filePackage,
             )
         return arrayOf(
-            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.buildFile())
+            directory.writeFile(fileName = "${newName}.kt", content = templateBuilder.buildFile()),
         )
     }
 

@@ -67,7 +67,7 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
         assertThat(
                 service.targetsForRClass("com.bandlab.audiostretch.common.strings.R").map {
                     it.addKeysToFile
-                }
+                },
             )
             .containsExactly("audiostretch/common-strings/src/main/res/values/strings.xml")
     }
@@ -75,7 +75,7 @@ class LocalizerConfigServiceTest : BasePlatformTestCase() {
     fun testTargetsForRClassReturnsEveryTargetUnderTheModule() {
         writeManifest(COMMON_STRINGS_WITH_PLURALS)
         assertThat(
-                service.targetsForRClass("com.bandlab.common.strings.R").map { it.addKeysToFile }
+                service.targetsForRClass("com.bandlab.common.strings.R").map { it.addKeysToFile },
             )
             .containsExactly(
                 "common/android/strings/src/main/res/values/strings.xml",

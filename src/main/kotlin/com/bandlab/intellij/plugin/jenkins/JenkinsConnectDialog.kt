@@ -57,14 +57,14 @@ class JenkinsConnectDialog(private val project: Project) : DialogWrapper(project
             .addComponentToRightColumn(
                 JBLabel(JenkinsAuthService.BASE_URL).apply {
                     foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND
-                }
+                },
             )
             .addLabeledComponent("Username:", usernameRow)
             .addLabeledComponent("API token:", tokenField)
             .addComponentToRightColumn(
                 JBLabel("Generate a token on your Jenkins user page, then paste it here.").apply {
                     foreground = JBUI.CurrentTheme.ContextHelp.FOREGROUND
-                }
+                },
             )
             .addComponentToRightColumn(openTokenPageButton)
             .panel

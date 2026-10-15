@@ -62,7 +62,7 @@ class ComposableTemplateCreateActionTest : CreateTemplateActionTest() {
                 project.readFile(
                     targetDirectory.virtualFile.findChild("ProjectList.kt")!!.path,
                     isAbsolute = true,
-                )
+                ),
             )
             .isEqualTo(builder.buildFile())
     }

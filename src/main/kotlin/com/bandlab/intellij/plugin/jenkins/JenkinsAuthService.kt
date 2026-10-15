@@ -69,7 +69,7 @@ class JenkinsAuthService {
                     generateServiceName(
                         subsystem = "BandLab Jenkins",
                         key = "credentials",
-                    )
+                    ),
             )
     }
 }

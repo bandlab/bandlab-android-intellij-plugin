@@ -92,7 +92,7 @@ class BandLabModuleWizardStep(
                                     Dependency(
                                         name = apiModuleInfo.projectAccessorReference,
                                         config = DependencyConfiguration.Api,
-                                    )
+                                    ),
                                 )
                             }
                         }

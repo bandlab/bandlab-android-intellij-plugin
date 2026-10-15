@@ -128,7 +128,7 @@ class JenkinsTestRunDialog(
                     refreshPreview()
                     updateSendEnabled()
                 }
-            }
+            },
         )
         refreshPreview()
         init()
@@ -262,7 +262,7 @@ class JenkinsTestRunDialog(
                             notifyError(message)
                         }
                     }
-                }
+                },
             )
     }
 
@@ -273,7 +273,7 @@ class JenkinsTestRunDialog(
                 .getNotificationGroup("BandLab Jenkins")
                 .createNotification("Jenkins test run triggered", url, NotificationType.INFORMATION)
                 .addAction(
-                    NotificationAction.createSimple("Open in Jenkins") { BrowserUtil.browse(url) }
+                    NotificationAction.createSimple("Open in Jenkins") { BrowserUtil.browse(url) },
                 )
                 .notify(project)
         }

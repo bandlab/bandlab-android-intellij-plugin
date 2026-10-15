@@ -27,8 +27,8 @@ class GradleProjectReferenceContributor : PsiReferenceContributor() {
                                 ): Boolean {
                                     return t.endsWith(".gradle") || t.endsWith(".gradle.kts")
                                 }
-                            }
-                        )
+                            },
+                        ),
                 )
 
         // For Kotlin Gradle files - target string template expressions
