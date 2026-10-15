@@ -68,7 +68,7 @@ class PageTemplateCreateAction :
                         e.consume()
                     }
                 }
-            }
+            },
         )
     }
 

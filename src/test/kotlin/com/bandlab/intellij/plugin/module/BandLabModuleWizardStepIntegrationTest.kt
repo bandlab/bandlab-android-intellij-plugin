@@ -332,7 +332,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
                 if (!appBuildGradle.exists()) {
                     appBuildGradle.parentFile.mkdirs()
                     appBuildGradle.writeText(
-                        "dependencies {\n    implementation(\"some-lib\")\n}\n"
+                        "dependencies {\n    implementation(\"some-lib\")\n}\n",
                     )
                 }
                 if (!rootBuildGradle.exists()) {

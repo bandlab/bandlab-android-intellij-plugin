@@ -44,14 +44,14 @@ class TwoLevelInjectionTemplateCreateActionTest : CreateTemplateActionTest() {
                 project.readFile(
                     targetDirectory.virtualFile.findChild("InvertedViewModel.kt")!!.path,
                     isAbsolute = true,
-                )
+                ),
             )
             .isEqualTo(builder.buildInterface())
         assertThat(
                 project.readFile(
                     targetDirectory.virtualFile.findChild("InvertedViewModelImpl.kt")!!.path,
                     isAbsolute = true,
-                )
+                ),
             )
             .isEqualTo(builder.buildImpl())
     }

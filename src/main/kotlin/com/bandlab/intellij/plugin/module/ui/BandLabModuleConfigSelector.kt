@@ -89,7 +89,7 @@ internal fun BandLabModuleConfigSelector(
                                 strokeWidth = strokeWidth,
                             )
                         }
-                        .padding(start = startPadding)
+                        .padding(start = startPadding),
             ) {
                 val typeSelection = state.typeSelection
                 if (typeSelection is ModuleTypeSelection.RequireSelection) {

@@ -4,7 +4,7 @@ package com.bandlab.intellij.plugin.module
 
 data class ModuleInfo(
     // Ex: /user/profile/edit-screen
-    val path: String
+    val path: String,
 ) {
 
     // Ex: :user:profile:edit-screen

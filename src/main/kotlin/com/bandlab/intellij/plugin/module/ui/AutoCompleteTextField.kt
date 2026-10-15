@@ -86,7 +86,7 @@ internal fun AutoCompleteTextField(
                                 color = Color(red = 53, green = 55, blue = 59),
                                 shape = RoundedCornerShape(4.dp),
                             )
-                            .width(300.dp)
+                            .width(300.dp),
                 ) {
                     items(filteredSuggestions) { suggestion ->
                         Text(

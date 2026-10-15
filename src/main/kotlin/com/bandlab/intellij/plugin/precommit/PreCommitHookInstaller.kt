@@ -56,7 +56,7 @@ object PreCommitHookInstaller {
                     override fun run(indicator: ProgressIndicator) {
                         runInstall(project, projectRoot, indicator)
                     }
-                }
+                },
             )
     }
 
@@ -72,7 +72,7 @@ object PreCommitHookInstaller {
             if (installer == null) {
                 thisLogger()
                     .warn(
-                        "No known package manager to install pre-commit on ${OS.CURRENT}; skipping."
+                        "No known package manager to install pre-commit on ${OS.CURRENT}; skipping.",
                     )
                 return
             }
@@ -138,7 +138,7 @@ object PreCommitHookInstaller {
         if (output.exitCode != 0) {
             thisLogger()
                 .warn(
-                    "`${command.joinToString(" ")}` exited ${output.exitCode}: ${output.stderr.trim()}"
+                    "`${command.joinToString(" ")}` exited ${output.exitCode}: ${output.stderr.trim()}",
                 )
         }
         output.exitCode == 0

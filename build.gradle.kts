@@ -109,7 +109,7 @@ intellijPlatform {
                 with(it.lines()) {
                     if (!containsAll(listOf(start, end))) {
                         throw GradleException(
-                            "Plugin description section not found in README.md:\n$start ... $end"
+                            "Plugin description section not found in README.md:\n$start ... $end",
                         )
                     }
                     subList(indexOf(start) + 1, indexOf(end))
@@ -262,9 +262,9 @@ tasks {
                             "${
                         providers.environmentVariable("PUBLISH_USER").getOrElse("")
                     }:${providers.environmentVariable("PUBLISH_PASSWORD").getOrElse("")}"
-                                .encodeToByteArray()
-                        )
-                )
+                                .encodeToByteArray(),
+                        ),
+                ),
         )
         pluginDescription.set(
             providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
@@ -274,14 +274,14 @@ tasks {
                 with(it.lines()) {
                     if (!containsAll(listOf(start, end))) {
                         throw GradleException(
-                            "Plugin description section not found in README.md:\n$start ... $end"
+                            "Plugin description section not found in README.md:\n$start ... $end",
                         )
                     }
                     subList(indexOf(start) + 1, indexOf(end))
                         .joinToString("\n")
                         .let(::markdownToHTML)
                 }
-            }
+            },
         )
         val changelog = project.changelog
         changeNotes.set(
@@ -294,7 +294,7 @@ tasks {
                         Changelog.OutputType.HTML,
                     )
                 }
-            }
+            },
         )
         sinceBuild.set(providers.gradleProperty("pluginSinceBuild"))
         untilBuild.set(providers.gradleProperty("pluginUntilBuild"))

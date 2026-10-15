@@ -42,7 +42,7 @@ object JenkinsClient {
         val base = config.baseUrl.trimEnd('/')
         val url =
             URI(
-                    "$base/job/${encodePathSegment(JenkinsAuthService.UI_TESTS_PATH)}/buildWithParameters"
+                    "$base/job/${encodePathSegment(JenkinsAuthService.UI_TESTS_PATH)}/buildWithParameters",
                 )
                 .toURL()
         val body = parameters.entries.joinToString("&") { (k, v) -> "${encode(k)}=${encode(v)}" }

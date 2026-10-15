@@ -45,21 +45,21 @@ class AutomationTemplateCreateActionTest : CreateTemplateActionTest() {
                 project.readFile(
                     targetDirectory.virtualFile.findChild("UserLibraryRobot.kt")!!.path,
                     isAbsolute = true,
-                )
+                ),
             )
             .isEqualTo(expectedRobotFile().withTrailingNewline())
         assertThat(
                 project.readFile(
                     targetDirectory.virtualFile.findChild("UserLibrarySemantics.kt")!!.path,
                     isAbsolute = true,
-                )
+                ),
             )
             .isEqualTo(expectedSemanticsFile().withTrailingNewline())
         assertThat(
                 project.readFile(
                     targetDirectory.virtualFile.findChild("UserLibraryVerifier.kt")!!.path,
                     isAbsolute = true,
-                )
+                ),
             )
             .isEqualTo(expectedVerifierFile().withTrailingNewline())
     }

@@ -73,7 +73,7 @@ internal fun SettingsGroup(
                         strokeWidth = strokeWidth,
                     )
                 }
-                .padding(start = 24.dp)
+                .padding(start = 24.dp),
     ) {
         SubTitle(title)
         content()

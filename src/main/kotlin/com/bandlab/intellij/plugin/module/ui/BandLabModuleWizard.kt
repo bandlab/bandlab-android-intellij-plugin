@@ -96,7 +96,7 @@ internal fun BandLabModuleWizard(state: WizardState) {
             modifier =
                 Modifier.clickable {
                     uriHandler.openUri(MODULE_STRUCTURE_CONVENTION_URL)
-                }
+                },
         ) {
             HintText(hint = "See the convention doc")
 
@@ -169,6 +169,6 @@ private fun BandLabModuleWizard_Preview() {
                 featureName = TextFieldState("ExampleFeature"),
                 existingModuleNames = MutableStateFlow(emptySet()),
                 validationErrors = MutableStateFlow(emptySet()),
-            )
+            ),
     )
 }

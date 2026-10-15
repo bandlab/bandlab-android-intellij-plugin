@@ -38,7 +38,7 @@ class ResStringKeyAtTest : BasePlatformTestCase() {
                 "import com.app.R as appR\nval x = appR.string.foo",
             )
         assertThat(
-                resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length)
+                resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length),
             )
             .isEqualTo("foo")
     }
@@ -56,7 +56,7 @@ class ResStringKeyAtTest : BasePlatformTestCase() {
         val file =
             myFixture.configureByText("Usage.kt", "import com.app.appR\nval x = appR.string.foo")
         assertThat(
-                resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length)
+                resStringKeyAt(file, file.text.indexOf("appR.string.foo") + "appR.string.".length),
             )
             .isEqualTo("foo")
     }
@@ -80,7 +80,7 @@ class ResStringKeyAtTest : BasePlatformTestCase() {
                 resStringKeyAt(
                     file,
                     file.text.indexOf("appOther.string.foo") + "appOther.string.".length,
-                )
+                ),
             )
             .isNull()
     }
