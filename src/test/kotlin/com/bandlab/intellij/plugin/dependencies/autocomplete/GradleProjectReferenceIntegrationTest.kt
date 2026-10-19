@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
 import com.intellij.openapi.util.TextRange
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementWalkingVisitor
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import com.intellij.util.ProcessingContext
-import java.io.File
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 
 class GradleProjectReferenceIntegrationTest : BasePlatformTestCase() {
@@ -85,9 +84,6 @@ class GradleProjectReferenceIntegrationTest : BasePlatformTestCase() {
     }
 
     private fun writeFile(relativePath: String, content: String): VirtualFile {
-        val file = File(requireNotNull(project.basePath), relativePath)
-        file.parentFile.mkdirs()
-        file.writeText(content)
-        return requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file))
+        return project.writeTestFile(relativePath, content)
     }
 }

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.components.service
@@ -76,9 +77,6 @@ class ProjectPathServiceIntegrationTest : BasePlatformTestCase() {
     }
 
     private fun writeManifest(content: String): VirtualFile {
-        val file = File(requireNotNull(project.basePath), "gradle/all-projects.txt")
-        file.parentFile.mkdirs()
-        file.writeText(content)
-        return requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(file))
+        return project.writeTestFile("gradle/all-projects.txt", content)
     }
 }

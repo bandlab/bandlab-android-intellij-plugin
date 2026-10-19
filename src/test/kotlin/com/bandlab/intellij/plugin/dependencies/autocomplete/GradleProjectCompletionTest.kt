@@ -2,29 +2,29 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.openapi.components.service
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import java.io.File
 
 class GradleProjectCompletionTest : BasePlatformTestCase() {
 
     override fun setUp() {
         super.setUp()
-        val manifest = File(requireNotNull(project.basePath), "gradle/all-projects.txt")
-        manifest.parentFile.mkdirs()
-        manifest.writeText(":\n:features:profile:api\n:features:profile:ui\n")
-        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifest)
+        project.writeTestFile(
+            "gradle/all-projects.txt",
+            ":\n:features:profile:api\n:features:profile:ui\n",
+        )
         project.service<ProjectPathService>().invalidateCache()
     }
 
     fun testCompletionSuggestsDeclaredPathsAndExcludesCurrentProject() {
         // Put the build file in the project root so its own Gradle path is ":".
-        val buildFile = File(requireNotNull(project.basePath), "build.gradle.kts")
-        buildFile.writeText("dependencies { implementation(project(\"<caret>\")) }")
         val virtualFile =
-            requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(buildFile))
+            project.writeTestFile(
+                "build.gradle.kts",
+                "dependencies { implementation(project(\"<caret>\")) }",
+            )
         myFixture.configureFromExistingVirtualFile(virtualFile)
 
         val suggestions = myFixture.completeBasic().orEmpty().map { it.lookupString }

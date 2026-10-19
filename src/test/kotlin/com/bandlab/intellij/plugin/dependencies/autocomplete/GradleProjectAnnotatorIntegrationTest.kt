@@ -2,22 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.components.service
-import com.intellij.openapi.vfs.LocalFileSystem
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import java.io.File
 
 class GradleProjectAnnotatorIntegrationTest : BasePlatformTestCase() {
 
     override fun setUp() {
         super.setUp()
         // Validation is enabled by the Android project's generated module list, not Gradle sync.
-        val manifest = File(requireNotNull(project.basePath), "gradle/all-projects.txt")
-        manifest.parentFile.mkdirs()
-        manifest.writeText(":features:profile:api\n")
-        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifest)
+        project.writeTestFile("gradle/all-projects.txt", ":features:profile:api\n")
         project.service<ProjectPathService>().invalidateCache()
     }
 
