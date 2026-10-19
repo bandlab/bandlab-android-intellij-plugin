@@ -8,7 +8,9 @@
 
 This plugin offers a suite of features to help developers work more efficiently with the BandLab Android project.
 
-Please note that this plugin is not available for external use; we've open-sourced it solely to demonstrate our approach to improving develop experience through IDE integration.
+This plugin is built for BandLab's internal Android project and is not distributed for external use. We've open-sourced it to demonstrate our approach to improving developer experience through IDE integration. Many features depend on BandLab-specific conventions, libraries, tools, and services.
+
+For local setup, build commands, and testing guidance, see [Contributing](.github/CONTRIBUTING.md).
 
 ## Module Creation
 <img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/module-creation-wizard.png" alt="Module Creation Wizard" width="720" />
@@ -20,7 +22,7 @@ Please note that this plugin is not available for external use; we've open-sourc
 - Contextual module path pre-filling and autocomplete.
 - Optional `:impl` and `:screen` exposure to `AppGraph` (default) or `MixEditorGraph`.
 - Templates for Activities and Pages.
-- Support adding to spotlight after creating modules.
+- Support adding modules to Spotlight, a partial IDE sync feature backed by `gradle/all-projects.txt`.
 
 ---
 
@@ -43,15 +45,17 @@ interface Page<ViewModel : Any> {
 ### Composable Template
 Generates a Composable with a State class and Preview.
 
+The example below fills in the generated state placeholders with a sample property. Imports are omitted; `@ComposePreviewApi` and `@PreviewDayNight` come from BandLab's internal UI toolkit.
+
 ```kotlin
 @Immutable
 data class ProfileHeaderState(
-    // TODO: Params you need for your Composable state
+    val displayName: String,
 ) {
     companion object {
         @ComposePreviewApi
         fun preview(): ProfileHeaderState = ProfileHeaderState(
-            // TODO: Default values for the state preview
+            displayName = "Alex",
         )
     }
 }
@@ -72,7 +76,7 @@ private fun ProfileHeader_Preview() {
     )
 }
 ```
-_Notes: `@ComposePreviewApi` is a custom lint check to make sure you don't use the preview state in production code._
+_Notes: `@ComposePreviewApi` marks preview-only APIs; our custom lint check prevents their use in production code._
 
 ### Two-level Injection template
 Generates an interface and an impl for two-level injection.
@@ -137,7 +141,7 @@ Right-click a Kotlin file under an Android test directory (`src/androidTest/`) t
 <img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/configure-test-dialog.png" alt="Jenkins test selection and run setup" width="520" />
 
 - **Select across multiple files.** Your selection is kept when you close the dialog, so you can open another test file and add more tests; everything accumulates into one `targets` list. Use **Clear** to reset it.
-- **Smart defaults.** `branch` and `user` are pre-filled from your local git config.
+- **Smart defaults.** `branch` is pre-filled from the current Git branch. `user` is the GitHub owner of the remote tracked by that branch (the fork containing it); check the value if the branch has no upstream.
 - **Device options.** For `devices`, choose **Default** to use the value configured on the Jenkins job, or **Custom** to provide your own JSON.
 
 **First-time setup.** The first time you press **Send to Jenkins**, you're asked to connect: use **Open token page…** to generate a Jenkins API token (you're already signed in there via Google), paste it, and click **Save**. The username is pre-filled from your git config — update it if it doesn't match your Jenkins account. The token is stored securely in the IDE's password storage, so this is a one-time step.
@@ -150,7 +154,7 @@ After sending, a notification with an **Open in Jenkins** link points to the job
 
 ## Localization Strings
 
-Add, update, and delete localization keys without hand-editing string resources — every action shells out to `./localizer/bandlab-localizer`, which owns merging, validation, and multi-locale output. Available whenever `bandlab-localizer-config.toml` resolves (no Gradle sync needed).
+Add, update, and delete localization keys without hand-editing string resources — every action shells out to `./localizer/bandlab-localizer`, which owns merging, validation, and multi-locale output. Available whenever `localizer/bandlab-localizer-config.toml` parses (no Gradle sync needed). Running an action also requires the Localizer executable and access to the configured Tolgee project.
 
 **Add a key that doesn't exist yet.** On an unresolved reference (`Strings.foo` / `R.string.foo`), Alt+Enter → **Localizer: Add string** pulls it from Tolgee into the right module's file.
 
@@ -186,17 +190,17 @@ Shows the drawable icon inline in the editor gutter when referencing `UikitIcons
 <img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/build-gradle-actions.png" alt="build.gradle actions" width="500" />
 
 ### Dependency Sorting
-Right-click `build.gradle` to sort `plugins` and `dependencies` alphabetically.
-`dependencies` grouped by configuration (`api`, `implementation`, `testImplementation`, ...).
-Using a CLI [gradle-dependencies-sorter](https://github.com/square/gradle-dependencies-sorter)
+Right-click `build.gradle` or `build.gradle.kts` to sort plugins alphabetically and dependencies by configuration (`api`, `implementation`, `testImplementation`, ...), then alphabetically within each group. Comments are preserved. Uses the bundled [gradle-dependencies-sorter][gradle-dependencies-sorter] CLI; no separate installation is needed.
 
 ### Test Fixtures Plugin
-Right-click `build.gradle` to apply the Test Fixtures plugin and automatically create the required folders.
+Right-click `build.gradle` or `build.gradle.kts` to apply BandLab's Test Fixtures convention plugin and automatically create the required folders.
 
 ### Project Path Autocomplete
 <img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/project-path-autocomplete.png" alt="auto-complete project path" width="640" />
 
 Since we avoid Gradle [type-safe accessors][avoid-type-safe-accessors], this plugin provides autocomplete and validation for project paths. Invalid paths are highlighted with a red underline.
+
+Paths are read from `gradle/all-projects.txt`, with one Gradle project path (for example, `:features:profile:api`) per line; blank lines and `#` comments are ignored. This file is maintained by the Android project's tooling. Build scripts under `gradle/` are excluded.
 
 _Acknowledgments: The feature was adapted from [Slack foundry][slack-foundry-project-path-autocomplete-pr]._
 
@@ -204,7 +208,7 @@ _Acknowledgments: The feature was adapted from [Slack foundry][slack-foundry-pro
 
 ## Pre-commit Hook Auto-install
 
-The project uses [pre-commit.com][pre-commit] hooks to enforce conventions on commit. To spare developers the manual `pre-commit install` setup (and installing the `pre-commit` binary itself), the plugin wires it up automatically.
+The BandLab Android project uses [pre-commit.com][pre-commit] hooks to enforce conventions on commit. To spare developers the manual `pre-commit install` setup (and installing the `pre-commit` binary itself), the plugin wires it up automatically. This plugin repository uses Kempt instead; see [Contributing](.github/CONTRIBUTING.md#code-style).
 
 - **Trigger** — runs on project open (a `postStartupActivity`), so every developer and fresh checkout gets it without any action.
 - **Silent** — no dialog or prompt. The install happens in a background task; a balloon appears only on success or failure.

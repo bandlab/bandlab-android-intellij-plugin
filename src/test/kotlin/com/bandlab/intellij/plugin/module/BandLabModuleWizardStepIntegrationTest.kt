@@ -7,12 +7,10 @@ import androidx.compose.runtime.snapshotFlow
 import app.cash.turbine.test
 import com.android.tools.idea.npw.model.ProjectSyncInvoker
 import com.bandlab.intellij.plugin.module.ui.WizardState
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
 import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
-import com.intellij.testFramework.runInEdtAndWait
 import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -103,15 +101,7 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
     fun `test module existence validation`() = runTest {
         mockEnvironment()
-        val basePath = project.basePath!!
-        runInEdtAndWait {
-            runWriteCommandAction(project) {
-                val allProjectsFile = File(basePath, "gradle/all-projects.txt")
-                allProjectsFile.appendText(":existing:module:api\n")
-            }
-            VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)
-                ?.refresh(false, false)
-        }
+        project.writeTestFile("gradle/all-projects.txt", "# All Modules\n:existing:module:api\n")
 
         val wizardStep = createWizardStep(":existing:module")
         val state = wizardStep.state
@@ -267,17 +257,10 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
 
     fun `test all module existence validation errors`() = runTest {
         mockEnvironment()
-        val basePath = project.basePath!!
-        runInEdtAndWait {
-            runWriteCommandAction(project) {
-                val allProjectsFile = File(basePath, "gradle/all-projects.txt")
-                allProjectsFile.appendText(":foo:impl\n")
-                allProjectsFile.appendText(":foo:ui\n")
-                allProjectsFile.appendText(":foo:screen\n")
-            }
-            VfsUtil.findFileByIoFile(File(basePath, "gradle/all-projects.txt"), true)
-                ?.refresh(false, false)
-        }
+        project.writeTestFile(
+            "gradle/all-projects.txt",
+            "# All Modules\n:foo:impl\n:foo:ui\n:foo:screen\n",
+        )
 
         val wizardStep = createWizardStep(":foo")
         val state = wizardStep.state
@@ -313,34 +296,13 @@ class BandLabModuleWizardStepIntegrationTest : BasePlatformTestCase() {
     }
 
     private fun mockEnvironment() {
-        val basePath = project.basePath ?: return
-        val settingsFile = File(basePath, "settings.gradle")
-        val allProjectsFile = File(basePath, "gradle/all-projects.txt")
-        val appBuildGradle = File(basePath, "app/build.gradle")
-        val rootBuildGradle = File(basePath, "build.gradle")
-
-        runInEdtAndWait {
-            runWriteCommandAction(project) {
-                if (!settingsFile.exists()) {
-                    settingsFile.parentFile.mkdirs()
-                    settingsFile.writeText("// settings.gradle\n")
-                }
-                if (!allProjectsFile.exists()) {
-                    allProjectsFile.parentFile.mkdirs()
-                    allProjectsFile.writeText("# All Modules\n:existing:module\n\n")
-                }
-                if (!appBuildGradle.exists()) {
-                    appBuildGradle.parentFile.mkdirs()
-                    appBuildGradle.writeText(
-                        "dependencies {\n    implementation(\"some-lib\")\n}\n",
-                    )
-                }
-                if (!rootBuildGradle.exists()) {
-                    rootBuildGradle.parentFile.mkdirs()
-                    rootBuildGradle.writeText("// root build.gradle\n")
-                }
-            }
-        }
+        project.writeTestFile("settings.gradle", "// settings.gradle\n")
+        project.writeTestFile("gradle/all-projects.txt", "# All Modules\n:existing:module\n\n")
+        project.writeTestFile(
+            "app/build.gradle",
+            "dependencies {\n    implementation(\"some-lib\")\n}\n",
+        )
+        project.writeTestFile("build.gradle", "// root build.gradle\n")
     }
 
     private fun assertExists(relativePath: String) {

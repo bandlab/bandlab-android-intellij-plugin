@@ -2,134 +2,81 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
-import com.bandlab.intellij.plugin.utils.GradleProjectUtils.parseProjectPaths
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.mock.MockProject
-import com.intellij.openapi.util.Disposer
-import org.junit.Test
+import com.intellij.openapi.command.WriteCommandAction.runWriteCommandAction
+import com.intellij.openapi.components.service
+import com.intellij.openapi.vfs.LocalFileSystem
+import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import java.io.File
 
-class ProjectPathServiceIntegrationTest {
+class ProjectPathServiceIntegrationTest : BasePlatformTestCase() {
 
-    @Test
-    fun `service correctly parses all-projects txt file`() {
-        val projectFileContent =
-            """
-            :platforms:gradle:agp-handlers:agp-handler-api
-            :platforms:gradle:better-gradle-properties
-            :platforms:gradle:foundry-gradle-plugin
-            :platforms:intellij:artifactory-authenticator
-            :platforms:intellij:compose
-            :platforms:intellij:compose:playground
-            :platforms:intellij:skate
-            :tools:cli
-            :tools:foundry-common
-            :tools:robolectric-sdk-management
-            :tools:skippy
-            :tools:tracing
-            :tools:version-number
-            """
-                .trimIndent()
+    private val service
+        get() = project.service<ProjectPathService>()
 
-        val parsedPaths = parseProjectPaths(projectFileContent)
-
-        assertThat(parsedPaths).hasSize(13)
-        assertThat(parsedPaths).contains(":platforms:intellij:skate")
-        assertThat(parsedPaths).contains(":tools:cli")
-        assertThat(parsedPaths).contains(":tools:foundry-common")
+    override fun setUp() {
+        super.setUp()
+        // The light project can be reused; remove the previous test's manifest through the VFS.
+        val manifest = File(requireNotNull(project.basePath), "gradle/all-projects.txt")
+        LocalFileSystem.getInstance().refreshAndFindFileByIoFile(manifest)?.let { file ->
+            runWriteCommandAction(project) { file.delete(this) }
+        }
+        service.invalidateCache()
     }
 
-    @Test
-    fun `service handles empty lines and comments`() {
-        val projectFileContent =
-            """
-            # This is a comment
-            :platforms:intellij:skate
+    fun testLoadsPathsFromManifestIgnoringCommentsAndBlankLines() {
+        writeManifest("# Selected modules\n:features:profile:api\n\n:features:profile:ui\n")
 
-            # Another comment
-            :tools:cli
-
-            :tools:foundry-common
-            # End comment
-            """
-                .trimIndent()
-
-        val parsedPaths = parseProjectPaths(projectFileContent)
-
-        assertThat(parsedPaths).hasSize(3)
-        assertThat(parsedPaths).contains(":platforms:intellij:skate")
-        assertThat(parsedPaths).contains(":tools:cli")
-        assertThat(parsedPaths).contains(":tools:foundry-common")
-        assertThat(parsedPaths).doesNotContain("# This is a comment")
-        assertThat(parsedPaths).doesNotContain("")
+        assertThat(service.getProjectPaths())
+            .containsExactly(":features:profile:api", ":features:profile:ui")
     }
 
-    @Test
-    fun `service validates project paths correctly`() {
-        val service = createTestProjectPathService()
+    fun testValidatesOnlyPathsDeclaredInManifest() {
+        writeManifest(":features:profile:api\n")
 
-        // Since the test service reads from actual file (which may not exist),
-        // we test with empty set behavior
-        val projectPaths = service.getProjectPaths()
-
-        // Test validation logic against actual service
-        assertThat(service.isValidProjectPath(":nonexistent:project")).isFalse()
-        assertThat(service.isValidProjectPath(":invalid:path")).isFalse()
+        assertThat(service.isValidProjectPath(":features:profile:api")).isTrue()
+        assertThat(service.isValidProjectPath(":features:profile:impl")).isFalse()
         assertThat(service.isValidProjectPath("")).isFalse()
-
-        // If paths exist, test validation works
-        projectPaths.forEach { path -> assertThat(service.isValidProjectPath(path)).isTrue() }
     }
 
-    @Test
-    fun `service caching works correctly`() {
-        val service = createTestProjectPathService()
-
-        // First call should load from file
-        val firstCall = service.getProjectPaths()
-
-        // Second call should use cache
-        val secondCall = service.getProjectPaths()
-
-        // Results should be identical due to caching
-        assertThat(firstCall).isEqualTo(secondCall)
-
-        // Verify both calls return the same content
-        assertThat(firstCall.size).isEqualTo(secondCall.size)
-    }
-
-    @Test
-    fun `service cache invalidation works`() {
-        val service = createTestProjectPathService()
-
-        // Load initial data
+    fun testRepeatedReadsReuseCachedPaths() {
+        writeManifest(":features:profile:api\n")
         val initialPaths = service.getProjectPaths()
 
-        // Invalidate cache
+        assertThat(service.getProjectPaths()).isSameInstanceAs(initialPaths)
+    }
+
+    fun testExplicitInvalidationReloadsPaths() {
+        writeManifest(":features:profile:api\n")
+        val initialPaths = service.getProjectPaths()
+
         service.invalidateCache()
 
-        // Next call should reload
         val reloadedPaths = service.getProjectPaths()
-
-        // Content should be the same but instance might be different
         assertThat(reloadedPaths).containsExactlyElementsIn(initialPaths)
+        assertThat(reloadedPaths).isNotSameInstanceAs(initialPaths)
     }
 
-    @Test
-    fun `service handles missing all-projects file gracefully`() {
-        // Test when the all-projects.txt file doesn't exist
-        val service = createTestProjectPathService()
+    fun testVfsChangeInvalidatesCachedPaths() {
+        val manifest = writeManifest(":features:profile:api\n")
+        assertThat(service.getProjectPaths()).containsExactly(":features:profile:api")
 
-        // Should return empty set rather than throw exception
-        val paths = service.getProjectPaths()
-        assertThat(paths).isEmpty()
+        runWriteCommandAction(project) {
+            VfsUtil.saveText(manifest, ":features:profile:ui\n")
+        }
 
-        // Validation should also return false for any path when file doesn't exist
-        assertThat(service.isValidProjectPath(":any:project")).isFalse()
+        assertThat(service.getProjectPaths()).containsExactly(":features:profile:ui")
     }
 
-    private fun createTestProjectPathService(): ProjectPathService {
-        val project = MockProject(null, Disposer.newDisposable())
-        val service = ProjectPathService(project)
-        return service
+    fun testMissingManifestReturnsNoPaths() {
+        assertThat(service.getProjectPaths()).isEmpty()
+        assertThat(service.isValidProjectPath(":features:profile:api")).isFalse()
+    }
+
+    private fun writeManifest(content: String): VirtualFile {
+        return project.writeTestFile("gradle/all-projects.txt", content)
     }
 }

@@ -2,120 +2,45 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
-import com.bandlab.intellij.plugin.utils.GradleProjectUtils.parseProjectPaths
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
-import org.junit.Test
+import com.intellij.lang.annotation.HighlightSeverity
+import com.intellij.openapi.components.service
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
-class GradleProjectAnnotatorIntegrationTest {
+class GradleProjectAnnotatorIntegrationTest : BasePlatformTestCase() {
 
-    @Test
-    fun `PROJECT_CALL_PATTERN correctly extracts project paths`() {
-        val gradleContent =
+    override fun setUp() {
+        super.setUp()
+        // Validation is enabled by the Android project's generated module list, not Gradle sync.
+        project.writeTestFile("gradle/all-projects.txt", ":features:profile:api\n")
+        project.service<ProjectPathService>().invalidateCache()
+    }
+
+    fun testUnknownPathIsHighlightedOnceAndKnownPathIsAccepted() {
+        // Groovy supports highlighting without a synced Gradle model in this light fixture.
+        myFixture.configureByText(
+            "build.gradle",
             """
             dependencies {
-              implementation(project(":platforms:intellij:skate"))
-              testImplementation(project(':tools:cli'))
-              api(project( ":tools:foundry-common" ))
-              runtimeOnly project(':platforms:gradle:foundry-gradle-plugin')
+                implementation(project(":features:profile:api"))
+                implementation(project(":features:missing:api"))
             }
             """
-                .trimIndent()
+                .trimIndent(),
+        )
 
-        val matcher = PROJECT_CALL_PATTERN.matcher(gradleContent)
-        val extractedPaths = mutableListOf<String>()
+        // Other Gradle/Groovy inspections may report unresolved DSL symbols in this minimal
+        // fixture.
+        val pathErrors =
+            myFixture.doHighlighting(HighlightSeverity.ERROR).filter {
+                it.description?.startsWith("Unknown project path:") == true
+            }
 
-        while (matcher.find()) {
-            extractedPaths.add(matcher.group(1))
-        }
-
-        assertThat(extractedPaths)
-            .containsExactly(
-                ":platforms:intellij:skate",
-                ":tools:cli",
-                ":tools:foundry-common",
-                ":platforms:gradle:foundry-gradle-plugin",
-            )
-            .inOrder()
-    }
-
-    @Test
-    fun `PROJECT_CALL_PATTERN rejects invalid patterns`() {
-        val invalidPatterns =
-            listOf(
-                // Empty
-                "project()",
-                // Variable reference
-                "project(variable)",
-                // Wrong function name
-                "projects(\":valid:path\")",
-                // Unclosed quote
-                "project(\":unclosed",
-                // Malformed
-                "project\":unclosed\")",
-                // Different function
-                "someOtherFunction(\":not:a:project\")",
-            )
-
-        for (pattern in invalidPatterns) {
-            val matcher = PROJECT_CALL_PATTERN.matcher(pattern)
-            assertThat(matcher.find()).isFalse()
-        }
-    }
-
-    @Test
-    fun `annotator filtering logic works correctly`() {
-        // Should process: contains project() and no children with project()
-        val leafElement = "project(\":tools:cli\")"
-        assertThat(shouldAnnotatorProcessElement(leafElement, hasProjectChildren = false)).isTrue()
-
-        // Should skip: contains project() but has children with project()
-        val parentElement = "implementation(project(\":tools:cli\"))"
-        assertThat(shouldAnnotatorProcessElement(parentElement, hasProjectChildren = true))
-            .isFalse()
-
-        // Should skip: doesn't contain project()
-        val nonProjectElement = "implementation(libs.someLibrary)"
-        assertThat(shouldAnnotatorProcessElement(nonProjectElement, hasProjectChildren = false))
-            .isFalse()
-    }
-
-    @Test
-    fun `ProjectPathService parsing logic works correctly`() {
-        // Needs to skip blank lines and comments
-        val testContent =
-            """
-            # This is a comment
-            :platforms:intellij:skate
-
-            :tools:cli
-            # Another comment
-            :tools:foundry-common
-
-            """
-                .trimIndent()
-
-        val parsedPaths = parseProjectPaths(testContent)
-
-        assertThat(parsedPaths)
-            .containsExactly(":platforms:intellij:skate", ":tools:cli", ":tools:foundry-common")
-        assertThat(parsedPaths).doesNotContain("# This is a comment")
-        assertThat(parsedPaths).doesNotContain("")
-    }
-
-    /** Internal function to check if an element should be processed by the annotator. */
-    private fun shouldAnnotatorProcessElement(
-        elementText: String,
-        hasProjectChildren: Boolean,
-    ): Boolean {
-        if (!elementText.contains("project(")) {
-            return false
-        }
-
-        // Skip if any child element also contains "project(" - let the child handle it
-        if (hasProjectChildren) {
-            return false
-        }
-
-        return true
+        assertThat(pathErrors.map { it.description })
+            .containsExactly("Unknown project path: ':features:missing:api'")
+        val error = pathErrors.single()
+        assertThat(myFixture.file.text.substring(error.startOffset, error.endOffset))
+            .isEqualTo(":features:missing:api")
     }
 }

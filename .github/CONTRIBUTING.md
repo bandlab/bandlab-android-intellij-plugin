@@ -14,6 +14,14 @@ style.
 
 ## Development loop
 
+### Prerequisites
+
+- Use the Gradle wrapper (`./gradlew`, or `gradlew.bat` on Windows); no separate Gradle installation is needed.
+- Use JDK 25 to match CI (see `.github/workflows/.java-version`). The Kotlin JVM toolchain targets Java 21 and can be provisioned automatically by Gradle.
+- Open the repository root as a Gradle project in IntelliJ IDEA. The target IDE and Android plugin versions are defined in `gradle.properties` and downloaded by Gradle on the first build, so allow time and disk space for them.
+
+`runIde` launches a separate sandbox IDE with the plugin installed. You can inspect the plugin there, but BandLab-specific features require the internal Android checkout and its tools/services. The examples in the README illustrate those internal conventions; they are not a standalone Android sample app.
+
 | Task                            | Command                  | Run config          |
 |---------------------------------|--------------------------|---------------------|
 | Run the plugin in a sandbox IDE | `./gradlew runIde`       | `Run Plugin`        |
@@ -26,7 +34,7 @@ style.
 
 CI (`.github/workflows/build.yml`) runs `buildPlugin`, `check`, and `verifyPlugin` on every pull request.
 
-## Changelog (required for every PR)
+## Changelog (required for user-facing changes)
 
 Every user-facing change must be recorded in the `## Unreleased` section of [`CHANGELOG.md`](/CHANGELOG.md) **within the
 same PR**. The file follows the [Keep a Changelog][keepachangelog] format. Add your entry under the appropriate group
@@ -53,17 +61,19 @@ New code must be covered by tests. Choose the right style:
 
 - **New features → integration tests** using [`BasePlatformTestCase`][plugin-testing]
   (`com.intellij.testFramework.fixtures.BasePlatformTestCase`). These exercise actions, annotators, completion, wizards,
-  etc. against a real IntelliJ platform fixture. See existing examples such as `template/CreateTemplateActionTest.kt`,
+  etc. against a real IntelliJ platform fixture. See existing examples such as `template/PageTemplateCreateActionTest.kt`,
   `module/BandLabModuleWizardStepIntegrationTest.kt`, and
-  `dependencies/autocomplete/GradleProjectAnnotatorIntegrationTest.kt`.
+  `dependencies/autocomplete/ProjectPathServiceIntegrationTest.kt`.
 - **Pure business logic → plain unit tests** (JUnit + Truth, no platform fixture). See examples such as
   `jenkins/TargetsTest.kt`, `localizer/GitBranchTest.kt`, and `utils/BuildScriptUtilsTest.kt`.
 
 Test conventions:
 
-- Frameworks: **JUnit 4** (`@Test`), **Google Truth** (`assertThat`), plus Turbine / kotlinx-coroutines-test for Flow
-  and coroutine code.
+- Plain unit tests use **JUnit 4** (`@Test`). Platform fixture tests inherit from `BasePlatformTestCase` and use `test...` method names (without `@Test`) for discovery. Assertions use **Google Truth** (`assertThat`) or the inherited platform assertions, plus Turbine / kotlinx-coroutines-test for Flow and coroutine code.
 - Place tests under `src/test/kotlin`, mirroring the package of the code under test.
+- Name each test after the behavior and expected outcome. Call production code rather than reproducing its logic in a test helper; use comments to explain non-obvious fixture setup or internal conventions.
+- Fixtures create small synthetic projects; running the suite does not require the internal Android checkout or live Jenkins/Tolgee access.
+- Run a focused class with `./gradlew test --tests '*ProjectPathServiceIntegrationTest'`. Test reports are written to `build/reports/tests/test/index.html`.
 - Run everything with `./gradlew check`.
 
 ## Code style

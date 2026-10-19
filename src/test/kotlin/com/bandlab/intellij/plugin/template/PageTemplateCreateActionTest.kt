@@ -68,7 +68,7 @@ class PageTemplateCreateActionTest : CreateTemplateActionTest() {
             .isEqualTo(builder.createViewModel())
     }
 
-    fun testCreateGeneratesNavKeyAndEntryFiles() {
+    fun testCreateWithNavGeneratesPageViewModelAndNavKeyFiles() {
         val action = PageTemplateCreateAction()
         val targetDirectory = createProjectDirectory("src/main/kotlin/com/bandlab/page")
 

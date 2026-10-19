@@ -2,89 +2,45 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.dependencies.autocomplete
 
-import com.bandlab.intellij.plugin.utils.GradleProjectUtils.convertRelativePathToGradlePath
+import com.bandlab.intellij.plugin.utils.writeTestFile
 import com.google.common.truth.Truth.assertThat
-import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.icons.AllIcons
-import org.junit.Test
+import com.intellij.openapi.components.service
+import com.intellij.testFramework.fixtures.BasePlatformTestCase
 
-class GradleProjectCompletionTest {
+class GradleProjectCompletionTest : BasePlatformTestCase() {
 
-    @Test
-    fun `completion excludes current project from suggestions`() {
-        val allProjects =
-            setOf(
-                ":platforms:intellij:skate",
-                ":platforms:intellij:compose",
-                ":tools:cli",
-                ":tools:foundry-common",
+    override fun setUp() {
+        super.setUp()
+        project.writeTestFile(
+            "gradle/all-projects.txt",
+            ":\n:features:profile:api\n:features:profile:ui\n",
+        )
+        project.service<ProjectPathService>().invalidateCache()
+    }
+
+    fun testCompletionSuggestsDeclaredPathsAndExcludesCurrentProject() {
+        // Put the build file in the project root so its own Gradle path is ":".
+        val virtualFile =
+            project.writeTestFile(
+                "build.gradle.kts",
+                "dependencies { implementation(project(\"<caret>\")) }",
             )
+        myFixture.configureFromExistingVirtualFile(virtualFile)
 
-        val currentProject = ":platforms:intellij:skate"
+        val suggestions = myFixture.completeBasic().orEmpty().map { it.lookupString }
 
-        // Test the actual filtering logic used in GradleProjectCompletionContributor
-        val filteredPaths = allProjects.filter { it != currentProject }
-
-        assertThat(filteredPaths)
-            .containsExactly(":platforms:intellij:compose", ":tools:cli", ":tools:foundry-common")
-        assertThat(filteredPaths).doesNotContain(":platforms:intellij:skate")
+        assertThat(suggestions).containsExactly(":features:profile:api", ":features:profile:ui")
     }
 
-    @Test
-    fun `completion only triggers in project call context`() {
-        val projectCallContext = "implementation(project(\""
-        val nonProjectContext = "implementation(\""
-        val anotherNonProjectContext = "dependencies {"
+    fun testCompletionDoesNotSuggestProjectPathsOutsideProjectCall() {
+        myFixture.configureByText(
+            "build.gradle.kts",
+            "dependencies { implementation(\"<caret>\") }",
+        )
 
-        // Test the actual context detection logic used in ProjectPathCompletionProvider
-        assertThat(projectCallContext.contains("project(")).isTrue()
-        assertThat(nonProjectContext.contains("project(")).isFalse()
-        assertThat(anotherNonProjectContext.contains("project(")).isFalse()
-    }
+        val suggestions = myFixture.completeBasic().orEmpty().map { it.lookupString }
 
-    @Test
-    fun `completion creates correct lookup elements`() {
-        val projectPath = ":platforms:intellij:skate"
-
-        // Test the actual LookupElementBuilder creation from ProjectPathCompletionProvider
-        val lookupElement =
-            LookupElementBuilder.create(projectPath)
-                .withIcon(AllIcons.Nodes.Module)
-                .withTypeText("Gradle Project")
-
-        // Verify the lookup string is correct
-        assertThat(lookupElement.lookupString).isEqualTo(projectPath)
-
-        // Verify the builder was created successfully (non-null)
-        assertThat(lookupElement).isNotNull()
-    }
-
-    @Test
-    fun `GradleProjectUtils path conversion works correctly`() {
-        val testCases =
-            mapOf(
-                "platforms/intellij/skate" to ":platforms:intellij:skate",
-                "tools/cli" to ":tools:cli",
-                "" to ":",
-                "platforms/gradle/foundry-gradle-plugin" to
-                    ":platforms:gradle:foundry-gradle-plugin",
-            )
-
-        testCases.forEach { (relativePath, expectedProjectPath) ->
-            val calculatedPath = convertRelativePathToGradlePath(relativePath)
-            assertThat(calculatedPath).isEqualTo(expectedProjectPath)
-        }
-    }
-
-    @Test
-    fun `completion context detection works with surrounding text`() {
-        // Test the surrounding text analysis used in ProjectPathCompletionProvider
-        val contextWithProject = "dependencies { implementation(project(\""
-        val contextWithoutProject = "dependencies { implementation(libs.someLibrary"
-        val contextAfterProject = "implementation(project(\":tools:cli\"))"
-
-        assertThat(contextWithProject.contains("project(")).isTrue()
-        assertThat(contextWithoutProject.contains("project(")).isFalse()
-        assertThat(contextAfterProject.contains("project(")).isTrue()
+        assertThat(suggestions).doesNotContain(":features:profile:api")
+        assertThat(suggestions).doesNotContain(":features:profile:ui")
     }
 }

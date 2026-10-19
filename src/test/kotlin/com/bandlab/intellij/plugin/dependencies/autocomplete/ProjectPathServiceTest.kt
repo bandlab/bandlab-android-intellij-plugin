@@ -22,7 +22,7 @@ class ProjectPathServiceTest {
             """
                 .trimIndent()
 
-        @Suppress("UNCHECKED_CAST") val result = parseProjectPaths(content)
+        val result = parseProjectPaths(content)
 
         assertThat(result)
             .containsExactly(
@@ -34,21 +34,10 @@ class ProjectPathServiceTest {
     }
 
     @Test
-    fun `getMatchingProjectPaths returns filtered results`() {
-        val testPaths =
-            setOf(
-                ":platforms:gradle:foundry-gradle-plugin",
-                ":platforms:intellij:skate",
-                ":platforms:intellij:compose",
-                ":tools:cli",
-                ":tools:foundry-common",
-            )
+    fun `parseProjectPaths trims whitespace and removes duplicate paths`() {
+        val result =
+            parseProjectPaths("  :features:profile:api  \n:features:profile:api\n  # comment\n")
 
-        val filtered = testPaths.filter { it.startsWith(":platforms:") }.sorted()
-
-        assertThat(filtered).hasSize(3)
-        assertThat(filtered).contains(":platforms:gradle:foundry-gradle-plugin")
-        assertThat(filtered).contains(":platforms:intellij:compose")
-        assertThat(filtered).contains(":platforms:intellij:skate")
+        assertThat(result).containsExactly(":features:profile:api")
     }
 }

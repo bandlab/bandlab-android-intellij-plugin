@@ -207,9 +207,10 @@ tasks {
             val version = targetVersion.get()
             val updatedContent =
                 content.replace(
-                    Regex("""badge/IntelliJ%20IDEA%20Target-[A-Za-z0-9\.\-]+-red\.svg"""),
-                    "badge/IntelliJ%20IDEA%20Target-$version-red.svg",
-                )
+                    Regex("""(badge/IntelliJ%20IDEA%20Target-)[A-Za-z0-9.\-]+(-[a-z]+\.svg)"""),
+                ) { match ->
+                    "${match.groupValues[1]}$version${match.groupValues[2]}"
+                }
             if (content != updatedContent) {
                 readmeFile.writeText(updatedContent)
             }
