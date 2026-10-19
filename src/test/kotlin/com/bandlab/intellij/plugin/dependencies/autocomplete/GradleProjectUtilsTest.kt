@@ -11,6 +11,21 @@ import org.junit.Test
 
 class GradleProjectUtilsTest {
     @Test
+    fun `convertRelativePathToGradlePath converts nested paths and the project root`() {
+        val testCases =
+            mapOf(
+                "features/profile/api" to ":features:profile:api",
+                "tools/cli" to ":tools:cli",
+                "" to ":",
+            )
+
+        testCases.forEach { (relativePath, expectedPath) ->
+            assertThat(GradleProjectUtils.convertRelativePathToGradlePath(relativePath))
+                .isEqualTo(expectedPath)
+        }
+    }
+
+    @Test
     fun `findNearestGradleProject returns current directory if it is a Gradle project`() {
         val root = MockVirtualFile(true, "root")
         val gradleDir = MockVirtualFile(true, "gradleProject")

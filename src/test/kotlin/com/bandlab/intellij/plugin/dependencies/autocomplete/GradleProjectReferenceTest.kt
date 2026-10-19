@@ -4,8 +4,8 @@ package com.bandlab.intellij.plugin.dependencies.autocomplete
 
 import com.google.common.truth.Truth.assertThat
 import com.intellij.util.io.delete
-import java.nio.file.Path
-import kotlin.io.path.*
+import kotlin.io.path.createFile
+import kotlin.io.path.name
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -15,23 +15,7 @@ class GradleProjectReferenceTest {
     @get:Rule val tmpFolder = TemporaryFolder()
 
     @Test
-    fun `reference resolves to correct build file paths`() {
-        val testCases =
-            mapOf(
-                ":platforms:intellij:skate" to "platforms/intellij/skate",
-                ":tools:cli" to "tools/cli",
-                ":tools:foundry-common" to "tools/foundry-common",
-                ":" to "",
-            )
-
-        testCases.forEach { (projectPath, expectedRelativePath) ->
-            val calculatedPath = convertProjectPathToFilePath(projectPath)
-            assertThat(calculatedPath).isEqualTo(expectedRelativePath)
-        }
-    }
-
-    @Test
-    fun `reference prefers kotlin build files over groovy`() {
+    fun `findBuildFile prefers Kotlin then Groovy and returns null when neither exists`() {
         // Create a temporary directory for testing
         val tempDir = tmpFolder.newFolder("test-project").toPath()
 
@@ -91,82 +75,5 @@ class GradleProjectReferenceTest {
         val unquotedRange = calculateReferenceTextRange(unquoted)
         assertThat(unquotedRange.startOffset).isEqualTo(0) // From beginning
         assertThat(unquotedRange.endOffset).isEqualTo(unquoted.length) // To end
-    }
-
-    @Test
-    fun `reference navigation opens correct files`() {
-        // Test that the navigate() method would open the right build file
-        val projectPath = ":platforms:intellij:skate"
-        val projectBasePath = tmpFolder.root.toPath()
-
-        // Create the project directory structure
-        val projectDir = projectBasePath.resolve("platforms/intellij/skate")
-        projectDir.createDirectories()
-
-        // Test when both files exist - should prefer .kts
-        val buildFileKts = projectDir.resolve("build.gradle.kts")
-        val buildFile = projectDir.resolve("build.gradle")
-        buildFileKts.createFile()
-        buildFile.createFile()
-
-        val resolvedFile = resolveProjectBuildFile(projectBasePath.pathString, projectPath)
-        assertThat(resolvedFile).isEqualTo(buildFileKts.pathString)
-
-        // Clean up and test when only .gradle exists
-        buildFileKts.deleteIfExists()
-        val resolvedFileGroovy = resolveProjectBuildFile(projectBasePath.pathString, projectPath)
-        assertThat(resolvedFileGroovy).isEqualTo(buildFile.pathString)
-
-        // Clean up and test when neither exists
-        buildFile.deleteIfExists()
-        val resolvedFileNone = resolveProjectBuildFile(projectBasePath.pathString, projectPath)
-        assertThat(resolvedFileNone).isNull()
-    }
-
-    @Test
-    fun `project call pattern matching works correctly`() {
-        // Test the pattern matching logic used in GradleProjectReferenceProvider
-        val testCases =
-            mapOf(
-                "implementation(project(\":tools:cli\"))" to true,
-                "testImplementation(project(':platforms:intellij:skate'))" to true,
-                "api project(':tools:foundry-common')" to true,
-                "implementation(someOtherFunction(\":not:a:project\"))" to false,
-                "val myString = \":tools:cli\"" to false,
-            )
-
-        testCases.forEach { (parentText, expectedResult) ->
-            val isInProjectCall = parentText.contains("project(")
-            assertThat(isInProjectCall).isEqualTo(expectedResult)
-        }
-    }
-
-    private fun convertProjectPathToFilePath(projectPath: String): String {
-        return projectPath.removePrefix(":").replace(":", "/")
-    }
-
-    private fun resolveProjectBuildFile(projectBasePath: String, projectPath: String): String? {
-        val relativePath = projectPath.removePrefix(":").replace(":", "/")
-        val projectDirPath = Path.of(projectBasePath).resolve(relativePath)
-
-        val buildFileKts = projectDirPath.resolve("build.gradle.kts")
-        val buildFile = projectDirPath.resolve("build.gradle")
-
-        return when {
-            buildFileKts.exists() -> buildFileKts.pathString
-            buildFile.exists() -> buildFile.pathString
-            else -> null
-        }
-    }
-
-    private fun findBuildFile(projectDir: Path): Path? {
-        val buildFileKts = projectDir.resolve("build.gradle.kts")
-        val buildFile = projectDir.resolve("build.gradle")
-
-        return when {
-            buildFileKts.exists() -> buildFileKts
-            buildFile.exists() -> buildFile
-            else -> null
-        }
     }
 }
