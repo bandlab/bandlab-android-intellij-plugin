@@ -12,7 +12,7 @@ opentest4j = "1.3.0"
 # Runtime deps of the vendored bandlab-localizer config.jar (libs/).
 # app.gildor ktoml fork — https://github.com/gildor/ktoml/releases
 ktoml = "0.9.0"
-serialization = "1.11.0"
+serialization = "1.12.0"
 # https://github.com/square/gradle-dependencies-sorter/releases
 sort-gradle-dependencies = "0.21.0"
 
