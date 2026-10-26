@@ -70,7 +70,7 @@
         <postStartupActivity implementation="com.bandlab.intellij.plugin.precommit.InstallPreCommitHookActivity"/>
         <notificationGroup id="BandLab Pre-commit" displayType="BALLOON"/>
 
-        <!-- Errors from the bundled gradle-dependencies-sorter CLI (see GradleDependenciesSorter). -->
+        <!-- Errors and warnings from the project's misc/scripts/gradle-fmt (see GradleFmtRunner). -->
         <notificationGroup id="BandLab Sort Dependencies" displayType="BALLOON"/>
     </extensions>
 

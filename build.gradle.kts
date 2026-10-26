@@ -5,7 +5,6 @@ import java.util.*
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 import org.jetbrains.intellij.platform.gradle.tasks.SignPluginTask
 
 plugins {
@@ -40,16 +39,6 @@ repositories {
         defaultRepositories()
     }
 }
-
-// The square/gradle-dependencies-sorter CLI fat jar. It is NOT on the plugin classpath: it bundles
-// its
-// own Kotlin stdlib, ANTLR, etc. and would clash with the IDE. It is shipped under `<plugin>/cli/`
-// and launched as an external `java -jar` process by SortDependenciesAction.
-val sortDependenciesCli: Configuration =
-    configurations.create("sortDependenciesCli") {
-        isCanBeConsumed = false
-        isTransitive = false
-    }
 
 // Dependencies are managed with Gradle version catalog - read more:
 // https://docs.gradle.org/current/userguide/platforms.html#sub:version-catalog
@@ -89,7 +78,6 @@ dependencies {
         // To avoid conflicts with IntelliJ embedded coroutines
         exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-coroutines-core")
     }
-    sortDependenciesCli(libs.sort.gradle.dependencies.cli)
 }
 
 // Configure IntelliJ Platform Gradle Plugin - read more:
@@ -219,16 +207,6 @@ tasks {
 
     named("prepareSandbox") {
         dependsOn("patchReadme")
-    }
-
-    // Ship the sorter CLI jar next to the plugin's `lib/` (not inside it, so it is not loaded by
-    // the
-    // plugin classloader). Applies to every sandbox: runIde, tests, and the distribution zip.
-    withType<PrepareSandboxTask>().configureEach {
-        from(sortDependenciesCli) {
-            into(pluginName.map { "$it/cli" })
-            rename { "sort-gradle-dependencies.jar" }
-        }
     }
 
     test {

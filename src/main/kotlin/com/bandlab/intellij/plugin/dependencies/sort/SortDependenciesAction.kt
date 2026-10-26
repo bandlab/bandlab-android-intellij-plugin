@@ -12,21 +12,24 @@ import com.intellij.openapi.project.DumbAwareAction
 class SortDependenciesAction :
     DumbAwareAction(
         /* text = */ "Sort Dependencies",
-        /* description = */ "Sort dependencies in build.gradle.",
+        /* description = */ "Format build.gradle with the project's gradle-fmt.",
         /* icon = */ BandLabIcons.logo,
     ) {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
-    /** Make the action available only when the menu is shown for the build.gradle.kts */
     override fun update(e: AnActionEvent) {
-        e.presentation.isEnabledAndVisible = isBuildScriptFile(e.psiFileOrNull()?.name)
+        val project = e.project
+        e.presentation.isEnabledAndVisible =
+            project != null &&
+                isBuildScriptFile(e.psiFileOrNull()?.name) &&
+                GradleFmtRunner.scriptOrNull(project) != null
     }
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val buildGradle = e.psiFileOrNull()?.virtualFile ?: return
 
-        GradleDependenciesSorter.sort(project, buildGradle)
+        GradleFmtRunner.format(project, buildGradle)
     }
 }
