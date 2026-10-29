@@ -22,15 +22,13 @@ import java.nio.file.Path
 /**
  * Formats a `build.gradle(.kts)` with the project's own `misc/scripts/gradle-fmt` wrapper
  * ([bandlab/gradle-fmt]) with the rules from `gradle-fmt.toml` next to the script.
- *
- * [bandlab/gradle-fmt]: https://github.com/bandlab/gradle-fmt
  */
 object GradleFmtRunner {
 
     const val NOTIFICATION_GROUP = "BandLab Sort Dependencies"
 
     private const val SCRIPT_PATH = "misc/scripts/gradle-fmt"
-    private const val PROCESS_TIMEOUT_MS = 60_000
+    private const val PROCESS_TIMEOUT_MS = 5_000
 
     fun scriptOrNull(project: Project): Path? {
         val basePath = project.basePath ?: return null

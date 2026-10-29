@@ -4,7 +4,7 @@
 
 ## Unreleased
 ### Changed
-- Sort Dependencies: run the project's `misc/scripts/gradle-fmt` ([bandlab/gradle-fmt](https://github.com/bandlab/gradle-fmt)) instead of the bundled square/gradle-dependencies-sorter CLI. The item is hidden in projects without the script; formatter warnings are shown in a balloon.
+- Sort Dependencies: run the project's `misc/scripts/gradle-fmt` (bandlab/gradle-fmt) instead of the bundled square/gradle-dependencies-sorter CLI. The item is hidden in projects without the script; formatter warnings are shown in a balloon.
 
 ## [2.8.0] - 2026-10-15
 ### Changed
