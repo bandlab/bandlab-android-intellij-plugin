@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+
+## [2.8.1] - 2026-10-29
 ### Changed
 - Sort Dependencies: run the project's `misc/scripts/gradle-fmt` (bandlab/gradle-fmt) instead of the bundled square/gradle-dependencies-sorter CLI. The item is hidden in projects without the script; formatter warnings are shown in a balloon.
 
