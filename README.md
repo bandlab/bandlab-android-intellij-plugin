@@ -190,7 +190,7 @@ Shows the drawable icon inline in the editor gutter when referencing `UikitIcons
 <img src="https://raw.githubusercontent.com/bandlab/bandlab-android-intellij-plugin/refs/heads/main/docs/images/build-gradle-actions.png" alt="build.gradle actions" width="500" />
 
 ### Dependency Sorting
-Right-click `build.gradle` or `build.gradle.kts` to sort plugins alphabetically and dependencies by configuration (`api`, `implementation`, `testImplementation`, ...), then alphabetically within each group. Comments are preserved. Uses the bundled [gradle-dependencies-sorter][gradle-dependencies-sorter] CLI; no separate installation is needed.
+Right-click `build.gradle` or `build.gradle.kts` to format it with the project's script `gradle-fmt` (`misc/scripts/gradle-fmt`).
 
 ### Test Fixtures Plugin
 Right-click `build.gradle` or `build.gradle.kts` to apply BandLab's Test Fixtures convention plugin and automatically create the required folders.
@@ -244,7 +244,6 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 [dagp]: https://github.com/autonomousapps/dependency-analysis-gradle-plugin
 [avoid-type-safe-accessors]: https://www.zacsweers.dev/dont-use-type-safe-project-accessors-with-kotlin-gradle-dsl/
 [slack-foundry-project-path-autocomplete-pr]: https://github.com/slackhq/foundry/pull/1440
-[gradle-dependencies-sorter]: https://github.com/square/gradle-dependencies-sorter
 [pre-commit]: https://pre-commit.com/
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
 [docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation

@@ -20,6 +20,18 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
 
     override fun getTestDataPath(): String = File(".").absolutePath
 
+    private val gradleFmtStub: File
+        get() = File(requireNotNull(project.basePath), "misc/scripts/gradle-fmt")
+
+    override fun tearDown() {
+        try {
+            // The light project is shared between tests: never leak the stub into the next one.
+            gradleFmtStub.delete()
+        } finally {
+            super.tearDown()
+        }
+    }
+
     fun testUpdateIsVisibleOnlyForBuildScripts() {
         val action = ApplyTestFixturesPluginAction()
         val kotlinBuildFile = createProjectFile("feature/build.gradle.kts", "plugins {}")
@@ -39,7 +51,39 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
         assertThat(regularEvent.presentation.isEnabledAndVisible).isFalse()
     }
 
-    fun testActionPerformedAddsPluginSortsEntriesAndCreatesTestFixturesFolder() {
+    fun testActionPerformedAddsPluginAndCreatesTestFixturesFolder() {
+        val action = ApplyTestFixturesPluginAction()
+        val buildFile =
+            createProjectFile(
+                "feature-profile/edit-screen/build.gradle.kts",
+                buildGradleContent(),
+            )
+
+        action.actionPerformed(createEvent(action, buildFile))
+
+        // Without the project's gradle-fmt the plugin is appended to the plugins block as is.
+        assertThat(project.readFile(buildFile.path, isAbsolute = true))
+            .isEqualTo(expectedBuildGradleContent().withTrailingNewline())
+
+        val moduleInfo = ModuleInfo(path = "/feature-profile/edit-screen")
+        val testFixturesFolder =
+            File(requireNotNull(project.basePath) + moduleInfo.testFixturesPath)
+        assertThat(testFixturesFolder.isDirectory).isTrue()
+    }
+
+    fun testActionPerformedFormatsSavedBuildScriptWithGradleFmtWhenAvailable() {
+        gradleFmtStub.parentFile.mkdirs()
+        // The stub only rewrites the file if the plugin added by the action already reached disk.
+        gradleFmtStub.writeText(
+            """
+            #!/usr/bin/env bash
+            set -eu
+            grep -q 'bandlab.plugins.testFixtures' "${'$'}1"
+            printf '%s\n' 'formatted by gradle-fmt' > "${'$'}1"
+            """
+                .trimIndent() + "\n",
+        )
+        check(gradleFmtStub.setExecutable(true))
         val action = ApplyTestFixturesPluginAction()
         val buildFile =
             createProjectFile(
@@ -50,12 +94,7 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
         action.actionPerformed(createEvent(action, buildFile))
 
         assertThat(project.readFile(buildFile.path, isAbsolute = true))
-            .isEqualTo(expectedBuildGradleContent().withTrailingNewline())
-
-        val moduleInfo = ModuleInfo(path = "/feature-profile/edit-screen")
-        val testFixturesFolder =
-            File(requireNotNull(project.basePath) + moduleInfo.testFixturesPath)
-        assertThat(testFixturesFolder.isDirectory).isTrue()
+            .isEqualTo("formatted by gradle-fmt\n")
     }
 
     fun testActionPerformedIsIdempotent() {
@@ -113,8 +152,8 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
         }
 
         dependencies {
-            implementation(project(":zeta"))
             api(project(":alpha"))
+            implementation(project(":zeta"))
         }
         """
             .trimIndent()
@@ -122,8 +161,8 @@ class ApplyTestFixturesPluginActionTest : BasePlatformTestCase() {
     private fun expectedBuildGradleContent(): String =
         """
         plugins {
-            alias(bandlab.plugins.compose)
             alias(bandlab.plugins.library.kotlin)
+            alias(bandlab.plugins.compose)
             alias(bandlab.plugins.testFixtures)
         }
 

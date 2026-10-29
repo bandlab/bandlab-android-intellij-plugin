@@ -3,7 +3,7 @@
 package com.bandlab.intellij.plugin.test.fixtures
 
 import com.bandlab.intellij.plugin.BandLabIcons
-import com.bandlab.intellij.plugin.dependencies.sort.GradleDependenciesSorter
+import com.bandlab.intellij.plugin.dependencies.sort.GradleFmtRunner
 import com.bandlab.intellij.plugin.module.ModuleInfo
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_END
 import com.bandlab.intellij.plugin.utils.Const.PLUGINS_START
@@ -47,9 +47,10 @@ class ApplyTestFixturesPluginAction :
             },
         )
         // Sequential, not parallel: runWriteCommandAction has already returned, so the plugin is in
-        // the Document. sort() first saves that Document to disk synchronously and only then runs
-        // the CLI in the background, so the sorter sees the added plugin.
-        GradleDependenciesSorter.sort(project, buildGradle)
+        // the Document. format() first saves that Document to disk synchronously and only then runs
+        // gradle-fmt in the background, so the formatter sees the added plugin. In a project
+        // without gradle-fmt this is a no-op.
+        GradleFmtRunner.format(project, buildGradle)
     }
 
     private fun Project.addTestFixturesPlugin(fileAbsolutePath: String) {

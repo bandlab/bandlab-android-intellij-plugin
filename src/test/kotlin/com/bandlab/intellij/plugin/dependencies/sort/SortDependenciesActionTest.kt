@@ -15,11 +15,44 @@ import com.intellij.testFramework.TestActionEvent
 import com.intellij.testFramework.fixtures.BasePlatformTestCase
 import java.io.File
 
+/**
+ * The action shells out to the project's `misc/scripts/gradle-fmt`; these tests replace it with a
+ * bash stub that records how it was called and rewrites the build script. The real formatting is
+ * covered by the gradle-fmt repository.
+ */
 class SortDependenciesActionTest : BasePlatformTestCase() {
 
     override fun getTestDataPath(): String = File(".").absolutePath
 
-    fun testUpdateIsVisibleOnlyForBuildScripts() {
+    private val projectRoot: File
+        get() = File(requireNotNull(project.basePath))
+
+    private val stubScript: File
+        get() = File(projectRoot, "misc/scripts/gradle-fmt")
+
+    private val invocationLog: File
+        get() = File(projectRoot, "misc/scripts/gradle-fmt-invocation.log")
+
+    override fun tearDown() {
+        try {
+            // The light project is shared between tests: never leak the stub into the next one.
+            stubScript.delete()
+            invocationLog.delete()
+        } finally {
+            super.tearDown()
+        }
+    }
+
+    fun testUpdateIsHiddenWhenGradleFmtScriptIsMissing() {
+        val action = SortDependenciesAction()
+        val buildFile = createProjectFile("feature/build.gradle.kts", "plugins {}")
+        val event = createEvent(action, buildFile)
+        action.update(event)
+        assertThat(event.presentation.isEnabledAndVisible).isFalse()
+    }
+
+    fun testUpdateIsVisibleOnlyForBuildScriptsWhenGradleFmtScriptExists() {
+        installStub("exit 0")
         val action = SortDependenciesAction()
         val kotlinBuildFile = createProjectFile("feature/build.gradle.kts", "plugins {}")
         val groovyBuildFile = createProjectFile("legacy/build.gradle", "plugins {}")
@@ -35,62 +68,59 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
         assertThat(regularEvent.presentation.isEnabledAndVisible).isFalse()
     }
 
-    fun testActionPerformedSortsPluginsAndDependenciesAndKeepsComments() {
+    fun testActionPerformedRunsGradleFmtOnBuildScriptFromProjectRoot() {
+        installStub(
+            """
+            printf '%s\n' "${'$'}PWD" "${'$'}@" > "${invocationLog.path}"
+            printf '%s\n' 'dependencies {}' > "${'$'}1"
+            """
+                .trimIndent(),
+        )
         val action = SortDependenciesAction()
-        val buildFile =
-            createProjectFile(
-                "feature-profile/screen/build.gradle.kts",
-                unsortedBuildGradleContent(),
-            )
+        val buildFile = createProjectFile("feature/build.gradle.kts", "plugins {}\n")
         action.actionPerformed(createEvent(action, buildFile))
+        assertThat(invocationLog.readLines())
+            .containsExactly(projectRoot.canonicalPath, File(buildFile.path).canonicalPath)
+            .inOrder()
         assertThat(project.readFile(buildFile.path, isAbsolute = true))
-            .isEqualTo(expectedBuildGradleContent())
+            .isEqualTo("dependencies {}\n")
     }
 
-    fun testActionPerformedSortsGroovyBuildScript() {
+    fun testActionPerformedReloadsBuildScriptWhenGradleFmtWarns() {
+        installStub(
+            """
+            echo "warning: unknown code left as written" >&2
+            printf '%s\n' 'dependencies {}' > "${'$'}1"
+            """
+                .trimIndent(),
+        )
         val action = SortDependenciesAction()
-        val buildFile =
-            createProjectFile(
-                "legacy/build.gradle",
-                """
-                dependencies {
-                    implementation project(':zeta')
-                    api project(':alpha')
-                }
-                """
-                    .trimIndent() + "\n",
-            )
+        val buildFile = createProjectFile("feature/build.gradle.kts", "plugins {}\n")
         action.actionPerformed(createEvent(action, buildFile))
         assertThat(project.readFile(buildFile.path, isAbsolute = true))
-            .isEqualTo(
-                """
-                dependencies {
-                    api project(':alpha')
-                    implementation project(':zeta')
-                }
-                """
-                    .trimIndent() + "\n",
-            )
+            .isEqualTo("dependencies {}\n")
     }
 
-    fun testActionPerformedKeepsAlreadySortedFileUntouched() {
-        val action = SortDependenciesAction()
-        val buildFile =
-            createProjectFile(
-                "feature-profile/screen/build.gradle.kts",
-                expectedBuildGradleContent(),
-            )
-        action.actionPerformed(createEvent(action, buildFile))
-        assertThat(project.readFile(buildFile.path, isAbsolute = true))
-            .isEqualTo(expectedBuildGradleContent())
-    }
-
-    fun testActionPerformedLeavesUnparsableFileUntouched() {
+    fun testActionPerformedLeavesBuildScriptUntouchedWhenGradleFmtFails() {
+        installStub(
+            """
+            echo "build.gradle.kts: could not be parsed" >&2
+            exit 2
+            """
+                .trimIndent(),
+        )
         val action = SortDependenciesAction()
         val content = "dependencies {\n    implementation(\n"
         val buildFile = createProjectFile("broken/build.gradle.kts", content)
         action.actionPerformed(createEvent(action, buildFile))
         assertThat(project.readFile(buildFile.path, isAbsolute = true)).isEqualTo(content)
+    }
+
+    /** Writes an executable `misc/scripts/gradle-fmt` whose body is [body]. */
+    private fun installStub(body: String) {
+        stubScript.parentFile.mkdirs()
+        stubScript.writeText("#!/usr/bin/env bash\nset -eu\n$body\n")
+        check(stubScript.setExecutable(true))
     }
 
     private fun createEvent(
@@ -110,7 +140,7 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
     }
 
     private fun createProjectFile(relativePath: String, content: String): VirtualFile {
-        val ioFile = File(requireNotNull(project.basePath), relativePath)
+        val ioFile = File(projectRoot, relativePath)
         ioFile.parentFile.mkdirs()
         ioFile.writeText(content)
         val file = requireNotNull(LocalFileSystem.getInstance().refreshAndFindFileByIoFile(ioFile))
@@ -119,42 +149,4 @@ class SortDependenciesActionTest : BasePlatformTestCase() {
         VfsUtil.markDirtyAndRefresh(false, false, false, file)
         return file
     }
-
-    private fun unsortedBuildGradleContent(): String =
-        """
-        plugins {
-            alias(bandlab.plugins.compose)
-            alias(bandlab.plugins.library.kotlin)
-            alias(bandlab.plugins.metro)
-            alias(bandlab.plugins.compose)
-        }
-
-        dependencies {
-            // zeta is needed for X
-            implementation(project(":zeta"))
-            api(project(":alpha"))
-            compileOnly(project(":beta"))
-            testImplementation(libs.junit)
-        }
-        """
-            .trimIndent() + "\n"
-
-    private fun expectedBuildGradleContent(): String =
-        """
-        plugins {
-            alias(bandlab.plugins.compose)
-            alias(bandlab.plugins.compose)
-            alias(bandlab.plugins.library.kotlin)
-            alias(bandlab.plugins.metro)
-        }
-
-        dependencies {
-            api(project(":alpha"))
-            // zeta is needed for X
-            implementation(project(":zeta"))
-            compileOnly(project(":beta"))
-            testImplementation(libs.junit)
-        }
-        """
-            .trimIndent() + "\n"
 }
