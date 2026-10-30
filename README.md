@@ -2,6 +2,7 @@
 
 [![Build](https://github.com/bandlab/bandlab-android-intellij-plugin/actions/workflows/build.yml/badge.svg)](https://github.com/bandlab/bandlab-android-intellij-plugin/actions/workflows/build.yml)
 ![IntelliJ IDEA](https://img.shields.io/badge/IntelliJ%20IDEA%20Target-2025.3.3-orange.svg)
+[![Maven Central](https://img.shields.io/maven-central/v/com.bandlab/bandlab-android-intellij-plugin.svg?label=Maven%20Central)](https://central.sonatype.com/artifact/com.bandlab/bandlab-android-intellij-plugin)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 
 <!-- Plugin description -->
@@ -217,6 +218,23 @@ The BandLab Android project uses [pre-commit.com][pre-commit] hooks to enforce c
 
 <!-- Plugin description end -->
 
+## Installation
+
+Releases are published to [Maven Central][maven-central] as
+`com.bandlab:bandlab-android-intellij-plugin`.
+
+1. Open the [latest version][maven-central] and download the `.zip` file from **Browse**, or run:
+
+   ```bash
+   VERSION=<version>
+   curl -LO "https://repo1.maven.org/maven2/com/bandlab/bandlab-android-intellij-plugin/$VERSION/bandlab-android-intellij-plugin-$VERSION.zip"
+   ```
+
+2. In Android Studio, go to **Settings → Plugins → ⚙️ → Install Plugin from Disk…** and select the
+   downloaded `.zip` (don't unzip it), then restart the IDE.
+
+To update, repeat these steps with the newer version.
+
 ---
 
 License
@@ -246,4 +264,5 @@ Plugin based on the [IntelliJ Platform Plugin Template][template].
 [slack-foundry-project-path-autocomplete-pr]: https://github.com/slackhq/foundry/pull/1440
 [pre-commit]: https://pre-commit.com/
 [template]: https://github.com/JetBrains/intellij-platform-plugin-template
+[maven-central]: https://central.sonatype.com/artifact/com.bandlab/bandlab-android-intellij-plugin
 [docs:plugin-description]: https://plugins.jetbrains.com/docs/intellij/plugin-user-experience.html#plugin-description-and-presentation

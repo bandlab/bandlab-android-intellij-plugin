@@ -3,6 +3,8 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Changed
+- The plugin is now published to [Maven Central](https://central.sonatype.com/artifact/com.bandlab/bandlab-android-intellij-plugin) instead of Artifactory. See the README for installation steps.
 
 ## [2.8.1] - 2026-10-29
 ### Changed

@@ -1,11 +1,8 @@
 // Copyright 2026 BandLab Singapore Pte Ltd
 // SPDX-License-Identifier: Apache-2.0
-import dev.bmac.gradle.intellij.PluginUploader
-import java.util.*
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
-import org.jetbrains.intellij.platform.gradle.tasks.SignPluginTask
 
 plugins {
     id("java")
@@ -15,7 +12,7 @@ plugins {
     alias(libs.plugins.intellij.platform)
     alias(libs.plugins.kotlin)
     alias(libs.plugins.kover)
-    alias(libs.plugins.plugin.uploader)
+    alias(libs.plugins.maven.publish.base)
 }
 
 group = providers.gradleProperty("pluginGroup").get()
@@ -171,6 +168,97 @@ kover {
     reports.total.xml.onCheck = true
 }
 
+// Publish the plugin zip to Maven Central (Sonatype Central Portal) - read more:
+// https://vanniktech.github.io/gradle-maven-publish-plugin/central/
+// Credentials and the GPG key are Gradle properties: mavenCentralUsername, mavenCentralPassword,
+// signingInMemoryKey and signingInMemoryKeyPassword. CI passes them as ORG_GRADLE_PROJECT_ env
+// vars.
+val pluginSourcesJar =
+    tasks.register<Jar>("pluginSourcesJar") {
+        description = "Assembles the sources jar published to Maven Central"
+        group = "publishing"
+        archiveClassifier = "sources"
+        from(sourceSets.main.map { it.allSource })
+    }
+
+// Central requires a javadoc jar for non-pom packaging; an empty one is accepted.
+val pluginJavadocJar =
+    tasks.register<Jar>("pluginJavadocJar") {
+        description = "Assembles the empty javadoc jar published to Maven Central"
+        group = "publishing"
+        archiveClassifier = "javadoc"
+    }
+
+publishing {
+    publications {
+        register<MavenPublication>("intellijPlugin") {
+            // Publish the JetBrains-signed zip when the certificate is available (always on CI),
+            // otherwise the unsigned one, so publishToMavenLocal works without it.
+            if (providers.environmentVariable("CERTIFICATE_CHAIN").isPresent) {
+                // signedArchiveFile can't be queried before buildPlugin runs, but signing reads
+                // artifact files at configuration time, so point at the known output path.
+                artifact(
+                    layout.buildDirectory.file(
+                        "distributions/${providers.gradleProperty("pluginName").get()}-$version-signed.zip",
+                    ),
+                ) {
+                    classifier = null
+                    extension = "zip"
+                    builtBy(tasks.signPlugin)
+                }
+            } else {
+                artifact(tasks.buildPlugin.flatMap { it.archiveFile }) { extension = "zip" }
+            }
+            artifact(pluginSourcesJar)
+            artifact(pluginJavadocJar)
+        }
+    }
+}
+
+mavenPublishing {
+    coordinates("com.bandlab", providers.gradleProperty("pluginName").get(), version.toString())
+
+    pom {
+        // Set explicitly; deriving it from the zip artifact resolves signPlugin's output too early.
+        packaging = "zip"
+        name = "BandLab Android IntelliJ Plugin"
+        description = "IntelliJ plugin for BandLab Android project"
+        inceptionYear = "2023"
+        url = "https://github.com/bandlab/bandlab-android-intellij-plugin"
+        licenses {
+            license {
+                name = "Apache License, Version 2.0"
+                url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
+        developers {
+            developer {
+                id = "bandlab"
+                name = "BandLab Technologies"
+                email = "support@bandlab.com"
+                url = "https://github.com/bandlab"
+                organization = "BandLab Technologies"
+                organizationUrl = "https://github.com/bandlab"
+            }
+        }
+        scm {
+            url = "https://github.com/bandlab/bandlab-android-intellij-plugin"
+            connection = "scm:git:git://github.com/bandlab/bandlab-android-intellij-plugin.git"
+            developerConnection =
+                "scm:git:ssh://git@github.com/bandlab/bandlab-android-intellij-plugin.git"
+        }
+    }
+
+    // Releases publish automatically once Central validates the deployment.
+    publishToMavenCentral(automaticRelease = true)
+
+    // Central rejects unsigned releases; the publishing workflow fails early without a key.
+    if (providers.gradleProperty("signingInMemoryKey").orNull?.isNotBlank() == true) {
+        signAllPublications()
+    }
+}
+
 tasks {
     // Launches a headless IDE to prebuild the settings search index; collides with a running IDE
     // ("only one instance of IDEA") and breaks local builds. Settings stay searchable without it.
@@ -222,67 +310,6 @@ tasks {
 
     publishPlugin {
         dependsOn(patchChangelog)
-    }
-
-    uploadPlugin.configure {
-        val signPluginTask = project.tasks.named<SignPluginTask>("signPlugin")
-        dependsOn(signPluginTask)
-        url.set("https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/")
-        pluginName.set("Bandlab Android Intellij Plugin")
-        file.set(signPluginTask.flatMap { it.archiveFile })
-        pluginId.set(project.group.toString())
-        version.set(project.version.toString())
-        repoType.set(PluginUploader.RepoType.REST_PUT)
-        authentication.set(
-            "Basic " +
-                String(
-                    Base64.getEncoder()
-                        .encode(
-                            "${
-                        providers.environmentVariable("PUBLISH_USER").getOrElse("")
-                    }:${providers.environmentVariable("PUBLISH_PASSWORD").getOrElse("")}"
-                                .encodeToByteArray(),
-                        ),
-                ),
-        )
-        pluginDescription.set(
-            providers.fileContents(layout.projectDirectory.file("README.md")).asText.map {
-                val start = "<!-- Plugin description -->"
-                val end = "<!-- Plugin description end -->"
-
-                with(it.lines()) {
-                    if (!containsAll(listOf(start, end))) {
-                        throw GradleException(
-                            "Plugin description section not found in README.md:\n$start ... $end",
-                        )
-                    }
-                    subList(indexOf(start) + 1, indexOf(end))
-                        .joinToString("\n")
-                        .let(::markdownToHTML)
-                }
-            },
-        )
-        val changelog = project.changelog
-        changeNotes.set(
-            providers.gradleProperty("pluginVersion").map { pluginVersion ->
-                with(changelog) {
-                    renderItem(
-                        (getOrNull(pluginVersion) ?: getUnreleased())
-                            .withHeader(false)
-                            .withEmptySections(false),
-                        Changelog.OutputType.HTML,
-                    )
-                }
-            },
-        )
-        sinceBuild.set(providers.gradleProperty("pluginSinceBuild"))
-        untilBuild.set(providers.gradleProperty("pluginUntilBuild"))
-    }
-
-    generateBlockMap.configure {
-        // Depend on either signPlugin or buildPlugin, depending on which task provides the file in
-        // the uploadPlugin
-        dependsOn(project.tasks.named("signPlugin"))
     }
 }
 

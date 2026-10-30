@@ -4,19 +4,24 @@ on:
   release:
     types: [released]
 
+# The job only reads the repo; credentials come from secrets.
+permissions:
+  contents: read
+
+# Never let two publishes race for the same coordinates.
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
 jobs:
-  build-and-pubslih:
+  build-and-publish:
     env:
+      # JetBrains plugin signing (signPlugin)
       CERTIFICATE_CHAIN: ${{ secrets.CERTIFICATE_CHAIN }}
       PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
-      PUBLISH_USER: ${{ secrets.PUBLISH_USER }}
-      PUBLISH_PASSWORD: ${{ secrets.PUBLISH_PASSWORD }}
     name: Build and Publish
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.properties.outputs.version }}
-      changelog: ${{ steps.properties.outputs.changelog }}
     steps:
       - uses: actions/checkout@v7
       - name: Set up JVM
@@ -28,20 +33,69 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
         with:
           cache-disabled: true
-      - name: Export Properties
-        id: properties
-        shell: bash
+
+      # Maven Central releases are immutable, so make sure the release tag matches the version
+      # being built before uploading anything.
+      - name: Verify version
+        env:
+          # Pass untrusted values via env, not `${{ }}` interpolation, so a tag with shell
+          # metacharacters cannot inject into the script.
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
-          PROPERTIES="$(./gradlew properties --console=plain -q)"
-          VERSION="$(echo "$PROPERTIES" | grep "^version:" | cut -f2- -d ' ')"
-          CHANGELOG="$(./gradlew getChangelog --unreleased --no-header --console=plain -q)"
+          VERSION="$(./gradlew properties --console=plain -q | grep "^version:" | cut -f2- -d ' ')"
+          if [ "${RELEASE_TAG#v}" != "$VERSION" ]; then
+            echo "::error::Release tag '$RELEASE_TAG' does not match pluginVersion '$VERSION' in gradle.properties."
+            exit 1
+          fi
 
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "pluginVerifierHomeDir=~/.pluginVerifier" >> $GITHUB_OUTPUT
+      # Fail fast with a named secret instead of an opaque 401 or an unsigned release.
+      - name: Verify credentials
+        env:
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          SIGNING_KEY: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+        run: |
+          for name in CERTIFICATE_CHAIN PRIVATE_KEY MAVEN_CENTRAL_USERNAME MAVEN_CENTRAL_PASSWORD SIGNING_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "::error::Secret for $name must be set."
+              exit 1
+            fi
+          done
 
-          echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-      - name: Build
-        run: >
-          ./gradlew :signPlugin :uploadPlugin --no-configuration-cache
+      # A wrong passphrase fails later as an opaque BouncyCastle "checksum mismatch".
+      # Verify it here, and strip CR / trailing newline that copy-paste or
+      # `echo ... | gh secret set` can introduce into the key or password.
+      - name: Verify signing key
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_IN_MEMORY_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_IN_MEMORY_KEY_PASSWORD }}
+        run: |
+          KEY=$(printf '%s' "$SIGNING_KEY" | tr -d '\r')
+          PASS=$(printf '%s' "$SIGNING_PASSWORD" | tr -d '\r\n')
+          GNUPGHOME=$(mktemp -d)
+          export GNUPGHOME
+          printf '%s\n' "$KEY" | gpg --batch --import >/dev/null 2>&1
+          if ! printf 'verify' | gpg --batch --yes --pinentry-mode loopback \
+              --passphrase "$PASS" --sign -o /dev/null - >/dev/null 2>&1; then
+            echo "::error::SIGNING_IN_MEMORY_KEY or SIGNING_IN_MEMORY_KEY_PASSWORD is invalid (bad passphrase or corrupted key)."
+            exit 1
+          fi
+          {
+            echo "ORG_GRADLE_PROJECT_signingInMemoryKey<<__SIGNING_KEY__"
+            printf '%s\n' "$KEY"
+            echo "__SIGNING_KEY__"
+            echo "ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=$PASS"
+          } >> "$GITHUB_ENV"
+
+      - name: Publish to Maven Central
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+        run: ./gradlew publishToMavenCentral --no-configuration-cache
+
+      - name: Collect Verification Failure
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: pluginVerifier-failure
+          path: ${{ github.workspace }}/build/reports/problems
