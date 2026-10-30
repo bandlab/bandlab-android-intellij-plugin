@@ -3,6 +3,14 @@ name: Publish
 on:
   release:
     types: [released]
+  # Manual (re-)publish, e.g. a version released before Maven Central publishing existed, or a
+  # retry after a failed release run.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish; must match pluginVersion in gradle.properties on the selected ref'
+        required: true
+        type: string
 
 # The job only reads the repo; credentials come from secrets.
 permissions:
@@ -34,19 +42,23 @@ jobs:
         with:
           cache-disabled: true
 
-      # Maven Central releases are immutable, so make sure the release tag matches the version
-      # being built before uploading anything.
+      # Maven Central releases are immutable, so make sure the release tag (or the manual
+      # `version` input) matches the version being built before uploading anything.
       - name: Verify version
         env:
           # Pass untrusted values via env, not `${{ }}` interpolation, so a tag with shell
           # metacharacters cannot inject into the script.
           RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
           VERSION="$(./gradlew properties --console=plain -q | grep "^version:" | cut -f2- -d ' ')"
-          if [ "${RELEASE_TAG#v}" != "$VERSION" ]; then
-            echo "::error::Release tag '$RELEASE_TAG' does not match pluginVersion '$VERSION' in gradle.properties."
+          EXPECTED="${INPUT_VERSION:-$RELEASE_TAG}"
+          EXPECTED="${EXPECTED#v}"
+          if [ "$EXPECTED" != "$VERSION" ]; then
+            echo "::error::Requested version '$EXPECTED' does not match pluginVersion '$VERSION' in gradle.properties."
             exit 1
           fi
+          echo "Publishing $VERSION"
 
       # Fail fast with a named secret instead of an opaque 401 or an unsigned release.
       - name: Verify credentials
