@@ -11,6 +11,11 @@ on:
         description: 'Version to publish; must match pluginVersion in gradle.properties on the selected ref'
         required: true
         type: string
+      publish-maven-central:
+        description: 'Publish to Maven Central; untick to only update the plugin index for a version already there'
+        required: false
+        type: boolean
+        default: true
 
 # The job only reads the repo; credentials come from secrets.
 permissions:
@@ -29,6 +34,7 @@ jobs:
       PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
       PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
     name: Build and Publish
+    if: ${{ github.event_name == 'release' || inputs.publish-maven-central }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -111,3 +117,66 @@ jobs:
         with:
           name: pluginVerifier-failure
           path: ${{ github.workspace }}/build/reports/problems
+
+  # Developers' IDEs use the custom plugin repository on Artifactory
+  # (https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/updatePlugins.xml).
+  # Keep that index, but point the new version's download URL at the zip on Maven Central.
+  update-plugin-index:
+    name: Update plugin index
+    needs: build-and-publish
+    # Also run when the Maven Central upload was skipped on a manual run.
+    if: ${{ !cancelled() && needs.build-and-publish.result != 'failure' }}
+    runs-on: ubuntu-latest
+    env:
+      INDEX_URL: https://artifactory.bandlab.cloud/artifactory/intellij-idea-plugins/updatePlugins.xml
+      ARTIFACTORY_USERNAME: ${{ secrets.PUBLISH_USER }}
+      ARTIFACTORY_PASSWORD: ${{ secrets.PUBLISH_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Verify version and credentials
+        id: version
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          VERSION="$(sed -n 's/^pluginVersion[[:space:]]*=[[:space:]]*//p' gradle.properties)"
+          EXPECTED="${INPUT_VERSION:-$RELEASE_TAG}"
+          EXPECTED="${EXPECTED#v}"
+          if [ "$EXPECTED" != "$VERSION" ]; then
+            echo "::error::Requested version '$EXPECTED' does not match pluginVersion '$VERSION' in gradle.properties."
+            exit 1
+          fi
+          if [ -z "$ARTIFACTORY_USERNAME" ] || [ -z "$ARTIFACTORY_PASSWORD" ]; then
+            echo "::error::PUBLISH_USER and PUBLISH_PASSWORD secrets must both be set."
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      # Central syncs to repo1 some minutes after the deployment is published. Don't point the
+      # index at the zip before developers can download it.
+      - name: Wait for the zip on Maven Central
+        id: zip
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          URL="https://repo1.maven.org/maven2/com/bandlab/bandlab-android-intellij-plugin/$VERSION/bandlab-android-intellij-plugin-$VERSION.zip"
+          for attempt in $(seq 1 120); do
+            if curl -fsSL -o plugin.zip "$URL"; then
+              echo "url=$URL" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "Not on Maven Central yet ($attempt/120), retrying in 30s..."
+            sleep 30
+          done
+          echo "::error::$URL is still not available after 60 minutes."
+          exit 1
+
+      - name: Update and upload the index
+        env:
+          DOWNLOAD_URL: ${{ steps.zip.outputs.url }}
+        run: |
+          curl -fsSL -o current.xml "$INDEX_URL"
+          python3 -I .github/scripts/update_plugin_index.py plugin.zip "$DOWNLOAD_URL" current.xml updatePlugins.xml
+          curl -fsS -u "$ARTIFACTORY_USERNAME:$ARTIFACTORY_PASSWORD" -T updatePlugins.xml "$INDEX_URL" > /dev/null
+          echo "Uploaded $INDEX_URL"
