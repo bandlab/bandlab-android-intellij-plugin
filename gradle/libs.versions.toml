@@ -19,7 +19,7 @@ changelog = "2.5.0"
 # https://github.com/JetBrains/compose-multiplatform/releases
 compose = "1.12.2"
 # https://github.com/JetBrains/intellij-platform-gradle-plugin/releases
-intellij-platform = "2.19.0"
+intellij-platform = "2.20.0"
 kotlin = "2.4.21"
 kover = "0.9.11"
 # https://github.com/vanniktech/gradle-maven-publish-plugin/releases
