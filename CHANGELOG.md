@@ -6,6 +6,9 @@
 ### Changed
 - The plugin is now published to [Maven Central](https://central.sonatype.com/artifact/com.bandlab/bandlab-android-intellij-plugin) instead of Artifactory.
 
+### Fixed
+- Jenkins Test Run: fix authorization error on Send
+
 ## [2.8.1] - 2026-10-29
 ### Changed
 - Sort Dependencies: run the project's `misc/scripts/gradle-fmt` (bandlab/gradle-fmt) instead of the bundled square/gradle-dependencies-sorter CLI. The item is hidden in projects without the script; formatter warnings are shown in a balloon.
