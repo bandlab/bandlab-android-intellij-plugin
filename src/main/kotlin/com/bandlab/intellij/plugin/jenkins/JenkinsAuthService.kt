@@ -57,7 +57,7 @@ class JenkinsAuthService {
     private fun credentials(): Credentials? = PasswordSafe.instance[CREDENTIAL_ATTRIBUTES]
 
     companion object {
-        const val BASE_URL = "https://android-ci.bandlab.io/"
+        const val BASE_URL = "https://android-ci.bandlabtechnologies.net/"
 
         const val UI_TESTS_PATH = "run_ui_tests"
 
