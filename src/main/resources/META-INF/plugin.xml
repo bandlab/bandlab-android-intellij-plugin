@@ -64,6 +64,9 @@
         <!-- Strings.<key> of the localizer compiler plugin has no source; go to its strings.xml entry -->
         <gotoDeclarationHandler
                 implementation="com.bandlab.intellij.plugin.strings.textres.TextResGotoDeclarationHandler"/>
+        <!-- Find usages between Strings.<key> and its strings.xml entry -->
+        <usageTargetProvider implementation="com.bandlab.intellij.plugin.strings.textres.TextResUsageTargetProvider"/>
+        <referencesSearch implementation="com.bandlab.intellij.plugin.strings.textres.TextResKeyReferencesSearcher"/>
 
         <!-- Balloon notifications for Jenkins test-run results (with an "Open in Jenkins" link). -->
         <notificationGroup id="BandLab Jenkins" displayType="BALLOON"/>

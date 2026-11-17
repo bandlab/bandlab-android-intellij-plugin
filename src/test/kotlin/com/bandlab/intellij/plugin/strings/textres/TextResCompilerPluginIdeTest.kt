@@ -3,6 +3,7 @@
 package com.bandlab.intellij.plugin.strings.textres
 
 import com.google.common.truth.Truth.assertThat
+import com.intellij.find.findUsages.PsiElement2UsageTargetAdapter
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.WriteAction
@@ -127,6 +128,31 @@ class TextResCompilerPluginIdeTest : BasePlatformTestCase() {
         val tag = PlatformTestUtil.waitForFuture(targets, 30_000)?.single() as XmlTag
         assertThat(tag.containingFile.virtualFile.path).isEqualTo(stringsXml.path)
         assertThat(tag.getAttributeValue("name")).isEqualTo("save")
+    }
+
+    fun testFindUsagesOfAKeyListsItsReferences() {
+        myFixture.configureByText(
+            "Usage.kt",
+            """
+            import com.example.strings.Strings
+
+            val a = Strings.sa<caret>ve
+            val b = Strings.welcome(Strings.save)
+            val save = "save"
+            """
+                .trimIndent(),
+        )
+        val target =
+            TextResUsageTargetProvider()
+                .getTargets(myFixture.editor, myFixture.file)
+                ?.single()
+                .let { it as PsiElement2UsageTargetAdapter }
+                .element
+        assertThat((target as XmlTag).getAttributeValue("name")).isEqualTo("save")
+
+        val usages = myFixture.findUsages(target).map { it.element?.text }
+
+        assertThat(usages).containsExactly("save", "save")
     }
 
     fun testAddStringFixOffersAKeyMissingFromTheTable() {
