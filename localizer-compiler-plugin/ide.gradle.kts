@@ -21,7 +21,9 @@ val ides =
         "android-studio-stable" to (IntelliJPlatformType.AndroidStudio to "2026.2.2.9"),
         "android-studio-next" to (IntelliJPlatformType.AndroidStudio to "2026.2.3.4"),
     )
+
 val (ideType, ideVersion) = ides.getValue(name.removePrefix("localizer-compiler-plugin-"))
+
 val localizer = file(providers.gradleProperty("localizerSources").get())
 
 repositories {
@@ -65,12 +67,17 @@ kotlin {
 
 val ideCompilerVersion =
     configurations.named("intellijPlatformDependency").map { ide ->
-        ZipFile(ide.singleFile.resolve("plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar")).use {
-            it.getInputStream(it.getEntry("META-INF/compiler.version")).reader().readText().trim()
-        }
+        ZipFile(ide.singleFile.resolve("plugins/Kotlin/lib/kotlinc.kotlin-compiler-common.jar"))
+            .use {
+                it.getInputStream(it.getEntry("META-INF/compiler.version"))
+                    .reader()
+                    .readText()
+                    .trim()
+            }
     }
 val localizerCommit =
-    providers.exec { commandLine("git", "-C", localizer.path, "rev-parse", "--short", "HEAD") }
+    providers
+        .exec { commandLine("git", "-C", localizer.path, "rev-parse", "--short", "HEAD") }
         .standardOutput
         .asText
         .map { it.trim() }

@@ -312,7 +312,9 @@ tasks {
     if (providers.gradleProperty("localizerSources").isPresent) {
         register<Sync>("updateLocalizerCompilerPlugins") {
             description = "Rebuilds libs/compiler-plugins from a bandlab-localizer checkout"
-            val ideProjects = subprojects.filter { it.name.startsWith("localizer-compiler-plugin-") }
+            val ideProjects = subprojects.filter {
+                it.name.startsWith("localizer-compiler-plugin-")
+            }
             val jars = ideProjects.map { it.layout.buildDirectory.dir("libs") }
             dependsOn(ideProjects.map { "${it.path}:jar" })
             from(jars)
@@ -322,12 +324,17 @@ tasks {
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             doFirst {
                 val differing =
-                    jars.flatMap { it.get().asFile.listFiles().orEmpty().asList() }
+                    jars
+                        .flatMap { it.get().asFile.listFiles().orEmpty().asList() }
                         .groupBy { it.name }
-                        .filterValues { same -> same.map { it.readBytes().contentHashCode() }.distinct().size > 1 }
+                        .filterValues { same ->
+                            same.map { it.readBytes().contentHashCode() }.distinct().size > 1
+                        }
                         .keys
                 if (differing.isNotEmpty()) {
-                    throw GradleException("IDEs with the same Kotlin build compile differently: $differing")
+                    throw GradleException(
+                        "IDEs with the same Kotlin build compile differently: $differing",
+                    )
                 }
             }
         }
@@ -357,7 +364,10 @@ tasks {
         val reports = verificationReportsDirectory
         doLast {
             val unexpected =
-                reports.get().asFile.walk()
+                reports
+                    .get()
+                    .asFile
+                    .walk()
                     .filter { it.name == "internal-api-usages.txt" }
                     .flatMap { it.readLines() }
                     .filter { it.isNotBlank() && "KotlinBundledFirCompilerPluginProvider" !in it }
