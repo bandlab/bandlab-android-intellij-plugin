@@ -3,6 +3,9 @@
 # bandlab-android-intellij-plugin Changelog
 
 ## Unreleased
+### Added
+- Strings compiler plugin support: `Strings.<key>` / `Plurals.<key>` from bandlab-localizer's compiler plugin resolve and complete in K2 mode without the `kotlin.k2.only.bundled.compiler.plugins.enabled` registry key, pick up keys added to strings.xml without a Gradle sync, and go to declaration opens the key in strings.xml. "Add string" and "Update" work on these references.
+
 ### Changed
 - The plugin is now published to [Maven Central](https://central.sonatype.com/artifact/com.bandlab/bandlab-android-intellij-plugin) instead of Artifactory.
 

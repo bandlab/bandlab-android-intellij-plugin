@@ -48,6 +48,10 @@ class LocalizerConfigService(private val project: Project) {
         return targets().filter { it.addKeysToFile.startsWith("$prefix/") }
     }
 
+    /** Targets whose base file is [baseFile], the table file of the localizer compiler plugin. */
+    fun targetsForBaseFile(baseFile: Path): List<Target> =
+        targets().filter { it.baseFile.normalize() == baseFile.normalize() }
+
     /** The target owning [file] when it's a manifest base or translation string file, else null. */
     fun targetFor(file: VirtualFile): Target? {
         val path = file.toNioPathOrNull() ?: return null

@@ -3,6 +3,7 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
 
 plugins {
     id("java")
@@ -295,6 +296,15 @@ tasks {
 
     named("prepareSandbox") {
         dependsOn("patchReadme")
+    }
+
+    // bandlab-localizer's compiler plugin, one jar per IDE Kotlin version it was compiled against,
+    // loaded by TextResCompilerPluginProvider. Kept off the plugin classpath: each jar links
+    // against one IDE's compiler.
+    withType<PrepareSandboxTask>().configureEach {
+        from(layout.projectDirectory.dir("libs/compiler-plugins")) {
+            into(pluginName.map { "$it/compiler-plugins" })
+        }
     }
 
     test {

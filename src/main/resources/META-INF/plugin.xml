@@ -61,6 +61,9 @@
         </intentionAction>
         <editorNotificationProvider
                 implementation="com.bandlab.intellij.plugin.strings.LocalizerStringFileNotificationProvider"/>
+        <!-- Strings.<key> of the localizer compiler plugin has no source; go to its strings.xml entry -->
+        <gotoDeclarationHandler
+                implementation="com.bandlab.intellij.plugin.strings.textres.TextResGotoDeclarationHandler"/>
 
         <!-- Balloon notifications for Jenkins test-run results (with an "Open in Jenkins" link). -->
         <notificationGroup id="BandLab Jenkins" displayType="BALLOON"/>
@@ -81,7 +84,17 @@
         <supportsKotlinPluginMode supportsK2="true"/>
         <codeinsight.quickfix.registrar
                 implementation="com.bandlab.intellij.plugin.strings.AddStringUnresolvedQuickFixRegistrar"/>
+        <!-- Loads the localizer compiler plugin built against the IDE's Kotlin instead of the
+             project's jar, without the kotlin.k2.only.bundled.compiler.plugins.enabled registry key -->
+        <bundledFirCompilerPluginProvider
+                implementation="com.bandlab.intellij.plugin.strings.textres.TextResCompilerPluginProvider"/>
     </extensions>
+
+    <projectListeners>
+        <!-- Drops the IDE's FIR sessions when a compiler-plugin table's strings.xml changes -->
+        <listener class="com.bandlab.intellij.plugin.strings.textres.TextResTableFileListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    </projectListeners>
 
     <actions>
         <action id="ComposableTemplateCreateAction"
