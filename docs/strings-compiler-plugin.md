@@ -189,8 +189,10 @@ options into the facets; adding or removing keys never changes those options.
   `KotlinFacetModificationTracker` are Kotlin-plugin implementation classes.
   `publishGlobalSourceOutOfBlockModificationEvent` is the Analysis API platform interface (no
   opt-in, but platform-side API). The plugin is distributed through Maven Central, not the
-  Marketplace, so internal API use is a maintenance cost, not a publication blocker; the CI
-  `verifyPlugin` run reports breakage per IDE.
+  Marketplace, so internal API use is a maintenance cost, not a publication blocker. `verifyPlugin`
+  fails on internal API usages by default and its ignored-problems file does not cover them, so the
+  PR drops `INTERNAL_API_USAGES` from `failureLevel` (still reported); compatibility problems per
+  IDE still fail the build.
 - **One jar per supported IDE compiler.** Every Android Studio or IntelliJ update that bundles a new
   Kotlin build needs a new jar here, or highlighting of `Strings` falls back to the registry key /
   red code. Same for compiler-plugin changes in the localizer: the IDE jars are rebuilt from the
@@ -217,6 +219,8 @@ options into the facets; adding or removing keys never changes those options.
 2. Where IDE jars are built: here from the localizer's sources jars (recommended, section 2.3) or in
    the localizer repo against IDE distributions.
 3. "Open in Tolgee" intention and find usages: worth building now?
+4. `verifyPlugin` no longer fails on internal API usages (the provider EP is internal). Accept, or
+   keep the provider in a separate optional plugin module with its own verification settings.
 
 ## 9. Prototype (this PR)
 

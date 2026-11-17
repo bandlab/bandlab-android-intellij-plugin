@@ -4,6 +4,7 @@ import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
     id("java")
@@ -149,6 +150,15 @@ intellijPlatform {
             listOf(
                 "-mute",
                 "TemplateWordInPluginId,TemplateWordInPluginName,ExperimentalApiUsage",
+            )
+
+        // The Kotlin plugin's bundledFirCompilerPluginProvider EP (TextResCompilerPluginProvider)
+        // is @ApiStatus.Internal and has no public alternative, so internal API usages are
+        // reported, not failed; the ignored-problems file does not cover them.
+        failureLevel =
+            listOf(
+                VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+                VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES,
             )
 
         ides {
