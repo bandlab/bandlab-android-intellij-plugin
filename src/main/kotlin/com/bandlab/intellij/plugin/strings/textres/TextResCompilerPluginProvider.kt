@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 package com.bandlab.intellij.plugin.strings.textres
 
-import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.diagnostic.logger
-import com.intellij.openapi.extensions.PluginId
+import com.intellij.openapi.extensions.PluginAware
+import com.intellij.openapi.extensions.PluginDescriptor
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
@@ -24,7 +24,14 @@ import org.jetbrains.kotlin.idea.fir.extensions.KotlinBundledFirCompilerPluginPr
  * The bundled jar contains the plugin's `text-keys` dependency too; Gradle's separate `text-keys`
  * jar maps to the same file, which the IDE then loads once.
  */
-class TextResCompilerPluginProvider : KotlinBundledFirCompilerPluginProvider {
+class TextResCompilerPluginProvider : KotlinBundledFirCompilerPluginProvider, PluginAware {
+
+    // Injected by the platform; the plugin lookups of PluginManager are internal API since 262
+    private lateinit var plugin: PluginDescriptor
+
+    override fun setPluginDescriptor(pluginDescriptor: PluginDescriptor) {
+        plugin = pluginDescriptor
+    }
 
     override fun provideBundledPluginJar(project: Project, userSuppliedPluginJar: Path): Path? {
         if (!isLocalizerJar(userSuppliedPluginJar)) return null
@@ -36,12 +43,7 @@ class TextResCompilerPluginProvider : KotlinBundledFirCompilerPluginProvider {
             CompilerPluginRegistrarUtils.readRegistrarContent(jar)?.contains(REGISTRAR) == true
 
     private val bundledJar: Path? by lazy {
-        val directory =
-            PluginManager.getInstance()
-                .findEnabledPlugin(PluginId.getId(PLUGIN_ID))
-                ?.pluginPath
-                ?.resolve("compiler-plugins")
-                ?.takeIf { it.isDirectory() }
+        val directory = plugin.pluginPath.resolve("compiler-plugins").takeIf { it.isDirectory() }
         val jars = directory?.listDirectoryEntries("$JAR_PREFIX*.jar").orEmpty()
         val ideKotlin = KotlinPluginLayout.ideCompilerVersion.rawVersion
         val picked =
@@ -56,7 +58,6 @@ class TextResCompilerPluginProvider : KotlinBundledFirCompilerPluginProvider {
     }
 
     private companion object {
-        const val PLUGIN_ID = "com.bandlab.intellij.plugin"
         const val JAR_PREFIX = "localizer-compiler-plugin-"
         const val REGISTRAR = "com.bandlab.localizer.text.compiler.TextResCompilerPluginRegistrar"
         val LOG = logger<TextResCompilerPluginProvider>()
