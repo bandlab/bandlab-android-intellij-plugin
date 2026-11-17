@@ -3,6 +3,7 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.bandlab.intellij.plugin.strings.textres.textResKeyReference
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.icons.AllIcons
@@ -13,6 +14,7 @@ import com.intellij.openapi.util.Iconable
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.util.PsiTreeUtil
+import java.nio.file.Path
 import javax.swing.Icon
 import org.jetbrains.kotlin.analysis.api.fir.diagnostics.KaFirDiagnostic
 import org.jetbrains.kotlin.idea.codeinsight.api.applicators.fixes.KotlinQuickFixRegistrar
@@ -24,10 +26,12 @@ import org.jetbrains.kotlin.psi.KtNameReferenceExpression
 
 /**
  * Contributes "Localizer: Add string" to the **red** error-fix section on an *unresolved*
- * `R.string.X` / `R.plurals.X` reference in Kotlin code (incl. import-aliased / typealiased forms)
- * — i.e. when the key doesn't exist yet. By hooking the K2 `UNRESOLVED_REFERENCE` diagnostic the
- * fix sits beside Android's "Create string value resource", rather than buried in the yellow
- * intention list. Pulls the key from Tolgee via `update-strings --add-keys`.
+ * `R.string.X` / `R.plurals.X` reference in Kotlin code (incl. import-aliased / typealiased forms),
+ * or an unresolved member of a table object of the localizer compiler plugin (`Strings.X`) — i.e.
+ * when the key doesn't exist yet. The plugin's table names the target file directly. By hooking the
+ * K2 `UNRESOLVED_REFERENCE` diagnostic the fix sits beside Android's "Create string value
+ * resource", rather than buried in the yellow intention list. Pulls the key from Tolgee via
+ * `update-strings --add-keys`.
  *
  * Registered through the Kotlin plugin EP `org.jetbrains.kotlin.codeinsight.quickfix.registrar`.
  */
@@ -49,12 +53,16 @@ private fun addStringFixesFor(psi: PsiElement): List<IntentionAction> {
         psi as? KtNameReferenceExpression
             ?: PsiTreeUtil.getParentOfType(psi, KtNameReferenceExpression::class.java, false)
             ?: return emptyList()
+    textResKeyReference(ref)?.let {
+        return listOf(AddStringQuickFix(it.key, tableFile = it.table.file, rClassFqn = null))
+    }
     val key = resStringKey(ref) ?: return emptyList()
-    return listOf(AddStringQuickFix(key, resStringRClassFqn(ref)))
+    return listOf(AddStringQuickFix(key, tableFile = null, rClassFqn = resStringRClassFqn(ref)))
 }
 
 private class AddStringQuickFix(
     private val key: String,
+    private val tableFile: Path?,
     private val rClassFqn: String?,
 ) : IntentionAction, Iconable, PriorityAction {
 
@@ -72,6 +80,10 @@ private class AddStringQuickFix(
     override fun isAvailable(project: Project, editor: Editor?, file: PsiFile?): Boolean = true
 
     override fun invoke(project: Project, editor: Editor?, file: PsiFile?) {
-        LocalizerOps.addForReference(project, key, rClassFqn)
+        val service = project.service<LocalizerConfigService>()
+        val candidates =
+            tableFile?.let(service::targetsForBaseFile)
+                ?: rClassFqn?.let(service::targetsForRClass).orEmpty()
+        LocalizerOps.addForReference(project, key, candidates)
     }
 }

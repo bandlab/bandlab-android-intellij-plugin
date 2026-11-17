@@ -45,15 +45,13 @@ internal object LocalizerOps {
     }
 
     /**
-     * Add strings for an unresolved `R.string.X`/`R.plurals.X` reference. Resolves candidate
-     * targets from the reference's R class FQN: exactly one → run immediately; none → dialog over
-     * the full list (forced pick); several → dialog over just the candidates (forced pick). [key]
-     * pre-fills.
+     * Add strings for an unresolved key reference, given the targets its R class or table maps to:
+     * exactly one → run immediately; none → dialog over the full list (forced pick); several →
+     * dialog over just the candidates (forced pick). [key] pre-fills.
      */
-    fun addForReference(project: Project, key: String, rClassFqn: String?) {
+    fun addForReference(project: Project, key: String, candidates: List<Target>) {
         val service = project.service<LocalizerConfigService>()
         if (service.targets().isEmpty()) return
-        val candidates = rClassFqn?.let { service.targetsForRClass(it) }.orEmpty()
         when (candidates.size) {
             1 -> addDirect(project, listOf(key), candidates.single())
             0 -> addWithDialog(project, service.targets(), preselected = null, initialKeys = key)
