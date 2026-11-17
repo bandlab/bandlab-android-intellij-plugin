@@ -4,6 +4,7 @@ package com.bandlab.intellij.plugin.strings.textres
 
 import com.intellij.ide.plugins.PluginManager
 import com.intellij.openapi.diagnostic.logger
+import com.intellij.openapi.extensions.PluginId
 import com.intellij.openapi.project.Project
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
@@ -36,7 +37,8 @@ class TextResCompilerPluginProvider : KotlinBundledFirCompilerPluginProvider {
 
     private val bundledJar: Path? by lazy {
         val directory =
-            PluginManager.getPluginByClass(TextResCompilerPluginProvider::class.java)
+            PluginManager.getInstance()
+                .findEnabledPlugin(PluginId.getId(PLUGIN_ID))
                 ?.pluginPath
                 ?.resolve("compiler-plugins")
                 ?.takeIf { it.isDirectory() }
@@ -54,6 +56,7 @@ class TextResCompilerPluginProvider : KotlinBundledFirCompilerPluginProvider {
     }
 
     private companion object {
+        const val PLUGIN_ID = "com.bandlab.intellij.plugin"
         const val JAR_PREFIX = "localizer-compiler-plugin-"
         const val REGISTRAR = "com.bandlab.localizer.text.compiler.TextResCompilerPluginRegistrar"
         val LOG = logger<TextResCompilerPluginProvider>()
