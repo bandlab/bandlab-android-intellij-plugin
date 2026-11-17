@@ -17,8 +17,8 @@ Gradle sync puts the `-P` options into the facet, including the internal `tableF
 The bundled jar must be compiled against the IDE's own Kotlin, not the public release of the same
 version. A build against public 2.3.20 fails in IntelliJ 2025.3.3 (`2.3.20-ij253-105`) with
 `NoSuchMethodError` on `createMemberFunction`. The same sources compiled against the IDE's jars
-work. Android Studio Panda reports `2.3.255-dev-255` and accepts both a jar built against its own
-jars and the IntelliJ 253 one.
+work. In Android Studio Rabbit 2 (`2.4.255-dev-255`), its jar resolves and completes keys with the
+registry key off.
 
 The provider picks a jar by the IDE's compiler version: an exact match, or the nearest earlier
 build of the same `-ijNNN` branch. Studio's compiler isn't published to Maven, so

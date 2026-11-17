@@ -74,8 +74,8 @@ class TextResCompilerPluginIdeTest : BasePlatformTestCase() {
     override fun tearDown() {
         try {
             KotlinCommonCompilerArgumentsHolder.getInstance(project).update {
-                pluginClasspaths = null
-                pluginOptions = null
+                pluginClasspaths = emptyArray()
+                pluginOptions = emptyArray()
             }
         } finally {
             super.tearDown()
