@@ -19,7 +19,7 @@ if (providers.gradleProperty("localizerSources").isPresent) {
     listOf("intellij-idea", "android-studio-stable", "android-studio-next").forEach { ide ->
         include(":localizer-compiler-plugin-$ide")
         project(":localizer-compiler-plugin-$ide").apply {
-            projectDir = file("localizer-compiler-plugin/$ide")
+            projectDir = file("localizer-compiler-plugin/$ide").apply { mkdirs() }
             buildFileName = "../ide.gradle.kts"
         }
     }
