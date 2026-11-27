@@ -3,6 +3,7 @@
 package com.bandlab.intellij.plugin.strings
 
 import com.bandlab.intellij.plugin.localizer.LocalizerConfigService
+import com.bandlab.intellij.plugin.strings.textres.textResKeyAt
 import com.intellij.codeInsight.intention.IntentionAction
 import com.intellij.codeInsight.intention.PriorityAction
 import com.intellij.icons.AllIcons
@@ -17,10 +18,12 @@ import javax.swing.Icon
  * Alt+Enter intention to re-fetch a string fresh from Tolgee and overwrite it in place (base +
  * every translation), via `update-strings --update-keys`. Available from two caret positions:
  * - on a `<string>`/`<plurals>` element in a manifest string file, and
- * - on an `R.string.X` / `R.plurals.X` reference whose key **is** already defined locally.
+ * - on an `R.string.X` / `R.plurals.X` or compiler-plugin `Strings.X` reference whose key **is**
+ *   already defined locally.
  *
  * (Sibling of [AddStringUnresolvedQuickFixRegistrar], which fires on a reference whose key is *not*
- * local — i.e. unresolved.) PSI-only, so it works regardless of Gradle sync.
+ * local — i.e. unresolved.) `R.string` forms are PSI-only and work regardless of Gradle sync;
+ * `Strings.X` needs the table options a sync puts into the module's Kotlin facet.
  */
 class UpdateStringIntention : IntentionAction, Iconable, PriorityAction {
 
@@ -55,8 +58,8 @@ class UpdateStringIntention : IntentionAction, Iconable, PriorityAction {
 
 /**
  * The managed string key at [offset]: the enclosing `<string>`/`<plurals>` key when [file] is a
- * manifest string file, otherwise the `R.string.X`/`R.plurals.X` key under the caret when that key
- * is already defined in a base file. Null when neither applies.
+ * manifest string file, otherwise the `Strings.X` or `R.string.X`/`R.plurals.X` key under the caret
+ * when that key is already defined in a base file. Null when neither applies.
  */
 internal fun managedKeyAt(project: Project, file: PsiFile, offset: Int): String? {
     val service = project.service<LocalizerConfigService>()
@@ -64,5 +67,6 @@ internal fun managedKeyAt(project: Project, file: PsiFile, offset: Int): String?
     if (virtualFile != null && service.isManagedStringFile(virtualFile)) {
         return stringKeyAt(file, offset)
     }
-    return resStringKeyAt(file, offset)?.takeIf { it in localBaseKeys(project) }
+    val key = textResKeyAt(file, offset)?.key ?: resStringKeyAt(file, offset)
+    return key?.takeIf { it in localBaseKeys(project) }
 }

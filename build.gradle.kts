@@ -3,6 +3,8 @@
 import org.jetbrains.changelog.Changelog
 import org.jetbrains.changelog.markdownToHTML
 import org.jetbrains.intellij.platform.gradle.TestFrameworkType
+import org.jetbrains.intellij.platform.gradle.tasks.PrepareSandboxTask
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
     id("java")
@@ -148,6 +150,15 @@ intellijPlatform {
             listOf(
                 "-mute",
                 "TemplateWordInPluginId,TemplateWordInPluginName,ExperimentalApiUsage",
+            )
+
+        // Internal API usages fail in verifyPlugin's doLast below instead, except the Kotlin
+        // plugin's @ApiStatus.Internal bundledFirCompilerPluginProvider EP, which has no public
+        // alternative; the verifier's ignored-problems file does not cover internal usages.
+        failureLevel =
+            listOf(
+                VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+                VerifyPluginTask.FailureLevel.OVERRIDE_ONLY_API_USAGES,
             )
 
         ides {
@@ -297,6 +308,47 @@ tasks {
         dependsOn("patchReadme")
     }
 
+    // See settings.gradle.kts
+    if (providers.gradleProperty("localizerSources").isPresent) {
+        register<Sync>("updateLocalizerCompilerPlugins") {
+            description = "Rebuilds libs/compiler-plugins from a bandlab-localizer checkout"
+            val ideProjects = subprojects.filter {
+                it.name.startsWith("localizer-compiler-plugin-")
+            }
+            val jars = ideProjects.map { it.layout.buildDirectory.dir("libs") }
+            dependsOn(ideProjects.map { "${it.path}:jar" })
+            from(jars)
+            into(layout.projectDirectory.dir("libs/compiler-plugins"))
+            // Android Studio reports `2.x.255-dev-255` for every build of a minor, so two supported
+            // IDEs can share a jar name; that is only safe while they compile to the same bytes
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+            doFirst {
+                val differing =
+                    jars
+                        .flatMap { it.get().asFile.listFiles().orEmpty().asList() }
+                        .groupBy { it.name }
+                        .filterValues { same ->
+                            same.map { it.readBytes().contentHashCode() }.distinct().size > 1
+                        }
+                        .keys
+                if (differing.isNotEmpty()) {
+                    throw GradleException(
+                        "IDEs with the same Kotlin build compile differently: $differing",
+                    )
+                }
+            }
+        }
+    }
+
+    // bandlab-localizer's compiler plugin, one jar per IDE Kotlin version it was compiled against,
+    // loaded by TextResCompilerPluginProvider. Kept off the plugin classpath: each jar links
+    // against one IDE's compiler.
+    withType<PrepareSandboxTask>().configureEach {
+        from(layout.projectDirectory.dir("libs/compiler-plugins")) {
+            into(pluginName.map { "$it/compiler-plugins" })
+        }
+    }
+
     test {
         // The bundled Vue.js plugin is pulled into the test sandbox transitively via the Android
         // plugin. During tests that mutate the project's VFS (e.g. adding files), the platform's
@@ -306,6 +358,24 @@ tasks {
         // logged error is turned into a test failure by TestLoggerFactory. We don't rely on any
         // JS/Vue functionality, so suppress the plugin in tests to avoid the spurious failures.
         systemProperty("idea.suppressed.plugins.id", "org.jetbrains.plugins.vue")
+    }
+
+    verifyPlugin {
+        val reports = verificationReportsDirectory
+        doLast {
+            val unexpected =
+                reports
+                    .get()
+                    .asFile
+                    .walk()
+                    .filter { it.name == "internal-api-usages.txt" }
+                    .flatMap { it.readLines() }
+                    .filter { it.isNotBlank() && "KotlinBundledFirCompilerPluginProvider" !in it }
+                    .toSortedSet()
+            if (unexpected.isNotEmpty()) {
+                throw GradleException("Internal API usages:\n" + unexpected.joinToString("\n"))
+            }
+        }
     }
 
     publishPlugin {
